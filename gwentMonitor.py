@@ -14,33 +14,35 @@ import praw
 
 # https://www.reddit.com/r/gwent/comments.json
 
-reddit = praw.Reddit(user_agent='gwent_monitor')
-# reddit.login()
-# subreddit = reddit.get_subreddit('gwent')
-# subreddit_comments = subreddit.get_comments()
-# print([str(x) for x in subreddit_comments])
-
 def run_browser(key):
-	# binary = FirefoxBinary(r'C:\Program Files (x86)\Mozilla Firefox\firefox.exe')
-	# browser = webdriver.Firefox(firefox_binary=binary)
-
+	# browser = webdriver.Firefox(FirefoxBinary(r'C:\Program Files (x86)\Mozilla Firefox\firefox.exe'))
 	browser = Chrome()
 	browser.get('https://www.playgwent.com/en/redeem/' + key)
 
-	browser.find_element_by_id('beta_code_value').send_keys(key)
+	# Doesn't work because annoying recaptcha...
+	# browser.find_element_by_class_name('recaptcha-checkbox-checkmark').click()
+	# time.sleep(3)
+	# browser.find_element_by_id('beta_code_save').click()
+	# time.sleep(5)
+	# browser.find_element_by_id('login_username').send_keys('insert_user')
+	# browser.find_element_by_id('login_password').send_keys('insert_pass')
+	# browser.find_element_by_id('login_login').click()
 
 def find_key(text):
 	return re.findall(r'[A-Z\d]{18}', text)
 
-for comment in praw.helpers.comment_stream(
-		reddit_session=reddit, subreddit='gwent', limit=5, verbosity=0):
+if __name__ == '__main__':
+	reddit = praw.Reddit(user_agent='gwent_monitor')
 
-	keys = find_key(comment.body)
+	for comment in praw.helpers.comment_stream(
+			reddit_session=reddit, subreddit='gwent', limit=5, verbosity=0):
 
-	if keys:
-		print(comment.body)
-		print(keys)
-		sys.stdout.flush()
+		keys = find_key(comment.body)
 
-		for key in keys:
-			run_browser(key)
+		if keys:
+			print(comment.body)
+			print(keys)
+			sys.stdout.flush()
+
+			for key in keys:
+				run_browser(key)
