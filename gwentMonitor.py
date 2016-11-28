@@ -1,6 +1,10 @@
 import sys
-import praw
 import re
+# import time
+# from selenium import webdriver
+# from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
+from selenium.webdriver import Chrome
+import praw
 
 # SKJ52AA282C08E5E93
 # SKJ50618268F230B08
@@ -16,11 +20,20 @@ reddit = praw.Reddit(user_agent='gwent_monitor')
 # subreddit_comments = subreddit.get_comments()
 # print([str(x) for x in subreddit_comments])
 
+def run_browser(key):
+	# binary = FirefoxBinary(r'C:\Program Files (x86)\Mozilla Firefox\firefox.exe')
+	# browser = webdriver.Firefox(firefox_binary=binary)
+
+	browser = Chrome()
+	browser.get('https://www.playgwent.com/en/redeem/' + key)
+
+	browser.find_element_by_id('beta_code_value').send_keys(key)
+
 def find_key(text):
 	return re.findall(r'[A-Z\d]{18}', text)
 
 for comment in praw.helpers.comment_stream(
-		reddit_session=reddit, subreddit='gwent', limit=100, verbosity=0):
+		reddit_session=reddit, subreddit='gwent', limit=5, verbosity=0):
 
 	keys = find_key(comment.body)
 
@@ -29,3 +42,5 @@ for comment in praw.helpers.comment_stream(
 		print(keys)
 		sys.stdout.flush()
 
+		for key in keys:
+			run_browser(key)
