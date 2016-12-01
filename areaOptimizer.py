@@ -15,6 +15,9 @@ def intersection(interval1: Interval, interval2: Interval):
 
 # Sorts and joins adjacent intervals
 def join_intervals(intervals: List[Interval]):
+	if len(intervals) < 2:
+		return intervals
+
 	joined_intervals = []
 	sorted_intervals = sorted(intervals, key=lambda x: x.min)
 	accumulator = sorted_intervals[0]
@@ -35,43 +38,23 @@ def join_intervals(intervals: List[Interval]):
 
 # Complement a list of intervals inside a given closed interval domain
 def complement(intervals: List[Interval], domain: Interval):
+	if len(intervals) == 0:
+		return domain
+
 	joined_intervals = join_intervals(intervals)
 	complemented = []
 
 	if domain.min < joined_intervals[0].min:
-		complemented.append(Interval(domain.min, join_intervals[0].min - 1))
+		complemented.append(Interval(domain.min, joined_intervals[0].min - 1))
 
-	complemented.extend([Interval(a.max + 1, b.min - 1) for a, b in
-		zip(joined_intervals, joined_intervals[1:])])
+	if len(intervals) > 1:
+		complemented.extend([Interval(a.max + 1, b.min - 1) for a, b in
+			zip(joined_intervals, joined_intervals[1:])])
 
 	if domain.max > joined_intervals[-1].max:
-		complemented.append(Interval(join_intervals[0].max + 1, domain.max))
+		complemented.append(Interval(joined_intervals[0].max + 1, domain.max))
 
 	return complemented
-
-def left(shape: Shape):
-	return shape.position.x
-
-def top(shape: Shape):
-	return shape.position.y
-
-def right(shape: Shape):
-	return shape.position.x + blocks[shape.idx].width - 1
-
-def bottom(shape: Shape):
-	return shape.position.y + blocks[shape.idx].height - 1
-
-def check_overlap(shape1: Shape, shape2: Shape):
-	return (shape1.position.x <= right(shape2) and
-		right(shape1) >= shape2.position.x and
-		shape1.position.y <= bottom(shape2) and
-		bottom(shape1) >= shape2.position.y)
-
-def contained(shape_top: Shape, shape_bottom: Shape):
-	# if top(shape_bottom) != bottom(shape_top) + 1 or (right(shape_bottom) < left(shape) and left(shape_bottom) > right(shape)):
-	return None if bottom(shape_top) + 1 != top(shape_bottom) else intersection(
-		Interval(left(shape_top), right(shape_top)),
-		Interval(left(shape_bottom), right(shape_bottom)))
 
 def get_divisors(num: int):
 	return [i for i in range(1, num + 1) if num % i == 0]
@@ -92,12 +75,36 @@ def get_topologies(width: int, height: int, divisions: int):
 
 	origin = Position(0, 0)
 
+	def left(shape: Shape):
+		return shape.position.x
+
+	def top(shape: Shape):
+		return shape.position.y
+
+	def right(shape: Shape):
+		return shape.position.x + blocks[shape.idx].width - 1
+
+	def bottom(shape: Shape):
+		return shape.position.y + blocks[shape.idx].height - 1
+
+	def check_overlap(shape1: Shape, shape2: Shape):
+		return (shape1.position.x <= right(shape2) and
+			right(shape1) >= shape2.position.x and
+			shape1.position.y <= bottom(shape2) and
+			bottom(shape1) >= shape2.position.y)
+
+	def contained(shape_top: Shape, shape_bottom: Shape):
+		# if top(shape_bottom) != bottom(shape_top) + 1 or (right(shape_bottom) < left(shape) and left(shape_bottom) > right(shape)):
+		return None if bottom(shape_top) + 1 != top(shape_bottom) else intersection(
+			Interval(left(shape_top), right(shape_top)),
+			Interval(left(shape_bottom), right(shape_bottom)))
+
 	# Check for intervals covered by the bottom edge
-	def covered(shape):
-		return join_intervals(filter(lambda x: x, [contained(shape, s) for s in stack]))
+	def covered(shape: Shape):
+		return join_intervals(list(filter(lambda x: x, [contained(shape, s) for s in stack])))
 
 	# Check for intervals uncovered by the bottom edge
-	def uncovered(shape):
+	def uncovered(shape: Shape):
 		return complement(covered(shape), Interval(left(shape), right(shape)))
 
 	# Topmost, Leftest unfilled position
@@ -117,7 +124,7 @@ def get_topologies(width: int, height: int, divisions: int):
 		return Position(top_sort[0].x, top_sort[0].y)
 
 	# Checks whether shape exceeds boundaries or overlaps with existing shapes in the stack
-	def verify_fit(shape):
+	def verify_fit(shape: Shape):
 		return (right(shape) < width and bottom(shape) < height and
 			all([check_overlap(shape, s) for s in stack]))
 
@@ -130,8 +137,10 @@ def get_topologies(width: int, height: int, divisions: int):
 	j = 0
 
 	# Loop conditions are a little too "clever"
-	while j < len(blocks) and len(stack) > 0:
+	while j < len(blocks):
 		if j >= len(blocks):
+			if len(stack) == 0:
+				break
 			j = stack.pop().idx + 1
 			continue
 
@@ -154,6 +163,7 @@ def get_topologies(width: int, height: int, divisions: int):
 	return topologies
 
 print(get_blocks(30, 16, 40))
-print(get_topologies(30, 16, 12))
+# print(get_topologies(30, 16, 12))
+print(get_topologies(16, 30, 12))
 
 
