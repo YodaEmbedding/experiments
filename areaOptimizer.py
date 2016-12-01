@@ -1,6 +1,7 @@
 # http://math.stackexchange.com/questions/2037059/find-all-possible-integer-dimension-equiareas-inside-a-fixed-rectangle
 
 import itertools
+from typing import List
 from collections import namedtuple
 
 Block = namedtuple("Block", "width height")
@@ -11,6 +12,42 @@ Interval = namedtuple("Interval", "min max")
 def intersection(interval1: Interval, interval2: Interval):
 	intersection = Interval(max(interval1.min, interval2.min), min(interval1.max, interval2.max))
 	return None if intersection.max < intersection.min else intersection
+
+# Sorts and joins adjacent intervals
+def join_intervals(intervals: List[Interval]):
+	joined_intervals = []
+	sorted_intervals = sorted(intervals, key=lambda x: x.min)
+	accumulator = sorted_intervals[0]
+
+	def joinable(interval1, interval2):
+		return interval1.max + 1 == interval2.min
+
+	for interval in sorted_intervals[1:]:
+		if joinable(accumulator, interval):
+			accumulator = Interval(accumulator.min, interval.max)
+		else:
+			joined_intervals.append(accumulator)
+			accumulator = interval
+
+	joined_intervals.append(accumulator)
+
+	return joined_intervals
+
+# Complement a list of intervals inside a given closed interval domain
+def complement(intervals: List[Interval], domain: Interval):
+	joined_intervals = join_intervals(intervals)
+	complemented = []
+
+	if domain.min < joined_intervals[0].min:
+		complemented.append(Interval(domain.min, join_intervals[0].min - 1))
+
+	complemented.extend([Interval(a.max + 1, b.min - 1) for a, b in
+		zip(joined_intervals, joined_intervals[1:])])
+
+	if domain.max > joined_intervals[-1].max:
+		complemented.append(Interval(join_intervals[0].max + 1, domain.max))
+
+	return complemented
 
 def left(shape: Shape):
 	return shape.position.x
@@ -57,17 +94,11 @@ def get_topologies(width: int, height: int, divisions: int):
 
 	# Check for intervals covered by the bottom edge
 	def covered(shape):
-		intervals = filter(lambda x: x, [contained(shape, s) for s in stack])
-		sorted_intervals = sorted(intervals, key=lambda x: x.min)
-		zipped = zip(sorted_intervals, sorted_intervals[1::])
-
-		joined_intervals = [(if ___) for a, b in zipped] ???
-
-		return joined_intervals
+		return join_intervals(filter(lambda x: x, [contained(shape, s) for s in stack]))
 
 	# Check for intervals uncovered by the bottom edge
-	def uncovered_leftmost(shape):
-		return ?? 
+	def uncovered(shape):
+		return complement(covered(shape), Interval(left(shape), right(shape)))
 
 	# Topmost, Leftest unfilled position
 	def next_position():
@@ -78,19 +109,12 @@ def get_topologies(width: int, height: int, divisions: int):
 		if len(stack) == 0:
 			return origin
 
-		positions = [uncovered(s) for s in shapes if uncovered(s)]
-		# flatten
-		# return minimimum of the position
-		???
+		#!todo verify correctness... top(s)?? wat??? stack???
+		positions = [Position(uncovered(s)[0].min, top(s)) for s in stack if uncovered(s)]
+		left_sort = sorted(positions, key=lambda p: p.x)
+		top_sort = sorted(left_sort, key=lambda p: p.y)
 
-		# NOT EXACTLY... this will always return some constant value on the top row...
-		# Check if below doesn't have ...
-		# get all objects with min...
-
-		# be very careful with next filter
-		# consider if rows are perfect height equal but one has already filled left and does not continuously form a vertical boundary...
-
-		return origin if len(stack) == 0 else origin
+		return Position(top_sort[0].x, top_sort[0].y)
 
 	# Checks whether shape exceeds boundaries or overlaps with existing shapes in the stack
 	def verify_fit(shape):
