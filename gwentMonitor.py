@@ -29,7 +29,7 @@ def run_browser(key):
 	# browser.find_element_by_id('login_login').click()
 
 def find_key(text):
-	return re.findall(r'[A-Z\d]{18}', text)
+	return re.findall(r'SKJ[^\s]+', text)   # Alternatively, r'[A-Z\d]{18}' is slightly less strict.
 
 if __name__ == '__main__':
 	reddit = praw.Reddit(user_agent='gwent_monitor')
@@ -40,7 +40,9 @@ if __name__ == '__main__':
 		keys = find_key(comment.body)
 
 		if keys:
+			print("\nComment:")
 			print(comment.body)
+			print("\nKeys:")
 			print(keys)
 			sys.stdout.flush()
 
