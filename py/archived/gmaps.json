@@ -1,0 +1,21 @@
+{
+  "snappedPoints": [
+    {
+      "location": {
+        "latitude": 49.058706421031026,
+        "longitude": -122.28500393194348
+      },
+      "originalIndex": 0,
+      "placeId": "ChIJy7KaDHk1hFQRoY4mqhgVIMw"
+    }
+  ]
+}
+
+/*
+NOPE DOESNT WORK WITH NON-PREMIUM
+
+https://roads.googleapis.com/v1/nearestRoads?points=49.059,-122.285&key=[APIKEY]
+
+https://roads.googleapis.com/v1/speedLimits?placeId=ChIJy7KaDHk1hFQRoY4mqhgVIMw&path=49.059,-122.285&key=[APIKEY]
+*/
+

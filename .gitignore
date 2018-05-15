@@ -33,4 +33,5 @@ torch
 # Specific
 rust/synth/
 rust/synth_bak/
+api_key_gmaps.txt
 
