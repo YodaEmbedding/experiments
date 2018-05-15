@@ -28,4 +28,9 @@ torch
 
 # Other
 *.bak
+*.lock.json
+
+# Specific
+rust/synth/
+rust/synth_bak/
 
