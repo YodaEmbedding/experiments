@@ -1,0 +1,31 @@
+# Build
+__pycache__/
+bin/
+obj/
+target/
+*.aux
+*.cf
+*.exe
+*.hi
+*.log
+*.o
+*.out
+*.pdf
+
+# Build (pytorch)
+F
+nn
+optim
+torch
+
+# Resource
+*.jpg
+*.png
+*.wav
+
+# Editor
+.vscode/
+
+# Other
+*.bak
+
