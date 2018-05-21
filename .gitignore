@@ -5,6 +5,7 @@ obj/
 target/
 *.aux
 *.cf
+*.class
 *.exe
 *.hi
 *.log
