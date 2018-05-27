@@ -1,4 +1,6 @@
 #include <iostream>
+#include <numeric>
+#include <vector>
 
 // TODO
 // Assignment overload
@@ -9,62 +11,19 @@
 // virtual destructors
 // iterators
 
-template <typename T>
-class Node {
-public:
-    T item;
-    Node<T>* next;
-
-    // rvalue&&? std::move? why or why not?
-    // Node<T>(T item) : item(item), next(nullptr) { }
-    Node<T>(T item, Node<T>* next=nullptr) : item(item), next(next) { }
-
-    // bool operator==(const T& other) const { return item == other->item; }
-    // bool operator!=(const T& other) const { return item != other->item; }
-};
-
-// iterator(const iterator&);
-// ~iterator();
-// iterator& operator=(const iterator&);
-// friend void swap(iterator& lhs, iterator& rhs);
-template <typename T>
-class LinkedListIterator {
-public:
-    LinkedListIterator(Node<T>* node) : curr(node) { }
-
-    bool operator==(const LinkedListIterator<T>& other) const {
-        return curr == other.curr;
-    }
-
-    bool operator!=(const LinkedListIterator<T>& other) const {
-        return curr != other.curr;
-    }
-
-    LinkedListIterator& operator++() {
-        curr = curr->next;
-        return *this;
-    }
-
-    LinkedListIterator operator++(int) {
-        LinkedListIterator tmp(*this);
-        operator++();
-        return tmp;
-    }
-
-    T& operator*() const { return curr->item; }
-
-private:
-    Node<T>* curr;
-};
+template <typename T> class LinkedList;
+template <typename T> class LinkedListIterator;
+template <typename T> class Node;
 
 template <typename T>
 class LinkedList {
 public:
     typedef LinkedListIterator<T> iterator;
 
-    // ~LinkedList() {
-    //     // iterate and destroy
-    // }
+    ~LinkedList() {
+        for (auto it = begin(); it != end(); ++it)
+            delete it.curr;
+    }
 
     iterator begin() const { return iterator(head); }
     iterator end()   const { return iterator(nullptr); }
@@ -101,26 +60,92 @@ private:
     Node<T>* last = nullptr;
 };
 
-int main() {
-    LinkedList<int> list;
-    list.push(42);
-    list.push(66);
-    list.push(420);
+// iterator(const iterator&);
+// ~iterator();
+// iterator& operator=(const iterator&);
+// friend void swap(iterator& lhs, iterator& rhs);
+template <typename T>
+class LinkedListIterator {
+public:
+    friend class LinkedList<T>;
 
-    // TODO try with something else
-
-    // TODO use iterator...
-    // boost::join, std::accumulate
-    // for (auto const& it : list) {
-    for (auto const it : list) {
-        std::cout << it << ", ";
+    LinkedListIterator(Node<T>* node) : curr(node), next(nullptr) {
+        if (node != nullptr) next = node->next;
     }
 
-    std::cout << std::endl;
+    bool operator==(const LinkedListIterator<T>& other) const {
+        return curr == other.curr;
+    }
+
+    bool operator!=(const LinkedListIterator<T>& other) const {
+        return curr != other.curr;
+    }
+
+    LinkedListIterator& operator++() {
+        LinkedListIterator tmp(next);
+        std::swap(*this, tmp);
+        return *this;
+    }
+
+    LinkedListIterator operator++(int) {
+        LinkedListIterator tmp(*this);
+        operator++();
+        return tmp;
+    }
+
+    T& operator*() const { return curr->item; }
+
+private:
+    Node<T>* curr;
+    Node<T>* next;
+};
+
+template <typename T>
+class Node {
+public:
+    T item;
+    Node<T>* next;
+
+    // rvalue&&? std::move? why or why not?
+    // Node<T>(T item) : item(item), next(nullptr) { }
+    Node<T>(T item, Node<T>* next=nullptr) : item(item), next(next) { }
+
+    // bool operator==(const T& other) const { return item == other->item; }
+    // bool operator!=(const T& other) const { return item != other->item; }
+};
+
+// Consider boost::join instead
+template <typename T, template<typename> typename IterType>
+std::string join(
+    IterType<T> begin,
+    IterType<T> end,
+    std::string&& delimiter) {
+
+    auto first = *begin;
+    return std::accumulate(++begin, end,
+        std::to_string(first),
+        [&delimiter](std::string& a, T b) {
+            return a + delimiter + std::to_string(b);
+        });
+}
+
+int main() {
+    // TODO try with class or smart pointers (not just int)
+    LinkedList<int> numbers;
+    numbers.push(42);
+    numbers.push(66);
+    numbers.push(420);
+
+    // for (auto const& it : numbers)
+    //     std::cout << it << ", ";
+
+    std::cout
+        << join(numbers.begin(), numbers.end(), std::string(", "))
+        << std::endl;
 
     std::cout
         << "After 66 comes "
-        << list.find_first(66)->next->item
+        << numbers.find_first(66)->next->item
         << std::endl;
 
     return 0;
