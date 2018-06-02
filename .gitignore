@@ -1,4 +1,5 @@
 # Build
+.ipynb_checkpoints/
 __pycache__/
 bin/
 obj/
