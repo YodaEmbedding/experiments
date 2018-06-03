@@ -3,6 +3,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import quaternion
+
+from colour import Color
 from mpl_toolkits import mplot3d
 
 np.set_printoptions(precision=3)
@@ -13,15 +15,19 @@ def get_rotation_quaternion(axis, angle):
     q = np.concatenate(([np.cos(th)], np.sin(th) * axis))
     return quaternion.as_quat_array(q)
 
-axis = np.array([1., 0., 0.])
-R = get_rotation_quaternion(axis, np.pi / 9)
+def apply_rotation(v, axis, angle):
+    R = get_rotation_quaternion(axis, angle)
+    return R * v * R.inverse()
+
 v = np.array([
     np.quaternion(0, 1,  1,  1),
     np.quaternion(0, 1, -1,  1),
     np.quaternion(0, 1, -1, -1),
     np.quaternion(0, 1,  1, -1),
     np.quaternion(0, 1,  1,  1)])
-v_ = R * v * R.inverse()
+
+axis = np.array([1., 0., 0.])
+v_ = apply_rotation(v, axis, 1 * np.pi / 16)
 
 # Current position in Euler angles
 # Consider storing this as a quaternion as well...?
@@ -34,13 +40,17 @@ def quats_to_plot_coords(q):
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
-
-ax.scatter3D([0], [0], [0], color="#ff0000")
-ax.plot3D(*quats_to_plot_coords(v),  color='#c32333')
-ax.plot3D(*quats_to_plot_coords(v_), color='#9373c3')
-
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 ax.set_zlabel('z')
+ax.view_init(elev=0., azim=0.)
+
+origin = np.zeros((1, 3))
+ax.scatter3D(*tuple(origin.T), color="red")
+
+ax.plot3D(*quats_to_plot_coords(v),  color='#c32333')
+ax.plot3D(*quats_to_plot_coords(v_), color='#9373c3')
+
+ax.set_aspect(1 / ax.get_data_ratio())
 plt.show()
 
