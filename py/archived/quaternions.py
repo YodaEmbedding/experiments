@@ -5,6 +5,7 @@ import numpy as np
 import quaternion
 
 from colour import Color
+from matplotlib.animation import FuncAnimation
 from mpl_toolkits import mplot3d
 
 np.set_printoptions(precision=3)
@@ -29,40 +30,85 @@ def apply_euler_rotation(v, phi, th):
 
     return v_
 
-v = np.array([
-    np.quaternion(0, 1,  1,  1),  # A
-    np.quaternion(0, 1, -1,  1),  # B
-    np.quaternion(0, 1, -1, -1),  # C
-    np.quaternion(0, 1,  1, -1),  # D
-    np.quaternion(0, 1,  1,  1),  # A
-    np.quaternion(0, 1, -1, -1),  # C
-    np.quaternion(0, 1, -1,  1),  # B
-    np.quaternion(0, 1,  1, -1),  # D
+def quats_to_plot_coords(q):
+    arr = quaternion.as_float_array(q)
+    return tuple(arr.T[1:])
+
+def set_axes_radius(ax, origin, radius):
+    ax.set_xlim3d([origin[0] - radius, origin[0] + radius])
+    ax.set_ylim3d([origin[1] - radius, origin[1] + radius])
+    ax.set_zlim3d([origin[2] - radius, origin[2] + radius])
+
+def set_axes_equal(ax):
+    '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
+    cubes as cubes, etc..  This is one possible solution to Matplotlib's
+    ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
+
+    Input
+      ax: a matplotlib axis, e.g., as output from plt.gca().
+    '''
+
+    limits = np.array([
+        ax.get_xlim3d(),
+        ax.get_ylim3d(),
+        ax.get_zlim3d(),
+    ])
+
+    origin = np.mean(limits, axis=1)
+    radius = 0.5 * np.max(np.abs(limits[:, 1] - limits[:, 0]))
+    set_axes_radius(ax, origin, radius)
+
+w = 0.5
+h = 0.3
+square = np.array([
+    np.quaternion(0, 1,  w,  h),  # A
+    np.quaternion(0, 1, -w,  h),  # B
+    np.quaternion(0, 1, -w, -h),  # C
+    np.quaternion(0, 1,  w, -h),  # D
+    np.quaternion(0, 1,  w,  h),  # A
+    np.quaternion(0, 1, -w, -h),  # C
+    np.quaternion(0, 1, -w,  h),  # B
+    np.quaternion(0, 1,  w, -h),  # D
 ])
 
 # Current position in Euler angles
 # Consider storing current position as a quaternion as well...?
 phi =   8 * np.pi / 16
 th  = - 0 * np.pi / 16
-v_ = apply_euler_rotation(v, phi, th)
-
-def quats_to_plot_coords(q):
-    arr = quaternion.as_float_array(q)
-    return tuple(arr.T[1:])
+square_ = apply_euler_rotation(square, phi, th)
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
+ax.set_aspect('equal')
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 ax.set_zlabel('z')
 ax.view_init(elev=0., azim=0.)
 
 origin = np.zeros((1, 3))
-ax.scatter3D(*tuple(origin.T), color="red")
 
-ax.plot3D(*quats_to_plot_coords(v),  color='#c32333')
-ax.plot3D(*quats_to_plot_coords(v_), color='#9373c3')
+# class
+def update(frame_number):
+    phi =   frame_number * np.pi / 16
+    th  = - 3 * np.pi / 16
+    square_ = apply_euler_rotation(square, phi, th)
 
-ax.set_aspect(1 / ax.get_data_ratio())
+    ax.clear()
+    ax.scatter3D(*tuple(origin.T), color="red")
+    ax.plot3D(*quats_to_plot_coords(square),  color='#c32333')
+    ax.plot3D(*quats_to_plot_coords(square_), color='#9373c3')
+    set_axes_radius(ax, origin[0], 2)
+
+line_ani = FuncAnimation(fig, update, 200, # fargs=(data, lines),
+    interval=50, blit=False)
+
 plt.show()
+
+# TODO
+# animation
+# construct point follower (follows a point it sees on "camera")
+# construct model with motors (with velocity curves; max velocity), impedances, latency
+# machine learn control hyperparameters (differentiable programming or genetic)
+# consider latency from camera->imageproc->coords too
+# switch to plot.ly, etc?
 
