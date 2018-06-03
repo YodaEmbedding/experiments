@@ -19,20 +19,32 @@ def apply_rotation(v, axis, angle):
     R = get_rotation_quaternion(axis, angle)
     return R * v * R.inverse()
 
-v = np.array([
-    np.quaternion(0, 1,  1,  1),
-    np.quaternion(0, 1, -1,  1),
-    np.quaternion(0, 1, -1, -1),
-    np.quaternion(0, 1,  1, -1),
-    np.quaternion(0, 1,  1,  1)])
+def apply_euler_rotation(v, phi, th):
+    th_axis  = np.array([0., 1., 0.])
+    phi_axis = np.array([0., 0., 1.])
 
-axis = np.array([1., 0., 0.])
-v_ = apply_rotation(v, axis, 1 * np.pi / 16)
+    v_ = v
+    v_ = apply_rotation(v_, th_axis,  th)
+    v_ = apply_rotation(v_, phi_axis, phi)
+
+    return v_
+
+v = np.array([
+    np.quaternion(0, 1,  1,  1),  # A
+    np.quaternion(0, 1, -1,  1),  # B
+    np.quaternion(0, 1, -1, -1),  # C
+    np.quaternion(0, 1,  1, -1),  # D
+    np.quaternion(0, 1,  1,  1),  # A
+    np.quaternion(0, 1, -1, -1),  # C
+    np.quaternion(0, 1, -1,  1),  # B
+    np.quaternion(0, 1,  1, -1),  # D
+])
 
 # Current position in Euler angles
-# Consider storing this as a quaternion as well...?
-phi = np.pi / 4
-th  = np.pi / 4
+# Consider storing current position as a quaternion as well...?
+phi =   8 * np.pi / 16
+th  = - 0 * np.pi / 16
+v_ = apply_euler_rotation(v, phi, th)
 
 def quats_to_plot_coords(q):
     arr = quaternion.as_float_array(q)
