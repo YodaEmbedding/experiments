@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import quaternion
 
-from colour import Color
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits import mplot3d
 
@@ -87,25 +86,27 @@ ax.view_init(elev=0., azim=0.)
 
 origin = np.zeros((1, 3))
 
-# class
 def update(frame_number):
-    phi =   frame_number * np.pi / 16
-    th  = - 3 * np.pi / 16
-    square_ = apply_euler_rotation(square, phi, th)
+    phi = frame_number / 16 * np.pi
+    th  = -3 / 16 * np.pi
+    square2 = apply_euler_rotation(square, phi, th)
+
+    phi = 0 / 16 * np.pi
+    th  = -frame_number / 16 * np.pi
+    square3 = apply_euler_rotation(square, phi, th)
 
     ax.clear()
     ax.scatter3D(*tuple(origin.T), color="red")
-    ax.plot3D(*quats_to_plot_coords(square),  color='#c32333')
-    ax.plot3D(*quats_to_plot_coords(square_), color='#9373c3')
-    set_axes_radius(ax, origin[0], 2)
+    ax.plot3D(*quats_to_plot_coords(square),  color='#bb55ff')
+    ax.plot3D(*quats_to_plot_coords(square2), color='#ffbb55')
+    ax.plot3D(*quats_to_plot_coords(square3), color='#55bbff')
+    set_axes_radius(ax, origin[0], 1)
 
-line_ani = FuncAnimation(fig, update, 200, # fargs=(data, lines),
-    interval=50, blit=False)
+line_ani = FuncAnimation(fig, update, 65536, interval=50, blit=False)
 
 plt.show()
 
 # TODO
-# animation
 # construct point follower (follows a point it sees on "camera")
 # construct model with motors (with velocity curves; max velocity), impedances, latency
 # machine learn control hyperparameters (differentiable programming or genetic)
