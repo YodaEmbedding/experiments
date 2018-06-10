@@ -27,6 +27,7 @@ torch
 
 # Editor
 .vscode/
+tags
 
 # Other
 *.bak
