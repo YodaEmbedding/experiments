@@ -1,0 +1,14 @@
+Basic circuit of voltage source and 2K resistor
+
+Vs 1 0 sin(0 5 1kHz)
+* Vs 1 0 dc 5V
+R2 1 0 2k
+
+.op
+.print v(1)
+.print i(Vs)
+
+* .plot v(1)
+* .plot -i(Vs), (v(1) - .7) / 2.1k
+
+.end
