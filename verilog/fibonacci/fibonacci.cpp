@@ -1,18 +1,20 @@
 #include <iostream>
-#include "Vfibonacci.h"
 #include "verilated.h"
+#include "Vfibonacci.h"
 
 int main() {
-    auto top = new Fibonacci();
+    int time = 0;
 
-    top->a_in = 0;
-    top->b_in = 1;
+    auto top = new Vfibonacci();
+    top->a = 0;
+    top->b = 1;
 
-    while (!Verilated::gotFinish()) {
-        top->clk = !top->clk;
-        top->eval();
+    while (!Verilated::gotFinish() && time < 8) {
+        top->clk = 0; top->eval();
+        top->clk = 1; top->eval();
+        time++;
 
-        std::cout << top->a_out << std::endl;
+        std::cout << top->a << std::endl;
     }
 
     return 0;

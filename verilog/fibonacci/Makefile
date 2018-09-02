@@ -1,20 +1,13 @@
-TARGET=fibonacci
-
 .PHONY: all clean run
 
-all: $(TARGET)
+all: ./obj_dir/Vfibonacci
 
 clean:
-	rm -rf obj_dir *.o $(TARGET)
+	rm -rf obj_dir *.o
 
 run: all
 	./obj_dir/Vfibonacci
 
-# Commit this then follow exact example Makefile? (Or manually execute commands)
-
-$(TARGET): main.cpp ./obj_dir/Vfibonacci
-	g++ -o '$@' main.cpp
-
-./obj_dir/Vfibonacci: fibonacci.sv
+./obj_dir/Vfibonacci: fibonacci.sv fibonacci.cpp
 	verilator -Wall --cc fibonacci.sv --exe fibonacci.cpp
-	make -C obj_dir -f Vfibonacci.mk Vfibonacci CXXFLAGS='--std=c++11 -Wall' LIBS='-lSDL2'
+	make -C obj_dir -f Vfibonacci.mk Vfibonacci CXXFLAGS='--std=c++11 -Wall' LIBS=''
