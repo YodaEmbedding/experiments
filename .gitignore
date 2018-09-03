@@ -3,6 +3,7 @@
 __pycache__/
 bin/
 obj/
+obj_dir/
 target/
 *.aux
 *.cf
