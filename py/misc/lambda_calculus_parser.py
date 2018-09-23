@@ -24,15 +24,17 @@ class App:
     def __str__(self):
         return f'({self.func})({self.val})'
 
+    # TODO should func and val be symmetric since you can have (Lx.xx)(Lx.x)?
     @debug_decorator
     def interpret(self):
         # return self.func.interpret()(self.val.interpret())
         # return self.func.interpret().subs(self.val.interpret()).interpret()
+        print("App", self.func, self.val)
         return self.func.subs_apply(self.val.interpret()).interpret()
 
     @debug_decorator
     def subs(self, var, val):
-        return App(self.func.subs(var, val), self.val)
+        return App(self.func.subs(var, val), self.val.subs(var, val))
         # return self.func.subs() ???
         # return self.func.interpret()(val).subs arghhh wat
 
@@ -69,7 +71,7 @@ class Lam:
     # they can exist on their own as functions
     @debug_decorator
     def interpret(self):
-        return self
+        return Lam(self.var, self.expr.interpret())
 
     # TODO what is this strange condition?
     @debug_decorator
@@ -141,6 +143,15 @@ exprs = [
             Var('z'),
             App(Lam(Var('x'), Var('x')), Var('y'))),
         Var('w')),
+    Lam(
+        Var('z'),
+        App(Lam(Var('x'), Var('x')), Var('y'))),
+    Lam(
+        Var('y'),
+        App(Lam(Var('x'), Var('x')), Var('y'))),
+    App(
+        Lam(Var('x'), App(Var('x'), Var('x'))),
+        Lam(Var('y'), Var('y'))),
     ]
 
 for expr in exprs:
@@ -149,8 +160,10 @@ for expr in exprs:
     print('')
 
 # interpret, reduce, subs
+# TODO keep track of nth level of @debug_decorator, and indent accordingly
+# TODO instead of apply, use separate interpretable, like [expr\x](Lx.expr)
 # TODO static typing, instead of weird exception nonsense
-# TODO actual lambda calculus with, e.g. unbound variables,
+# TODO actual lambda calculus with, unbound variables, composition,
 # higher order functions, nested lambdas, laziness, alpha conversion, ...
 # TODO Maybe use environment instead of subs() model?
 # TODO get rid of redundant interprets that do nothing (e.g. on Lam)
