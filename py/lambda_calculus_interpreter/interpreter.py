@@ -29,7 +29,6 @@ class App:
     def interpret(self):
         # return self.func.interpret()(self.val.interpret())
         # return self.func.interpret().subs(self.val.interpret()).interpret()
-        print("App", self.func, self.val)
         return self.func.subs_apply(self.val.interpret()).interpret()
 
     @debug_decorator
@@ -38,26 +37,26 @@ class App:
         # return self.func.subs() ???
         # return self.func.interpret()(val).subs arghhh wat
 
-class Add:
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-
-    def __str__(self):
-        return f'({self.left}+{self.right})'
-
-    # Hmmm... but we can't always add things... idk
-    @debug_decorator
-    def interpret(self):
-        l = self.left.interpret()
-        r = self.right.interpret()
-        computable = isinstance(l, Value) and isinstance(r, Value)
-        return Add(l, r) if not computable else Value(l.val + r.val)
-
-    # TODO only perform this if left and right are both Value types?
-    @debug_decorator
-    def subs(self, var, val):
-        return Add(self.left.subs(var, val), self.right.subs(var, val))
+# class Add:
+#     def __init__(self, left, right):
+#         self.left = left
+#         self.right = right
+#
+#     def __str__(self):
+#         return f'({self.left}+{self.right})'
+#
+#     # Hmmm... but we can't always add things... idk
+#     @debug_decorator
+#     def interpret(self):
+#         l = self.left.interpret()
+#         r = self.right.interpret()
+#         computable = isinstance(l, Value) and isinstance(r, Value)
+#         return Add(l, r) if not computable else Value(l.val + r.val)
+#
+#     # TODO only perform this if left and right are both Value types?
+#     @debug_decorator
+#     def subs(self, var, val):
+#         return Add(self.left.subs(var, val), self.right.subs(var, val))
 
 class Lam:
     def __init__(self, var, expr):
@@ -126,17 +125,20 @@ class Var:
     def subs(self, var, val):
         return val if self.name == var.name else self
 
+def to_ast(expr):
+    ...
+
 exprs = [
-    Add(Value(3), Add(Value(4), Value(5))),
-    App(
-        Lam(Var('x'), Add(Var('x'), Var('x'))),
-        Value(3)),
-    App(
-        Lam(Var('x'), Add(Var('x'), Var('x'))),
-        Var('z')),
-    App(
-        Lam(Var('x'), Add(Var('x'), Var('x'))),
-        Add(Value(10), Value(11))),
+    # Add(Value(3), Add(Value(4), Value(5))),
+    # App(
+    #     Lam(Var('x'), Add(Var('x'), Var('x'))),
+    #     Value(3)),
+    # App(
+    #     Lam(Var('x'), Add(Var('x'), Var('x'))),
+    #     Var('z')),
+    # App(
+    #     Lam(Var('x'), Add(Var('x'), Var('x'))),
+    #     Add(Value(10), Value(11))),
     Lam(Var('x'), Var('x')),
     App(
         Lam(
@@ -157,6 +159,23 @@ exprs = [
 for expr in exprs:
     print(expr)
     print(expr.interpret())
+    print('')
+
+exprs = [
+    # "(3+(4+5))",
+    # "(λx.(x+x))(3)",
+    # "(λx.(x+x))(z)",
+    # "(λx.(x+x))((10+11))",
+    "(λz.(λx.x)(y))(w)",
+    "λz.(λx.x)(y)",
+    "λy.(λx.x)(y)",
+    "(λx.(x)(x))(λy.y)",
+    ]
+
+for expr in exprs:
+    print(expr)
+    print(to_ast(expr))
+    print(to_ast(expr).interpret())
     print('')
 
 # interpret, reduce, subs
