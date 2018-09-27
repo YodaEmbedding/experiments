@@ -1,18 +1,17 @@
-TARGET=fibonacci
+TARGET=./obj_dir/Vtop
 .PHONY: all clean run
 
-# all: $(TARGET)
-all: ./obj_dir/Vfibonacci
+all: $(TARGET)
 
 clean:
 	rm -rf obj_dir *.o $(TARGET)
 
 run: all
-	./obj_dir/Vfibonacci
+	./obj_dir/Vtop
 
-# $(TARGET): ./obj_dir/Vfibonacci main.cpp
+./obj_dir/Vtop: top.sv main.cpp
+	verilator -Wall --cc top.sv --exe main.cpp
+	make -C obj_dir -f Vtop.mk Vtop CXXFLAGS='--std=c++11 -Wall' LIBS=''
+
+# $(TARGET): ./obj_dir/Vtop main.cpp
 # 	g++ -o '$@' main.cpp
-
-./obj_dir/Vfibonacci: fibonacci.sv fibonacci.cpp
-	verilator -Wall --cc fibonacci.sv --exe fibonacci.cpp
-	make -C obj_dir -f Vfibonacci.mk Vfibonacci CXXFLAGS='--std=c++11 -Wall' LIBS=''

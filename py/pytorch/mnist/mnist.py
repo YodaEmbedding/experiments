@@ -62,7 +62,7 @@ def load(filename):
     return data, labels
 
 def train(model, device, loader, optimizer):
-    model.train()
+    model.train()  # TODO what does this do? what does the following do?
     total_loss = 0.0
 
     for batch_idx, (data, target) in enumerate(loader):
@@ -80,18 +80,18 @@ def main():
     data, labels = load('train.csv')
     dataset = LabelledDataset(data, labels)
     train_len = int(0.80 * len(dataset))
-    test_len  = len(dataset) - train_len
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset,
-        [train_len, test_len])
+    validation_len  = len(dataset) - train_len
+    train_dataset, validation_dataset = torch.utils.data.random_split(dataset,
+        [train_len, validation_len])
 
     train_loader = torch.utils.data.DataLoader(train_dataset,
         batch_size=64, shuffle=True, num_workers=2, pin_memory=True)
-    test_loader = torch.utils.data.DataLoader(test_dataset,
+    validation_loader = torch.utils.data.DataLoader(validation_dataset,
         batch_size=64, shuffle=True, num_workers=2, pin_memory=True)
 
     device = torch.device("cuda")
     model = Net().to(device)
-    model.load_state_dict(torch.load('checkpoint.pt'))
+    # model.load_state_dict(torch.load('checkpoint.pt'))  # careful...! you might accidentally mix train/validation data
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
 
     queue = []
@@ -99,7 +99,7 @@ def main():
 
     for epoch in itertools.count():
         print(f'Epoch: {epoch}  ', end='')
-        loss = train(model, device, test_loader, optimizer)
+        loss = train(model, device, train_loader, optimizer)
         print(f'Loss: {loss:.4f}')
 
         if len(queue) > 0:
