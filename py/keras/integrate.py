@@ -30,8 +30,8 @@ x = np.linspace(X_MIN, X_MAX, N)
 inputs = np.array([0.1 * np.sin(x)])
 
 model = Sequential()
-model.add(Dense(units=64, activation='relu', input_shape=(N,)))
-model.add(Dense(units=32, activation='relu', input_shape=(N,)))
+model.add(Dense(units=64, activation='relu'))
+model.add(Dense(units=32, activation='relu'))
 model.add(Dense(units=1, activation='linear'))
 
 model.compile(
