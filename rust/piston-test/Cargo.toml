@@ -1,0 +1,14 @@
+[package]
+name = "piston-test"
+version = "0.1.0"
+authors = ["Mateen Ulhaq <mulhaq2005@gmail.com>"]
+description = "Example piston app"
+license = "MIT"
+
+[dependencies]
+piston = "*"
+piston2d-graphics = "*"
+piston2d-opengl_graphics = "*"
+piston_window = "*"
+pistoncore-glutin_window = "*"
+specs = "*"
