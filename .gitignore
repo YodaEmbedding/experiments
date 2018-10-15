@@ -31,8 +31,11 @@ torch
 tags
 
 # Other
+**/*.rs.bk
 *.bak
 *.lock.json
+.#*
+Cargo.lock
 
 # Specific
 rust/synth/
