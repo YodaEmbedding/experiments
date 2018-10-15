@@ -1,0 +1,12 @@
+[package]
+name = "synth"
+version = "0.1.0"
+authors = ["Mateen Ulhaq <mulhaq2005@gmail.com>"]
+
+[[bin]]
+name = "synth"
+path = "synth.rs"
+
+[dependencies]
+hound = "3.3.1"
+
