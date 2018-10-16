@@ -5,7 +5,6 @@ from collections import defaultdict
 
 def list_cycles(grammar, parent, length):
     """Unrestricted"""
-    # print(parent.rjust(max_length - length + 1))
 
     if length == 1:
         return [parent]
@@ -16,7 +15,6 @@ def list_cycles(grammar, parent, length):
 
 def list_cycles(grammar, max_count, parent, length, counts):
     """Restricted to max_count"""
-    # print(parent.rjust(max_length - length + 1))
 
     def adjusted_counts(counts, item):
         counts = counts.copy()
@@ -31,6 +29,22 @@ def list_cycles(grammar, max_count, parent, length, counts):
         for x in list_cycles(grammar, max_count, node, length - 1,
             adjusted_counts(counts, parent + node))
         if counts[parent + node] < max_count]
+
+def list_cycles(grammar, max_count, parent, length, counts, prev_pair=''):
+    """Restricted to max_count"""
+
+    counts[prev_pair] += 1
+
+    result = ([parent] if length == 1 else
+        [parent + x
+            for node in grammar[parent]
+            for x in list_cycles(grammar, max_count, node, length - 1,
+                counts, parent + node)
+            if counts[parent + node] < max_count])
+
+    counts[prev_pair] -= 1
+
+    return result
 
 grammar = {
     'A': ['B', 'E'],
