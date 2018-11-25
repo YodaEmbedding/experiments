@@ -1,0 +1,9 @@
+[package]
+name = "amethyst-test"
+version = "0.1.0"
+authors = ["Mateen Ulhaq <mulhaq2005@gmail.com>"]
+description = "Example amethyst app"
+license = "MIT"
+
+[dependencies]
+amethyst = "*"
