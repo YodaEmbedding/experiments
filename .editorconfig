@@ -7,5 +7,13 @@ indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[{Makefile,**.mk}]
+[{Makefile,*.mk}]
 indent_style = tab
+
+[*.hs]
+indent_size = 2
+indent_style = space
+
+[*.lisp]
+indent_size = 2
+indent_style = space
