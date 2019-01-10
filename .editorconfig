@@ -10,6 +10,6 @@ trim_trailing_whitespace = true
 [{Makefile,*.mk}]
 indent_style = tab
 
-[{*.f,*.f90,*.hs,*.lisp}]
+[{*.clj,*.f,*.f90,*.hs,*.lisp}]
 indent_size = 2
 indent_style = space
