@@ -1,3 +1,5 @@
+! gfortran phys395_hw0_fib.f90 && ./a.out
+
 program fibonacci
   implicit none
   integer(kind=8) :: i, a = 0, b = 1, c
