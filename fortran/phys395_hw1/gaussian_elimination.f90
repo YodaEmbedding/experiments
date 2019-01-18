@@ -39,38 +39,52 @@ program gaussian_elimination
 
 contains
 
-  ! TODO singular, underdetermined systems (might require row, col pivots)
-  ! TODO deal with arbitrary dimension matrix input
-  ! TODO pivot_column
   !! Convert to upper triangular form
   pure function upper_triangular(mat) result(A)
     real, dimension(:, :), intent(in) :: mat
     real, dimension(size(mat, 1), size(mat, 2)) :: A
-    real, dimension(size(mat, 1)) :: tmp_row
-    real :: val, max_val, scaling_factor
-    integer :: i, row, pivot_row
+    real, dimension(size(mat, 1)) :: tmp
+    real :: scaling_factor
+    integer :: i, m, n, col, row, row_
 
+    m = size(mat, 2)
+    n = size(mat, 1)
     A = mat
 
-    do row = 1, size(mat, 2)
-      pivot_row = maxloc(abs(A(row, row:)), dim=1) - 1 + row
+    row = 1
+    col = 1
 
+    do while (row <= m .and. col <= n)
+      ! Find row with highest magnitude in the current column
+      row_ = maxloc(abs(A(col, row:)), dim=1) - 1 + row
+
+      if (A(row_, col) == 0) then
+        col = col + 1
+        cycle
+      endif
+
+      ! TODO optimize by only swapping (col:, *)
       ! Swap rows
-      tmp_row = A(:, row)
-      A(:, row) = A(:, pivot_row)
-      A(:, pivot_row) = tmp_row
-
-      ! TODO assert first element is non-zero... otherwise, just skip?
-      ! TODO optimizations like (row:, row)
+      tmp = A(:, row)
+      A(:, row) = A(:, row_)
+      A(:, row_) = tmp
 
       ! Normalize row
-      scaling_factor = A(row, row)
-      A(:, row) = A(:, row) / scaling_factor
+      scaling_factor = A(col, row)
+      A(col:, row) = A(col:, row) / scaling_factor
 
-      do i = row + 1, size(mat, 2)
-        scaling_factor = A(row, i)
-        A(:, i) = A(:, i) - scaling_factor * A(:, row)
-      enddo
+      ! Zero the pivot column for remaining rows
+      ! by subtracting off a scaled version of the current row
+      forall (i=row+1:m) A(col:, i) = A(col:, i) - A(col, i) * A(col:, row)
+      A(col, row+1:) = 0.0
+
+      ! TODO optimize via column-major order indexing... but be wary of mutation
+      ! row_ = row + 1
+      ! forall (i=col:n) A(i, row_:) = A(i, row_:) - A(col, row_:) * A(i, row)
+      ! A(col, row_:) = 0.0
+
+      row = row + 1
+      col = col + 1
     enddo
   end function
 
@@ -79,14 +93,14 @@ contains
     real, dimension(:, :), intent(in) :: mat
     real, dimension(size(mat, 1), size(mat, 2)) :: A
     real :: scaling_factor
-    integer :: i, j
+    integer :: i, j, m
 
+    m = size(mat, 2)
     A = mat
 
-    ! TODO j seems to depend on size(mat, 2) rather than size(mat, 1)...?
-    ! errr actually, no it doesn't. What is j anyways? Name it properly.
-    do i = size(mat, 2), 1, -1
-      do j = i + 1, size(mat, 2)
+    ! TODO can be optimized via column-major indexing?
+    do i = m, 1, -1
+      do j = i + 1, m
         ! TODO a lot of redundant computation
         scaling_factor = A(j, i)
         A(:, i) = A(:, i) - scaling_factor * A(:, j)
@@ -137,7 +151,10 @@ contains
   end function
 end program gaussian_elimination
 
+! TODO shouldn't the matrices be... transposed? (stored in column-major order)
+! TODO also, notice that transposing a matrix before operating on it might result in speedups; transpose for cache-locality
 ! TODO real vs double
 ! TODO makefile, "compilation instructions" on top, -O, -real
 ! TODO size N constant parameters; type/compile-time checking of sizes
 ! TODO function for printing variable size matrices...
+! TODO optimize by only swapping (col:, *)... but this makes code look ugly
