@@ -39,25 +39,6 @@ program gaussian_elimination
 
 contains
 
-  ! This can be replaced with maxloc
-  !! Get index of maximum element within array
-  pure function argmax(arr)
-    real, dimension(:), intent(in) :: arr
-    real :: val, max_val
-    integer :: i, argmax
-
-    max_val = arr(1)
-    argmax = 1
-
-    do i = 2, size(arr)
-      val = arr(i)
-      if (val > max_val) then
-        max_val = val
-        argmax = i
-      endif
-    enddo
-  end function
-
   ! TODO singular, underdetermined systems (might require row, col pivots)
   ! TODO deal with arbitrary dimension matrix input
   ! TODO pivot_column
@@ -72,8 +53,7 @@ contains
     A = mat
 
     do row = 1, size(mat, 2)
-      pivot_row = argmax(abs(A(row, row:))) - 1 + row
-      ! pivot_row = maxloc(abs(A(row, row:)), dim=1) - 1 + row
+      pivot_row = maxloc(abs(A(row, row:)), dim=1) - 1 + row
 
       ! Swap rows
       tmp_row = A(:, row)
