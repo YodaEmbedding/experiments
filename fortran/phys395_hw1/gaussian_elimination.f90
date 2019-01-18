@@ -39,6 +39,25 @@ program gaussian_elimination
 
 contains
 
+  ! This can be replaced with maxloc
+  !! Get index of maximum element within array
+  pure function argmax(arr)
+    real, dimension(:), intent(in) :: arr
+    real :: val, max_val
+    integer :: i, argmax
+
+    max_val = arr(1)
+    argmax = 1
+
+    do i = 2, size(arr)
+      val = arr(i)
+      if (val > max_val) then
+        max_val = val
+        argmax = i
+      endif
+    enddo
+  end function
+
   ! TODO singular, underdetermined systems (might require row, col pivots)
   ! TODO deal with arbitrary dimension matrix input
   ! TODO pivot_column
@@ -53,16 +72,8 @@ contains
     A = mat
 
     do row = 1, size(mat, 2)
-      ! TODO extract into separate function?
-      ! Locate pivot via argmax . abs
-      max_val = 0
-      do i = row, size(mat, 2)
-        val = abs(A(row, i))
-        if (val > max_val) then
-          max_val = val
-          pivot_row = i
-        endif
-      enddo
+      pivot_row = argmax(abs(A(row, row:))) - 1 + row
+      ! pivot_row = maxloc(abs(A(row, row:)), dim=1) - 1 + row
 
       ! Swap rows
       tmp_row = A(:, row)
@@ -147,6 +158,6 @@ contains
 end program gaussian_elimination
 
 ! TODO real vs double
-! TODO makefile, "compilation instructions" on top
+! TODO makefile, "compilation instructions" on top, -O, -real
 ! TODO size N constant parameters; type/compile-time checking of sizes
 ! TODO function for printing variable size matrices...
