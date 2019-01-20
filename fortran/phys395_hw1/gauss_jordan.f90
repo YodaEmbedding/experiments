@@ -63,28 +63,20 @@ contains
   end function
 
   !! Reduced row-echelon form via Gauss-Jordan elimination
-  function rref(mat) result(A)
+  pure function rref(mat) result(A)
     real, dimension(:, :), intent(in) :: mat
     real, dimension(size(mat, 1), size(mat, 2)) :: A
 
     A = mat
-
-    print "(a, /)", "Convert to Upper Triangular"
     A = upper_triangular(A)
-    print "(4f6.1)", A
-    print *
-
-    print "(a, /)", "Substitution"
     A = substitution(A)
-    print "(4f6.1)", A
-    print *
   end function
 
   !! Solve the matrix equation Ax = y using Gauss-Jordan elimination
   !! Arguments:
   !!   A must be a non-singular matrix of size NxN
   !!   y must be a vector of size N
-  function solve(A, y) result(x)
+  pure function solve(A, y) result(x)
     real, dimension(:, :), intent(in) :: A
     real, dimension(:), intent(in) :: y
     real, dimension(size(A, 1) + 1, size(A, 2)) :: Ay
@@ -94,17 +86,10 @@ contains
     Ay(1:size(A, 1), :) = transpose(A)
     Ay(size(Ay, 1), :) = y
 
-    print "(a)", "Augmented [A | y]: "
-    print "(4f6.1)", Ay
-    print *
-
     Ay = rref(Ay)
     x = Ay(size(Ay, 1), :)
   end function
+
 end module gauss_jordan
 
-! TODO pure
-! TODO real vs double
-! TODO makefile, "compilation instructions" on top, -O, -real
-! TODO compile with warnings
 ! TODO size N constant parameters; type/compile-time checking of sizes
