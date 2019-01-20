@@ -129,8 +129,8 @@ contains
     real, dimension(size(A, 1) + 1, size(A, 2)) :: Ay
     real, dimension(size(y)) :: x
 
-    ! Augment
-    Ay(1:size(A, 1), :) = transpose(A)  ! TODO ewww
+    ! Transpose (for memory locality) and augment
+    Ay(1:size(A, 1), :) = transpose(A)
     Ay(size(Ay, 1), :) = y
 
     print "(a)", "Augmented [A | y]: "
