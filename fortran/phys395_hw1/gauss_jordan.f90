@@ -1,32 +1,5 @@
-program gaussian_elimination
+module gauss_jordan
   implicit none
-
-  real, dimension(3, 3) :: A
-  real, dimension(3) :: y, x, x_exp
-
-  A(1, :) = (/  0,  2,  1 /)
-  A(2, :) = (/  1, -2, -3 /)
-  A(3, :) = (/ -1,  1,  2 /)
-  y       = (/ -8,  0,  3 /)
-  x_exp   = (/ -4, -5,  2 /)
-
-  print "(a)", "A:"
-  print "(3f5.0)", transpose(A)
-  print *
-
-  print "(a)", "y:"
-  print "(3f5.0)", y
-  print *
-
-  x = solve(A, y)
-
-  print "(a)", "Answer:"
-  print "(3f6.1)", x
-  print *
-
-  print "(a)", "Expected answer:"
-  print "(3f6.1)", x_exp
-  print *
 
 contains
 
@@ -54,7 +27,6 @@ contains
         cycle
       endif
 
-      ! TODO optimize by only swapping (col:, *)
       ! Swap rows
       tmp = A(:, row)
       A(:, row) = A(:, row_)
@@ -69,11 +41,6 @@ contains
       forall (i=row+1:m) A(col:, i) = A(col:, i) - A(col, i) * A(col:, row)
       A(col, row+1:) = 0.0
 
-      ! TODO optimize via column-major order indexing... but be wary of mutation
-      ! row_ = row + 1
-      ! forall (i=col:n) A(i, row_:) = A(i, row_:) - A(col, row_:) * A(i, row)
-      ! A(col, row_:) = 0.0
-
       row = row + 1
       col = col + 1
     enddo
@@ -83,24 +50,19 @@ contains
   pure function substitution(mat) result(A)
     real, dimension(:, :), intent(in) :: mat
     real, dimension(size(mat, 1), size(mat, 2)) :: A
-    real :: scaling_factor
     integer :: i, j, m
 
     m = size(mat, 2)
     A = mat
 
-    ! TODO can be optimized via column-major indexing?
-    do i = m, 1, -1
+    do i = m - 1, 1, -1
       do j = i + 1, m
-        ! TODO a lot of redundant computation
-        scaling_factor = A(j, i)
-        A(:, i) = A(:, i) - scaling_factor * A(:, j)
+        A(:, i) = A(:, i) - A(j, i) * A(:, j)
       enddo
     enddo
   end function
 
-  ! TODO pure
-  !! Reduced row-echelon form
+  !! Reduced row-echelon form via Gauss-Jordan elimination
   function rref(mat) result(A)
     real, dimension(:, :), intent(in) :: mat
     real, dimension(size(mat, 1), size(mat, 2)) :: A
@@ -109,16 +71,15 @@ contains
 
     print "(a, /)", "Convert to Upper Triangular"
     A = upper_triangular(A)
-    print "(4f6.1)", transpose(A)
+    print "(4f6.1)", A
     print *
 
     print "(a, /)", "Substitution"
     A = substitution(A)
-    print "(4f6.1)", transpose(A)
+    print "(4f6.1)", A
     print *
   end function
 
-  ! TODO pure
   !! Solve the matrix equation Ax = y using Gauss-Jordan elimination
   !! Arguments:
   !!   A must be a non-singular matrix of size NxN
@@ -129,22 +90,21 @@ contains
     real, dimension(size(A, 1) + 1, size(A, 2)) :: Ay
     real, dimension(size(y)) :: x
 
-    ! Transpose (for memory locality) and augment
+    ! Transpose (for row-memory locality) and augment
     Ay(1:size(A, 1), :) = transpose(A)
     Ay(size(Ay, 1), :) = y
 
     print "(a)", "Augmented [A | y]: "
-    print "(4f6.1)", transpose(Ay)
+    print "(4f6.1)", Ay
     print *
 
     Ay = rref(Ay)
     x = Ay(size(Ay, 1), :)
   end function
-end program gaussian_elimination
+end module gauss_jordan
 
-! TODO also, notice that transposing a matrix before operating on it might result in speedups; transpose for cache-locality
+! TODO pure
 ! TODO real vs double
 ! TODO makefile, "compilation instructions" on top, -O, -real
+! TODO compile with warnings
 ! TODO size N constant parameters; type/compile-time checking of sizes
-! TODO function for printing variable size matrices...
-! TODO optimize by only swapping (col:, *)... but this makes code look ugly
