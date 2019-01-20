@@ -2,25 +2,16 @@ program gaussian_elimination
   implicit none
 
   real, dimension(3, 3) :: A
-  real, dimension(3) :: y, x, x_expected
+  real, dimension(3) :: y, x, x_exp
 
-  ! A(:, 1) = (/ 1,  3,  1 /)
-  ! A(:, 2) = (/ 1,  1, -1 /)
-  ! A(:, 3) = (/ 3, 11,  5 /)
-
-  ! A(:, 1) = (/ 3, 1, 1 /)
-  ! A(:, 2) = (/ 1, 2, 5 /)
-  ! A(:, 3) = (/ 2, 5, -1 /)
-  ! y = (/ 6, -4, 27 /)
-
-  A(:, 1) = (/ 0, 2, 1 /)
-  A(:, 2) = (/ 1, -2, -3 /)
-  A(:, 3) = (/ -1, 1, 2 /)
-  y = (/ -8, 0, 3 /)
-  x_expected = (/ -4., -5., 2. /)
+  A(1, :) = (/  0,  2,  1 /)
+  A(2, :) = (/  1, -2, -3 /)
+  A(3, :) = (/ -1,  1,  2 /)
+  y       = (/ -8,  0,  3 /)
+  x_exp   = (/ -4, -5,  2 /)
 
   print "(a)", "A:"
-  print "(3f5.0)", A
+  print "(3f5.0)", transpose(A)
   print *
 
   print "(a)", "y:"
@@ -34,7 +25,7 @@ program gaussian_elimination
   print *
 
   print "(a)", "Expected answer:"
-  print "(3f6.1)", x_expected
+  print "(3f6.1)", x_exp
   print *
 
 contains
@@ -118,12 +109,12 @@ contains
 
     print "(a, /)", "Convert to Upper Triangular"
     A = upper_triangular(A)
-    print "(4f6.1)", A
+    print "(4f6.1)", transpose(A)
     print *
 
     print "(a, /)", "Substitution"
     A = substitution(A)
-    print "(4f6.1)", A
+    print "(4f6.1)", transpose(A)
     print *
   end function
 
@@ -139,11 +130,11 @@ contains
     real, dimension(size(y)) :: x
 
     ! Augment
-    Ay(1:size(A, 1), :) = A
+    Ay(1:size(A, 1), :) = transpose(A)  ! TODO ewww
     Ay(size(Ay, 1), :) = y
 
     print "(a)", "Augmented [A | y]: "
-    print "(4f6.1)", Ay
+    print "(4f6.1)", transpose(Ay)
     print *
 
     Ay = rref(Ay)
@@ -151,7 +142,6 @@ contains
   end function
 end program gaussian_elimination
 
-! TODO shouldn't the matrices be... transposed? (stored in column-major order)
 ! TODO also, notice that transposing a matrix before operating on it might result in speedups; transpose for cache-locality
 ! TODO real vs double
 ! TODO makefile, "compilation instructions" on top, -O, -real
