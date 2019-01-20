@@ -1,5 +1,5 @@
 CC=gfortran
-CFLAGS=-Wall
+CFLAGS=-Wall -O3 -fdefault-real-8
 
 .PHONY: clean default run_gauss_jordan_test
 

@@ -22,7 +22,7 @@ contains
       ! Find row with highest magnitude in the current column
       row_ = maxloc(abs(A(col, row:)), dim=1) - 1 + row
 
-      if (A(row_, col) == 0) then
+      if (A(row_, col) == 0.0) then
         col = col + 1
         cycle
       endif
@@ -38,7 +38,7 @@ contains
 
       ! Zero the pivot column for remaining rows
       ! by subtracting off a scaled version of the current row
-      forall (i=row+1:m) A(col:, i) = A(col:, i) - A(col, i) * A(col:, row)
+      forall (i=row+1:m) A(col+1:, i) = A(col+1:, i) - A(col, i) * A(col+1:, row)
       A(col, row+1:) = 0.0
 
       row = row + 1
