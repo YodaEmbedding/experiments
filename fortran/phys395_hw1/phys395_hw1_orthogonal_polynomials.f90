@@ -32,19 +32,14 @@ program orthogonal_polynomials
 
   open(unit=fh, file="results.csv", action="write", status="replace")
   write(fh, "(a)") "x, f(x), f_approx(x)"
-  call write_csv_chebyshevT(fh, f, c, 100)
+  call write_csv_chebyshevT(fh, c, 100)
   close(fh)
 
 contains
 
   !! Write a plottable csv of f(x) and chebyshevT using given coefficients
-  subroutine write_csv_chebyshevT(fh, f, coeffs, num_samples)
-    abstract interface
-      function func (x)
-        real :: func
-        real, dimension(:), intent (in) :: x
-      end function func
-    end interface
+  subroutine write_csv_chebyshevT(fh, coeffs, num_samples)
+    implicit none
 
     integer, intent(in) :: num_samples
     integer, intent(in) :: fh
@@ -53,8 +48,6 @@ contains
     real, dimension(num_samples) :: f_x   ! Actual function evaluated at x_i
     real, dimension(num_samples) :: y_x   ! Approx function evaluated at x_i
     integer :: i
-    ! procedure (func), pointer, intent(in) :: f => null ()
-    procedure (func), pointer, intent(in) :: f
 
     x = linspace(-1.0, 1.0, num_samples)
     f_x = f(x)
