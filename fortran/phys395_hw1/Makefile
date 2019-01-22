@@ -8,8 +8,8 @@ default: run_orthogonal_polynomials
 clean:
 	rm -rf *.mod *.o \
 		test_gauss_jordan orthogonal_polynomials \
-		results.csv \
-		plot.png
+		results_*.csv \
+		plot_*.png
 
 run_orthogonal_polynomials: orthogonal_polynomials
 	./orthogonal_polynomials

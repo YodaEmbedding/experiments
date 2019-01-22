@@ -2,6 +2,13 @@ program orthogonal_polynomials
   use gauss_jordan
   implicit none
 
+  ! abstract interface
+  !   function func(x)
+  !     real, intent(in) :: x
+  !     real :: func
+  !   end function func
+  ! end interface
+
   integer, parameter :: samples = 201   ! Number of samples plotted
   integer, parameter :: fh = 1          ! File handle
   integer, parameter :: m = 10          ! Size of sampled point set
@@ -9,10 +16,17 @@ program orthogonal_polynomials
   real, dimension(m) :: x               ! x_i
   real, dimension(n) :: c               ! Coefficients
   integer :: i
+  ! procedure (func), pointer :: fn
+  ! fn => f
 
-  open(unit=fh, file="results.csv", action="write", status="replace")
+  open(unit=fh, file="results_f_uniform.csv", action="write", status="replace")
   write(fh, "(a)") "$x$, $f(x)$, $f_{10}(x)$, $f_{100}(x)$"
-  call write_csv_chebyshevT(fh, samples)
+  call write_csv_chebyshevT(fh, .false., samples)
+  close(fh)
+
+  open(unit=fh, file="results_df_uniform.csv", action="write", status="replace")
+  write(fh, "(a)") "$x$, $\frac{d}{dx}f(x)$, $\frac{d}{dx}f_{10}(x)$, $\frac{d}{dx}f_{100}(x)$"
+  call write_csv_chebyshevT(fh, .true., samples)
   close(fh)
 
   ! x = linspace
@@ -32,13 +46,17 @@ contains
 
   ! TODO accept function pointer on vector function
   !! Write a plottable csv of f(x) and chebyshevT using given coefficients
-  subroutine write_csv_chebyshevT(fh, num_samples)
-    integer, intent(in) :: num_samples
+  subroutine write_csv_chebyshevT(fh, is_dv, num_samples)
     integer, intent(in) :: fh
+    logical, intent(in) :: is_dv  ! spaghetti... wish Fortran were dynamic
+    integer, intent(in) :: num_samples
+    ! procedure (func), pointer, intent(in) :: fn
     real, dimension(10) :: x10, c10
     real, dimension(100) :: x100, c100
     real, dimension(num_samples) :: x, f_x, f10_x, f100_x
     integer :: i
+
+    ! TODO maybe use explicit f calls since shape can't be deferred?
 
     ! Calculate coefficients for 10 and 100 terms
     x10  = linspace(-1.0, 1.0, size(x10))
@@ -48,13 +66,20 @@ contains
 
     ! Calculate table values
     x = linspace(-1.0, 1.0, num_samples)
-    f_x = f(x)
-    forall (i=1:num_samples) f10_x(i)  = chebyshevT_poly(c10,  x(i))
-    forall (i=1:num_samples) f100_x(i) = chebyshevT_poly(c100, x(i))
+
+    if (.not. is_dv) then
+      f_x = f(x)
+      forall (i=1:num_samples) f10_x(i)  = chebyshevT_poly(c10,  x(i))
+      forall (i=1:num_samples) f100_x(i) = chebyshevT_poly(c100, x(i))
+    else
+      f_x = fdv(x)
+      forall (i=1:num_samples) f10_x(i)  = chebyshevTdv_poly(c10,  x(i))
+      forall (i=1:num_samples) f100_x(i) = chebyshevTdv_poly(c100, x(i))
+    endif
 
     ! Write table
     do i = 1, num_samples
-      write(fh, "(f8.4, a, f8.4, a, f8.4, a, f8.4)") &
+      write(fh, *) &
         x(i), ", ", f_x(i), ", ", f10_x(i), ", ", f100_x(i)
     end do
   end subroutine
@@ -90,6 +115,16 @@ contains
     chebyshevT_poly = sum(c * chebyshevT((/(i, i=0,size(c)-1)/), x))
   end function
 
+  !! Chebyshev derivative polynomial with coefficients c evaluated at x
+  pure function chebyshevTdv_poly(c, x)
+    real, dimension(:), intent(in) :: c
+    real, intent(in) :: x
+    real :: chebyshevTdv_poly
+    integer :: i
+
+    chebyshevTdv_poly = sum(c * chebyshevTdv((/(i, i=0,size(c)-1)/), x))
+  end function
+
   !! Chebyshev basis function of order n evaluated at x
   elemental function chebyshevT(n, x)
       real, intent(in) :: x
@@ -99,12 +134,29 @@ contains
       chebyshevT = cos(n * acos(x))
   end function
 
+  !! Chebyshev derivative of basis function of order n evaluated at x
+  elemental function chebyshevTdv(n, x)
+      real, intent(in) :: x
+      integer, intent(in) :: n
+      real :: chebyshevTdv
+
+      chebyshevTdv = n * sin(n * acos(x)) / sqrt(1 - x**2)
+  end function
+
   !! Function under test
   elemental function f(x)
     real, intent(in) :: x
     real :: f
 
     f = (1 + 10 * x**2)**(-1)
+  end function
+
+  !! Derivative of function under test
+  elemental function fdv(x)
+    real, intent(in) :: x
+    real :: fdv
+
+    fdv = -20 * x / (10 * x**2 + 1)**2
   end function
 
   !! Return n evenly spaced points within interval [a, b]
