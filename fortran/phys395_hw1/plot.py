@@ -8,24 +8,27 @@ plt.style.use('dark_background')
 
 # argparse
 
-def main():
-    xs = []
-    f_xs = []
-    y_xs = []
+def read_csv(filename):
+    rows = []
 
-    with open('results.csv', 'r') as f:
+    with open(filename, 'r') as f:
         reader = csv.reader(f, delimiter=',')
         header = next(reader)
-
         for line in reader:
-            x, f_x, y_x = (map(float, line))
-            xs.append(x)
-            f_xs.append(f_x)
-            y_xs.append(y_x)
+            rows.append(tuple(map(float, line)))
 
-    plt.plot(xs, f_xs, label=header[1])
-    plt.plot(xs, y_xs, label=header[2])
+    return header, rows
+
+def main():
+
+    header, rows = read_csv('results.csv')
+    series = zip(*rows)
+    it = zip(header, series)
+    _, x = next(it)
+    for i, (label, data) in enumerate(it):
+        plt.plot(x, data, label=label, zorder=-i)
     plt.legend()
+    plt.ylim((0.0, 1.0))
     plt.title("HW1: No title because apparently I forgot to change it")
     plt.savefig('plot.png', dpi=300)
 

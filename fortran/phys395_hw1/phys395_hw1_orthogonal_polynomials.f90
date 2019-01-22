@@ -7,17 +7,12 @@ program orthogonal_polynomials
   integer, parameter :: m = 10          ! Size of sampled point set
   integer, parameter :: n = 10          ! Size of basis set
   real, dimension(m) :: x               ! x_i
-  real, dimension(m) :: f_x             ! Actual function evaluated at x_i
   real, dimension(n) :: c               ! Coefficients
   integer :: i
 
-  x = linspace(-1.0, 1.0, m)
-  f_x = f(x)
-  c = chebyshevT_coeffs(x, f_x, n)
-
   open(unit=fh, file="results.csv", action="write", status="replace")
-  write(fh, "(a)") "x, f(x), f_approx(x)"
-  call write_csv_chebyshevT(fh, c, samples)
+  write(fh, "(a)") "$x$, $f(x)$, $f_{10}(x)$, $f_{100}(x)$"
+  call write_csv_chebyshevT(fh, samples)
   close(fh)
 
   ! x = linspace
@@ -35,27 +30,36 @@ program orthogonal_polynomials
 
 contains
 
+  ! TODO accept function pointer on vector function
   !! Write a plottable csv of f(x) and chebyshevT using given coefficients
-  subroutine write_csv_chebyshevT(fh, coeffs, num_samples)
-    implicit none
-
+  subroutine write_csv_chebyshevT(fh, num_samples)
     integer, intent(in) :: num_samples
     integer, intent(in) :: fh
-    real, dimension(:), intent(in) :: coeffs
-    real, dimension(num_samples) :: x     ! x_i
-    real, dimension(num_samples) :: f_x   ! Actual function evaluated at x_i
-    real, dimension(num_samples) :: y_x   ! Approx function evaluated at x_i
+    real, dimension(10) :: x10, c10
+    real, dimension(100) :: x100, c100
+    real, dimension(num_samples) :: x, f_x, f10_x, f100_x
     integer :: i
 
+    ! Calculate coefficients for 10 and 100 terms
+    x10  = linspace(-1.0, 1.0, size(x10))
+    x100 = linspace(-1.0, 1.0, size(x100))
+    c10  = chebyshevT_coeffs(x10,  f(x10),  size(x10))
+    c100 = chebyshevT_coeffs(x100, f(x100), size(x100))
+
+    ! Calculate table values
     x = linspace(-1.0, 1.0, num_samples)
     f_x = f(x)
-    forall (i=1:num_samples) y_x(i) = chebyshevT_poly(coeffs, x(i))
+    forall (i=1:num_samples) f10_x(i)  = chebyshevT_poly(c10,  x(i))
+    forall (i=1:num_samples) f100_x(i) = chebyshevT_poly(c100, x(i))
 
+    ! Write table
     do i = 1, num_samples
-      write(fh, "(f8.4, a, f8.4, a, f8.4)") x(i), ", ", f_x(i), ", ", y_x(i)
+      write(fh, "(f8.4, a, f8.4, a, f8.4, a, f8.4)") &
+        x(i), ", ", f_x(i), ", ", f10_x(i), ", ", f100_x(i)
     end do
   end subroutine
 
+  ! TODO accept f instead of f_x?
   !! Compute best coefficients of chebyshevT polynomial of order n-1
   pure function chebyshevT_coeffs(x, f_x, n)
     real, dimension(:), intent(in) :: x
