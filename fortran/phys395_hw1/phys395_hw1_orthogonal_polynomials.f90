@@ -20,6 +20,14 @@ program orthogonal_polynomials
   call write_csv_chebyshevT(fh, c, samples)
   close(fh)
 
+  ! x = linspace
+  ! write_csv "x, f(x), f_10(x), f_100(x)"
+  ! write_csv "x, g(x), g_10(x), g_100(x)"
+
+  ! x = (\(cos(pi * (i - 0.5) / n), i=1,n)\)  ! TODO should this be m or n? I guess it doesn't matter if m = n
+  ! write_csv "x, f(x), f_10(x), f_100(x)"
+  ! write_csv "x, g(x), g_10(x), g_100(x)"
+
   ! TODO n = 10
   ! TODO n = 100
   ! TODO d/dx
@@ -57,7 +65,7 @@ contains
     real, dimension(size(x), n) :: B_x
     real, dimension(n, size(x)) :: B_x_T
 
-    B_x = chebyshevT_matrix(n, x)
+    forall (i=1:n) B_x(:, i) = chebyshevT(i - 1, x)
     B_x_T = transpose(B_x)
 
     ! Naively, one can execute:
@@ -66,15 +74,6 @@ contains
     ! Instead, one can use the linear least squares idea of multiplying by
     ! the transpose of B_x first in order to properly match the dimensions.
     chebyshevT_coeffs = solve(matmul(B_x_T, B_x), matmul(B_x_T, f_x))
-  end function
-
-  !! Create the matrix Bij = chebyshevT(j, x_i)
-  pure function chebyshevT_matrix(n, x)
-    real, dimension(:), intent(in) :: x
-    integer, intent(in) :: n
-    real, dimension(size(x), n) :: chebyshevT_matrix
-
-    forall (i=1:n) chebyshevT_matrix(:, i) = chebyshevT(i - 1, x)
   end function
 
   !! Chebyshev polynomial with coefficients c evaluated at x
