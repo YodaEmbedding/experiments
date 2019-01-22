@@ -2,61 +2,51 @@ program orthogonal_polynomials
   use gauss_jordan
   implicit none
 
-  ! abstract interface
-  !   function func(x)
-  !     real, intent(in) :: x
-  !     real :: func
-  !   end function func
-  ! end interface
+  integer, parameter :: samples = 2001  ! Number of samples plotted
 
-  integer, parameter :: samples = 201   ! Number of samples plotted
-  integer, parameter :: fh = 1          ! File handle
-  integer, parameter :: m = 10          ! Size of sampled point set
-  integer, parameter :: n = 10          ! Size of basis set
-  real, dimension(m) :: x               ! x_i
-  real, dimension(n) :: c               ! Coefficients
-  integer :: i
-  ! procedure (func), pointer :: fn
-  ! fn => f
-
-  open(unit=fh, file="results_f_uniform.csv", action="write", status="replace")
-  write(fh, "(a)") "$x$, $f(x)$, $f_{10}(x)$, $f_{100}(x)$"
-  call write_csv_chebyshevT(fh, .false., samples)
-  close(fh)
-
-  open(unit=fh, file="results_df_uniform.csv", action="write", status="replace")
-  write(fh, "(a)") "$x$, $\frac{d}{dx}f(x)$, $\frac{d}{dx}f_{10}(x)$, $\frac{d}{dx}f_{100}(x)$"
-  call write_csv_chebyshevT(fh, .true., samples)
-  close(fh)
-
-  ! x = linspace
-  ! write_csv "x, f(x), f_10(x), f_100(x)"
-  ! write_csv "x, g(x), g_10(x), g_100(x)"
-
-  ! x = (\(cos(pi * (i - 0.5) / n), i=1,n)\)  ! TODO should this be m or n? I guess it doesn't matter if m = n
-  ! write_csv "x, f(x), f_10(x), f_100(x)"
-  ! write_csv "x, g(x), g_10(x), g_100(x)"
-
-  ! TODO n = 10
-  ! TODO n = 100
-  ! TODO d/dx
-  ! TODO errors (maybe do this inside python?)
+  call write_csv_chebyshevT("results_f_uniform.csv",  samples, .false., .false.)
+  call write_csv_chebyshevT("results_df_uniform.csv", samples, .true.,  .false.)
+  call write_csv_chebyshevT("results_f_zeros.csv",    samples, .false., .true.)
+  call write_csv_chebyshevT("results_df_zeros.csv",   samples, .true.,  .true.)
 
 contains
 
-  ! TODO accept function pointer on vector function
-  !! Write a plottable csv of f(x) and chebyshevT using given coefficients
-  subroutine write_csv_chebyshevT(fh, is_dv, num_samples)
-    integer, intent(in) :: fh
-    logical, intent(in) :: is_dv  ! spaghetti... wish Fortran were dynamic
+  !! Write a plottable csv file
+  !! Args:
+  !!  is_dv: f'(x) if true, f(x) if false
+  !!  is_zeros: x on zeros of Tn(x) if true, x is uniformly spaced if false
+  subroutine write_csv_chebyshevT(filename, num_samples, is_dv, is_zeros)
+    character(len=*), intent(in) :: filename
     integer, intent(in) :: num_samples
-    ! procedure (func), pointer, intent(in) :: fn
+    logical, intent(in) :: is_dv
+    logical, intent(in) :: is_zeros
+    integer, parameter :: fh = 1
+    character(len=256), parameter :: f_header = &
+      "$x$, $f(x)$, $f_{10}(x)$, $f_{100}(x)$"
+    character(len=256), parameter :: df_header = &
+      "$x$, $\frac{d}{dx}f(x)$, $\frac{d}{dx}f_{10}(x)$, $\frac{d}{dx}f_{100}(x)$"
+
+    open(unit=fh, file=filename, action="write", status="replace")
+    if (.not. is_dv) then
+      write(fh, "(a)") f_header
+    else
+      write(fh, "(a)") df_header
+    endif
+    call write_table_chebyshevT(fh, samples, is_dv, is_zeros)
+    close(fh)
+  end subroutine
+
+  !! Write csv table
+  subroutine write_table_chebyshevT(fh, num_samples, is_dv, is_zeros)
+    integer, intent(in) :: fh
+    integer, intent(in) :: num_samples
+    logical, intent(in) :: is_dv     ! spaghetti... I wish Fortran were dynamic
+    logical, intent(in) :: is_zeros  ! spaghetti... I wish Fortran were dynamic
     real, dimension(10) :: x10, c10
     real, dimension(100) :: x100, c100
     real, dimension(num_samples) :: x, f_x, f10_x, f100_x
+    real, parameter :: pi = 3.14159265358979323846264338327950288419716939937510
     integer :: i
-
-    ! TODO maybe use explicit f calls since shape can't be deferred?
 
     ! Calculate coefficients for 10 and 100 terms
     x10  = linspace(-1.0, 1.0, size(x10))
@@ -65,7 +55,12 @@ contains
     c100 = chebyshevT_coeffs(x100, f(x100), size(x100))
 
     ! Calculate table values
-    x = linspace(-1.0, 1.0, num_samples)
+    if (.not. is_zeros) then
+      x = linspace(-1.0, 1.0, num_samples)
+    else
+      ! TODO should this be m or n? I guess it doesn't matter if m = n...
+      x = (/(cos(pi * (i - 0.5) / num_samples), i=1,num_samples)/)
+    endif
 
     if (.not. is_dv) then
       f_x = f(x)
@@ -84,7 +79,6 @@ contains
     end do
   end subroutine
 
-  ! TODO accept f instead of f_x?
   !! Compute best coefficients of chebyshevT polynomial of order n-1
   pure function chebyshevT_coeffs(x, f_x, n)
     real, dimension(:), intent(in) :: x
@@ -93,6 +87,7 @@ contains
     real, dimension(n) :: chebyshevT_coeffs
     real, dimension(size(x), n) :: B_x
     real, dimension(n, size(x)) :: B_x_T
+    integer :: i
 
     forall (i=1:n) B_x(:, i) = chebyshevT(i - 1, x)
     B_x_T = transpose(B_x)
@@ -164,10 +159,9 @@ contains
     real, intent(in) :: a, b
     integer, intent(in) :: n
     real, dimension(n) :: linspace
+    integer :: i
 
     linspace = (/(a + (b-a) * i / (n-1), i=0,n-1)/)
   end function
 
 end program orthogonal_polynomials
-
-! TODO All questions; produce results for all of them

@@ -6,14 +6,12 @@ import numpy as np
 
 plt.style.use('dark_background')
 
-# argparse
-
 def read_csv(filename):
     rows = []
 
     with open(filename, 'r') as f:
         reader = csv.reader(f, delimiter=',')
-        header = next(reader)
+        header = tuple(map(str.rstrip, next(reader)))
         for line in reader:
             rows.append(tuple(map(float, line)))
 
@@ -38,12 +36,24 @@ def main():
         csv_filename='results_f_uniform.csv',
         out_filename='plot_f_uniform.png',
         ylim=(0.0, 1.0),
-        title="$f(x)$ evaluated for uniformly spaced $x_i$")
+        title=r'$f(x)$ evaluated for $x_i$ uniformly spaced')
 
     plot_csv(
         csv_filename='results_df_uniform.csv',
         out_filename='plot_df_uniform.png',
         ylim=(-4.0, 4.0),
-        title=r"$\frac{d}{dx}f(x)$ evaluated for uniformly spaced $x_i$")
+        title=r'$\frac{d}{dx}f(x)$ evaluated for $x_i$ uniformly spaced')
+
+    plot_csv(
+        csv_filename='results_f_zeros.csv',
+        out_filename='plot_f_zeros.png',
+        ylim=(0.0, 1.0),
+        title=r'$f(x)$ evaluated for $x_i$ at zeros of $T_n(x)$')
+
+    plot_csv(
+        csv_filename='results_df_zeros.csv',
+        out_filename='plot_df_zeros.png',
+        ylim=(-4.0, 4.0),
+        title=r'$\frac{d}{dx}f(x)$ evaluated for $x_i$ at zeros of $T_n(x)$')
 
 main()
