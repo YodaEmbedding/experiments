@@ -1,5 +1,6 @@
 CC=gfortran
 CFLAGS=-Wall -O3 -fdefault-real-8
+PYTHON=python
 
 .PHONY: clean default run_test_gauss_jordan run_orthogonal_polynomials
 
@@ -13,9 +14,7 @@ clean:
 
 run_orthogonal_polynomials: orthogonal_polynomials
 	./orthogonal_polynomials
-	python3 plot.py
-	#
-	# TODO verify this all works in the VM (clone it on your Archlinux PC)
+	$(PYTHON) plot.py
 
 run_test_gauss_jordan: test_gauss_jordan
 	./test_gauss_jordan

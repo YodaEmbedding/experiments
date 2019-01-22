@@ -21,7 +21,7 @@ def plot_csv(csv_filename, out_filename, ylim, title):
     header, rows = read_csv(csv_filename)
     series = list(map(np.array, zip(*rows)))
     x, f, f10, f100 = series
-    it = zip(header, series)
+    it = iter(zip(header, series))  # iter is for python 2
     _, _ = next(it)
 
     plt.figure()
@@ -76,9 +76,9 @@ def main():
         ylim=(-4.0, 4.0),
         title=r'$\frac{d}{dx}f(x)$ evaluated for $x_i$ at zeros of $T_n(x)$')
 
-    print()
+    print('')
 
 main()
 
 # TODO plot out error
-# TODO figure out why results are backwards for "_zeros"
+# TODO gauss jordan can be optimized: using swap indices

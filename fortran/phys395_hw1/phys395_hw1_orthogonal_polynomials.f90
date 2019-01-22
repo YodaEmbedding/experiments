@@ -49,18 +49,24 @@ contains
     integer :: i
 
     ! Calculate coefficients for 10 and 100 terms
-    x10  = linspace(-1.0, 1.0, size(x10))
-    x100 = linspace(-1.0, 1.0, size(x100))
-    c10  = chebyshevT_coeffs(x10,  f(x10),  size(x10))
-    c100 = chebyshevT_coeffs(x100, f(x100), size(x100))
+    if (.not. is_zeros) then
+      x10  = linspace(-1.0, 1.0, size(x10))
+      x100 = linspace(-1.0, 1.0, size(x100))
+    else
+      x10  = (/(cos(pi * (i - 0.5) / size(x10)),  i=1,size(x10))/)
+      x100 = (/(cos(pi * (i - 0.5) / size(x100)), i=1,size(x100))/)
+    endif
+
+    if (.not. is_dv) then
+      c10  = chebyshevT_coeffs(x10,  f(x10),  size(x10))
+      c100 = chebyshevT_coeffs(x100, f(x100), size(x100))
+    else
+      c10  = chebyshevTdv_coeffs(x10,  f(x10),  size(x10))
+      c100 = chebyshevTdv_coeffs(x100, f(x100), size(x100))
+    endif
 
     ! Calculate table values
-    if (.not. is_zeros) then
-      x = linspace(-1.0, 1.0, num_samples)
-    else
-      ! TODO should this be m or n? I guess it doesn't matter if m = n...
-      x = (/(cos(pi * (i - 0.5) / num_samples), i=1,num_samples)/)
-    endif
+    x = linspace(-1.0, 1.0, num_samples)
 
     if (.not. is_dv) then
       f_x = f(x)
@@ -98,6 +104,27 @@ contains
     ! Instead, one can use the linear least squares idea of multiplying by
     ! the transpose of B_x first in order to properly match the dimensions.
     chebyshevT_coeffs = solve(matmul(B_x_T, B_x), matmul(B_x_T, f_x))
+  end function
+
+  !! Compute best coefficients of chebyshevT polynomial of order n-1
+  pure function chebyshevTdv_coeffs(x, f_x, n)
+    real, dimension(:), intent(in) :: x
+    real, dimension(:), intent(in) :: f_x
+    integer, intent(in) :: n
+    real, dimension(n) :: chebyshevTdv_coeffs
+    real, dimension(size(x), n) :: B_x
+    real, dimension(n, size(x)) :: B_x_T
+    integer :: i
+
+    forall (i=1:n) B_x(:, i) = chebyshevTdv(i - 1, x)
+    B_x_T = transpose(B_x)
+
+    ! Naively, one can execute:
+    ! chebyshevTdv_coeffs = solve(B_x, f_x)
+    ! However, this does not work when m != n.
+    ! Instead, one can use the linear least squares idea of multiplying by
+    ! the transpose of B_x first in order to properly match the dimensions.
+    chebyshevTdv_coeffs = solve(matmul(B_x_T, B_x), matmul(B_x_T, f_x))
   end function
 
   !! Chebyshev polynomial with coefficients c evaluated at x
