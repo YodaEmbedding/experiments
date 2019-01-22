@@ -2,38 +2,28 @@ program orthogonal_polynomials
   use gauss_jordan
   implicit none
 
-  integer, parameter :: fh = 1    ! File handle
-  integer, parameter :: m = 10    ! Size of sampled point set
-  integer, parameter :: n = 10    ! Size of basis set
-  real, dimension(m) :: x         ! x_i
-  real, dimension(m) :: f_x       ! Actual function evaluated at x_i
-  real, dimension(m) :: y_x       ! Approx function evaluated at x_i
-  real, dimension(m, n) :: B_x    ! Basis functions evaluated at x_i
-  real, dimension(m, n) :: B_x_T  ! Transpose of B_x
-  real, dimension(n) :: c         ! Coefficients
+  integer, parameter :: samples = 201   ! Number of samples plotted
+  integer, parameter :: fh = 1          ! File handle
+  integer, parameter :: m = 10          ! Size of sampled point set
+  integer, parameter :: n = 10          ! Size of basis set
+  real, dimension(m) :: x               ! x_i
+  real, dimension(m) :: f_x             ! Actual function evaluated at x_i
+  real, dimension(n) :: c               ! Coefficients
   integer :: i
-  character(len=32) :: fmt_str
 
   x = linspace(-1.0, 1.0, m)
   f_x = f(x)
-  B_x = chebyshevT_matrix(n, x)
-  B_x_T = transpose(B_x)
-
-  ! Naively, one can perform c = solve(B_x, f_x).
-  ! However, this does not work when m != n.
-  ! Instead, one can use the linear least squares idea of multiplying by
-  ! the transpose of B_x first in order to properly match the dimensions.
-  c = solve(matmul(B_x_T, B_x), matmul(B_x_T, f_x))
-
-  write (fmt_str, "(a, i5, a)") "(", n, "f8.2)"
-  print fmt_str, transpose(B_x)
-  print *
-  print fmt_str, c
+  c = chebyshevT_coeffs(x, f_x, n)
 
   open(unit=fh, file="results.csv", action="write", status="replace")
   write(fh, "(a)") "x, f(x), f_approx(x)"
-  call write_csv_chebyshevT(fh, c, 100)
+  call write_csv_chebyshevT(fh, c, samples)
   close(fh)
+
+  ! TODO n = 10
+  ! TODO n = 100
+  ! TODO d/dx
+  ! TODO errors (maybe do this inside python?)
 
 contains
 
@@ -57,6 +47,26 @@ contains
       write(fh, "(f8.4, a, f8.4, a, f8.4)") x(i), ", ", f_x(i), ", ", y_x(i)
     end do
   end subroutine
+
+  !! Compute best coefficients of chebyshevT polynomial of order n-1
+  pure function chebyshevT_coeffs(x, f_x, n)
+    real, dimension(:), intent(in) :: x
+    real, dimension(:), intent(in) :: f_x
+    integer, intent(in) :: n
+    real, dimension(n) :: chebyshevT_coeffs
+    real, dimension(size(x), n) :: B_x
+    real, dimension(n, size(x)) :: B_x_T
+
+    B_x = chebyshevT_matrix(n, x)
+    B_x_T = transpose(B_x)
+
+    ! Naively, one can execute:
+    ! chebyshevT_coeffs = solve(B_x, f_x)
+    ! However, this does not work when m != n.
+    ! Instead, one can use the linear least squares idea of multiplying by
+    ! the transpose of B_x first in order to properly match the dimensions.
+    chebyshevT_coeffs = solve(matmul(B_x_T, B_x), matmul(B_x_T, f_x))
+  end function
 
   !! Create the matrix Bij = chebyshevT(j, x_i)
   pure function chebyshevT_matrix(n, x)
@@ -106,5 +116,3 @@ contains
 end program orthogonal_polynomials
 
 ! TODO All questions; produce results for all of them
-! TODO linear least squares for m != n
-! TODO docstrings
