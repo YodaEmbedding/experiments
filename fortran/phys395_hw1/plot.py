@@ -18,23 +18,35 @@ def read_csv(filename):
     return header, rows
 
 def plot_csv(csv_filename, out_filename, ylim, title):
+    # colors = [None, "red", "blue", "green"]
+    # colors = [None] + plt.rcParams['axes.prop_cycle'].by_key()['color']
+    colors = [None, '#ff00ff', '#ffff00', '#00ffff']
     header, rows = read_csv(csv_filename)
     series = list(map(np.array, zip(*rows)))
     x, f, f10, f100 = series
-    it = iter(zip(header, series))  # iter is for python 2
-    _, _ = next(it)
+    it = iter(zip(colors, header, series))  # iter is for python 2
+    _ = next(it)
 
-    plt.figure()
-    for i, (label, data) in enumerate(it):
-        plt.plot(x, data, label=label, zorder=-i)
+    fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
 
-    plt.legend()
-    plt.ylim(ylim)
-    plt.title(title)
-    plt.savefig(out_filename, dpi=300)
+    for i, (color, label, data) in enumerate(it):
+        ax1.plot(x, data, label=label, color=color, zorder=-i)
 
     err10  = np.abs(f - f10)
     err100 = np.abs(f - f100)
+
+    it = [
+        (colors[2], '$err_{10}(x)$',  err10),
+        (colors[3], '$err_{100}(x)$', err100)]
+
+    for i, (color, label, data) in enumerate(it):
+        ax2.plot(x, data, label=label, color=color, zorder=-i)
+
+    ax1.set_title(title)
+    ax1.set_ylim(ylim)
+    ax1.legend()
+    ax2.legend()
+    fig.savefig(out_filename, dpi=300)
 
     with np.warnings.catch_warnings():
         np.warnings.filterwarnings('ignore')
@@ -61,7 +73,7 @@ def main():
     plot_csv(
         csv_filename='results_df_uniform.csv',
         out_filename='plot_df_uniform.png',
-        ylim=(-4.0, 4.0),
+        ylim=(-3.0, 3.0),
         title=r'$\frac{d}{dx}f(x)$ evaluated for $x_i$ uniformly spaced')
 
     plot_csv(
@@ -73,7 +85,7 @@ def main():
     plot_csv(
         csv_filename='results_df_zeros.csv',
         out_filename='plot_df_zeros.png',
-        ylim=(-4.0, 4.0),
+        ylim=(-3.0, 3.0),
         title=r'$\frac{d}{dx}f(x)$ evaluated for $x_i$ at zeros of $T_n(x)$')
 
     print('')
@@ -81,4 +93,6 @@ def main():
 main()
 
 # TODO plot out error
+# TODO figure out why error is so large for derivative
 # TODO gauss jordan can be optimized: using swap indices
+# TODO try replacing f with the function in df just to see if the same plots are generated
