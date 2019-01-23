@@ -1,3 +1,7 @@
+! To compile and run, simply: make
+! Now look at the output plots *.png files
+! And the terminal output giving a table of maximal error values
+
 program orthogonal_polynomials
   use gauss_jordan
   implicit none
