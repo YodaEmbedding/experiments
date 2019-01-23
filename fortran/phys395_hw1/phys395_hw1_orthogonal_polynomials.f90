@@ -48,22 +48,19 @@ contains
     real, parameter :: pi = 3.14159265358979323846264338327950288419716939937510
     integer :: i
 
-    ! Calculate coefficients for 10 and 100 terms
     if (.not. is_zeros) then
+      ! Use uniformly spaced
       x10  = linspace(-1.0, 1.0, size(x10))
       x100 = linspace(-1.0, 1.0, size(x100))
     else
+      ! Use zeros
       x10  = (/(cos(pi * (i - 0.5) / size(x10)),  i=1,size(x10))/)
       x100 = (/(cos(pi * (i - 0.5) / size(x100)), i=1,size(x100))/)
     endif
 
-    if (.not. is_dv) then
-      c10  = chebyshevT_coeffs(x10,  f(x10),  size(x10))
-      c100 = chebyshevT_coeffs(x100, f(x100), size(x100))
-    else
-      c10  = chebyshevTdv_coeffs(x10,  f(x10),  size(x10))
-      c100 = chebyshevTdv_coeffs(x100, f(x100), size(x100))
-    endif
+    ! Calculate coefficients for 10 and 100 terms
+    c10  = chebyshevT_coeffs(x10,  f(x10),  size(x10))
+    c100 = chebyshevT_coeffs(x100, f(x100), size(x100))
 
     ! Calculate table values
     x = linspace(-1.0, 1.0, num_samples)
