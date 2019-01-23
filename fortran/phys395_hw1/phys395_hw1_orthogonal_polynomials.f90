@@ -58,8 +58,8 @@ contains
       x100 = linspace(-1.0, 1.0, size(x100))
     else
       ! Use zeros
-      x10  = (/(cos(pi * (i - 0.5) / size(x10)),  i=1,size(x10))/)
-      x100 = (/(cos(pi * (i - 0.5) / size(x100)), i=1,size(x100))/)
+      x10  = (/((0.5 + i) / size(x10),  i=1,size(x10))/)
+      x100 = (/((0.5 + i) / size(x100), i=1,size(x100))/)
     endif
 
     ! Calculate coefficients for 10 and 100 terms
@@ -153,8 +153,9 @@ contains
       real, intent(in) :: x
       integer, intent(in) :: n
       real :: chebyshevT
+      real, parameter :: pi = 3.14159265358979323846264338327950288419716939937510
 
-      chebyshevT = cos(n * acos(x))
+      chebyshevT = cos(n * pi * x)
   end function
 
   !! Chebyshev derivative of basis function of order n evaluated at x
@@ -162,9 +163,10 @@ contains
       real, intent(in) :: x
       integer, intent(in) :: n
       real :: chebyshevTdv
+      real, parameter :: pi = 3.14159265358979323846264338327950288419716939937510
 
-      chebyshevTdv = n * sin(n * acos(x)) / sqrt(1 - x**2)
-  end function
+      chebyshevTdv = n * pi * sin(n * pi * x)
+    end function
 
   !! Function under test
   elemental function f(x)
