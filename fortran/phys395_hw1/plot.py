@@ -48,9 +48,12 @@ def plot_csv(csv_filename, out_filename, ylim, title):
     ax2.legend()
     fig.savefig(out_filename, dpi=300)
 
+    err10  = err10 [~np.isnan(err10)]
+    err100 = err100[~np.isnan(err100)]
+
     with np.warnings.catch_warnings():
         np.warnings.filterwarnings('ignore')
-        print('{:12} | {:12.3f} | {:12.3f} | {:12.3f} | {:12.3f}'.format(
+        print('{:10}{:14.3f}{:14.3f}{:14.3f}{:14.3f}'.format(
             out_filename.lstrip('plot_').rstrip('.png'),
             np.max(err10),
             x[np.argmax(err10)],
@@ -62,7 +65,7 @@ def main():
         '\nThe max and argmax of the error is provided below for both'
         '\nChebyshev polynomial with 10 terms and'
         '\nChebyshev polynomial with 100 terms.\n')
-    print('{:12} | {:>12} | {:>12} | {:>12} | {:>12}'.format('Name', 'max err10', 'argmax err10', 'max err100', 'argmax err100'))
+    print('{:10}{:>14}{:>14}{:>14}{:>14}'.format('Name', 'max err10', 'argmax err10', 'max err100', 'argmax err100'))
 
     plot_csv(
         csv_filename='results_f_uniform.csv',
@@ -71,16 +74,16 @@ def main():
         title=r'$f(x)$ evaluated for $x_i$ uniformly spaced')
 
     plot_csv(
-        csv_filename='results_df_uniform.csv',
-        out_filename='plot_df_uniform.png',
-        ylim=(-3.0, 3.0),
-        title=r'$\frac{d}{dx}f(x)$ evaluated for $x_i$ uniformly spaced')
-
-    plot_csv(
         csv_filename='results_f_zeros.csv',
         out_filename='plot_f_zeros.png',
         ylim=(0.0, 1.0),
         title=r'$f(x)$ evaluated for $x_i$ at zeros of $T_n(x)$')
+
+    plot_csv(
+        csv_filename='results_df_uniform.csv',
+        out_filename='plot_df_uniform.png',
+        ylim=(-3.0, 3.0),
+        title=r'$\frac{d}{dx}f(x)$ evaluated for $x_i$ uniformly spaced')
 
     plot_csv(
         csv_filename='results_df_zeros.csv',
@@ -92,7 +95,4 @@ def main():
 
 main()
 
-# TODO plot out error
-# TODO figure out why error is so large for derivative
-# TODO gauss jordan can be optimized: using swap indices
-# TODO try replacing f with the function in df just to see if the same plots are generated
+# TODO gauss jordan can be optimized: using swap indices to avoid swapping rows
