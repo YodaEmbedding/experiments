@@ -45,7 +45,10 @@ def plot_csv(csv_filename, out_filename, ylim, title):
 
 def plot_multiple(ax, x, it):
     for i, (style, label, data) in enumerate(it):
-        ax.plot(x, data, label=label, zorder=-i, **style)
+        mask = ~np.isnan(data)
+        x_ = x[mask]
+        data = data[mask]
+        ax.plot(x_, data, label=label, zorder=-i, **style)
 
 def print_error(label, x, err10, err100):
     err10  = err10 [~np.isnan(err10)]

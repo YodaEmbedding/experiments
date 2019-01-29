@@ -6,7 +6,7 @@ program orthogonal_polynomials
   use gauss_jordan
   implicit none
 
-  integer, parameter :: samples = 2001  ! Number of samples plotted
+  integer, parameter :: samples = 2001
 
   call write_csv_chebyshevT("results_f_uniform.csv",  samples, .false., .false.)
   call write_csv_chebyshevT("results_df_uniform.csv", samples, .true.,  .false.)
@@ -38,7 +38,7 @@ contains
       write(fh, "(a)") df_header
     endif
 
-    call write_table_chebyshevT(fh, samples, is_dv, is_zeros)
+    call write_table_chebyshevT(fh, num_samples, is_dv, is_zeros)
     close(fh)
   end subroutine
 
