@@ -4,10 +4,10 @@ module gauss_jordan
 contains
 
   !! Convert to upper triangular form
-  pure function upper_triangular(mat) result(A)
+  pure function upper_triangular(mat) result(A_)
     real, dimension(:, :), intent(in) :: mat
-    real, dimension(size(mat, 1), size(mat, 2)) :: A
-    real, dimension(size(mat, 1)) :: tmp
+    real, dimension(size(mat, 1), size(mat, 2)) :: A, A_
+    integer, dimension(size(mat, 2)) :: r  ! Row permutation/index set
     real :: scaling_factor
     integer :: i, m, n, col, row, row_
 
@@ -17,33 +17,36 @@ contains
 
     row = 1
     col = 1
+    r = (/(i, i=1,m)/)
 
     do while (row <= m .and. col <= n)
       ! Find row with highest magnitude in the current column
-      row_ = maxloc(abs(A(col, row:)), dim=1) - 1 + row
+      row_ = maxloc(abs(A(col, r(row:))), dim=1) - 1 + row
 
-      if (A(row_, col) == 0.0) then
+      if (A(col, r(row_)) == 0.0) then
         col = col + 1
         cycle
       endif
 
       ! Swap rows
-      tmp = A(:, row)
-      A(:, row) = A(:, row_)
-      A(:, row_) = tmp
+      r([row, row_]) = r([row_, row])
 
       ! Normalize row
-      scaling_factor = A(col, row)
-      A(col:, row) = A(col:, row) / scaling_factor
+      scaling_factor = A(col, r(row))
+      A(col:, r(row)) = A(col:, r(row)) / scaling_factor
 
       ! Zero the pivot column for remaining rows
       ! by subtracting off a scaled version of the current row
-      forall (i=row+1:m) A(col+1:, i) = A(col+1:, i) - A(col, i) * A(col+1:, row)
-      A(col, row+1:) = 0.0
+      forall (i=row+1:m) A(col+1:, r(i)) = A(col+1:, r(i)) &
+          - A(col, r(i)) * A(col+1:, r(row))
+      A(col, r(row+1:)) = 0.0
 
       row = row + 1
       col = col + 1
     enddo
+
+    ! Perform reordering
+    forall (i=1:m) A_(:, i) = A(:, r(i))
   end function
 
   !! Convert upper-triangular form to reduced row-echelon form
