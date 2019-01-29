@@ -36,9 +36,9 @@ def plot_csv(csv_filename, out_filename, ylim, title):
 
     axes[0].set_title(title)
     axes[0].set_ylim(ylim)
-    axes[0].legend()
+    axes[0].legend(framealpha=0.9)
     axes[1].set_yscale('log')
-    axes[1].legend()
+    axes[1].legend(framealpha=0.9)
     fig.savefig(out_filename, dpi=300)
 
     print_error(out_filename.lstrip('plot_').rstrip('.png'), x, err10, err100)
@@ -48,7 +48,7 @@ def plot_multiple(ax, x, it):
         mask = ~np.isnan(data)
         x_ = x[mask]
         data = data[mask]
-        ax.plot(x_, data, label=label, zorder=-i, **style)
+        ax.plot(x_, data, label=label, linewidth=2, zorder=-i, **style)
 
 def print_error(label, x, err10, err100):
     err10  = err10 [~np.isnan(err10)]
