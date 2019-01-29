@@ -18,29 +18,30 @@ def read_csv(filename):
     return header, rows
 
 def plot_csv(csv_filename, out_filename, ylim, title):
-    # colors = [None, "red", "blue", "green"]
-    # colors = [None] + plt.rcParams['axes.prop_cycle'].by_key()['color']
-    colors = [None, '#ff00ff', '#ffff00', '#00ffff']
+    styles = [None,
+        {'color': '#ff00ff', 'dashes': (4, 4)},
+        {'color': '#ffff00'},
+        {'color': '#00ffff'}]
     header, rows = read_csv(csv_filename)
     series = list(map(np.array, zip(*rows)))
     x, f, f10, f100 = series
-    it = iter(zip(colors, header, series))  # iter is for python 2
+    it = iter(zip(styles, header, series))  # iter is for python 2
     _ = next(it)
 
     fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
 
-    for i, (color, label, data) in enumerate(it):
-        ax1.plot(x, data, label=label, color=color, zorder=-i)
+    for i, (style, label, data) in enumerate(it):
+        ax1.plot(x, data, label=label, zorder=-i, **style)
 
     err10  = np.abs(f - f10)
     err100 = np.abs(f - f100)
 
     it = [
-        (colors[2], '$err_{10}(x)$',  err10),
-        (colors[3], '$err_{100}(x)$', err100)]
+        (styles[2], '$err_{10}(x)$',  err10),
+        (styles[3], '$err_{100}(x)$', err100)]
 
-    for i, (color, label, data) in enumerate(it):
-        ax2.plot(x, data, label=label, color=color, zorder=-i)
+    for i, (style, label, data) in enumerate(it):
+        ax2.plot(x, data, label=label, zorder=-i, **style)
 
     ax1.set_title(title)
     ax1.set_ylim(ylim)
@@ -65,7 +66,8 @@ def main():
         '\nThe max and argmax of the error is provided below for both'
         '\nChebyshev polynomial with 10 terms and'
         '\nChebyshev polynomial with 100 terms.\n')
-    print('{:10}{:>14}{:>14}{:>14}{:>14}'.format('Name', 'max err10', 'argmax err10', 'max err100', 'argmax err100'))
+    print('{:10}{:>14}{:>14}{:>14}{:>14}'.format(
+        'Name', 'max err10', 'argmax err10', 'max err100', 'argmax err100'))
 
     plot_csv(
         csv_filename='results_f_uniform.csv',
