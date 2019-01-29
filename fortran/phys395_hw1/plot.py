@@ -46,6 +46,7 @@ def plot_csv(csv_filename, out_filename, ylim, title):
     ax1.set_title(title)
     ax1.set_ylim(ylim)
     ax1.legend()
+    ax2.set_yscale('log')
     ax2.legend()
     fig.savefig(out_filename, dpi=300)
 
