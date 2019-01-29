@@ -18,45 +18,43 @@ def read_csv(filename):
     return header, rows
 
 def plot_csv(csv_filename, out_filename, ylim, title):
-    styles = [None,
+    styles = [
         {'color': '#ff00ff', 'dashes': (4, 4)},
         {'color': '#ffff00'},
         {'color': '#00ffff'}]
     header, rows = read_csv(csv_filename)
     series = list(map(np.array, zip(*rows)))
     x, f, f10, f100 = series
-    it = iter(zip(styles, header, series))  # iter is for python 2
-    _ = next(it)
-
-    fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True)
-
-    for i, (style, label, data) in enumerate(it):
-        ax1.plot(x, data, label=label, zorder=-i, **style)
-
     err10  = np.abs(f - f10)
     err100 = np.abs(f - f100)
 
-    it = [
-        (styles[2], '$err_{10}(x)$',  err10),
-        (styles[3], '$err_{100}(x)$', err100)]
+    fig, axes = plt.subplots(nrows=2, sharex=True)
+    plot_multiple(axes[0], x, zip(styles, header[1:], series[1:]))
+    plot_multiple(axes[1], x, [
+        (styles[1], '$err_{10}(x)$',  err10),
+        (styles[2], '$err_{100}(x)$', err100)])
 
-    for i, (style, label, data) in enumerate(it):
-        ax2.plot(x, data, label=label, zorder=-i, **style)
-
-    ax1.set_title(title)
-    ax1.set_ylim(ylim)
-    ax1.legend()
-    ax2.set_yscale('log')
-    ax2.legend()
+    axes[0].set_title(title)
+    axes[0].set_ylim(ylim)
+    axes[0].legend()
+    axes[1].set_yscale('log')
+    axes[1].legend()
     fig.savefig(out_filename, dpi=300)
 
+    print_error(out_filename.lstrip('plot_').rstrip('.png'), x, err10, err100)
+
+def plot_multiple(ax, x, it):
+    for i, (style, label, data) in enumerate(it):
+        ax.plot(x, data, label=label, zorder=-i, **style)
+
+def print_error(label, x, err10, err100):
     err10  = err10 [~np.isnan(err10)]
     err100 = err100[~np.isnan(err100)]
 
     with np.warnings.catch_warnings():
         np.warnings.filterwarnings('ignore')
         print('{:10}{:14.3f}{:14.3f}{:14.3f}{:14.3f}'.format(
-            out_filename.lstrip('plot_').rstrip('.png'),
+            label,
             np.max(err10),
             x[np.argmax(err10)],
             np.max(err100),
@@ -97,5 +95,3 @@ def main():
     print('')
 
 main()
-
-# TODO gauss jordan can be optimized: using swap indices to avoid swapping rows
