@@ -31,11 +31,13 @@ contains
       "$x$, $\frac{d}{dx}f(x)$, $\frac{d}{dx}f_{10}(x)$, $\frac{d}{dx}f_{100}(x)$"
 
     open(unit=fh, file=filename, action="write", status="replace")
+
     if (.not. is_dv) then
       write(fh, "(a)") f_header
     else
       write(fh, "(a)") df_header
     endif
+
     call write_table_chebyshevT(fh, samples, is_dv, is_zeros)
     close(fh)
   end subroutine

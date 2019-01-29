@@ -21,7 +21,6 @@ contains
     do while (row <= m .and. col <= n)
       ! Find row with highest magnitude in the current column
       row_ = maxloc(abs(A(col, row:)), dim=1) - 1 + row
-      ! TODO get rid of dim=1 lol
 
       if (A(row_, col) == 0.0) then
         col = col + 1
