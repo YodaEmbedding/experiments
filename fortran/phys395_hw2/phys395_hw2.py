@@ -7,6 +7,18 @@ import numpy as np
 from scipy.fftpack import fft
 
 plt.style.use('dark_background')
+np.set_printoptions(precision=2)
+
+def basis(a, x):
+    return np.cos(2 * np.pi * a * x)
+
+def get_coeffs(x, y, num_coeffs):
+    idxs = np.arange(num_coeffs)
+    bxa = basis(*np.meshgrid(idxs, x, sparse=True))
+    B = np.einsum('ij,ik->jk', bxa, bxa)
+    p = np.einsum('ij,i->j', bxa, y)
+    coeffs = np.linalg.solve(B, p)
+    return coeffs, bxa
 
 def main():
     with open('data.dat', 'r') as f:
@@ -21,17 +33,16 @@ def main():
     xf_ = np.linspace(0.0, 0.5 / T, N // 2)
     yf_ = 2.0 / N * np.abs(yf[0:N//2])
 
-    xf_ = xf_[:16]
-    yf_ = yf_[:16]
+    coeffs, bxa = get_coeffs(x, y, 4)
+    y_fit = np.dot(bxa, coeffs)
+    print('Coefficients of basis function cos(2pi a x):')
+    print(coeffs)
 
-    print(xf_[np.argmax(yf_)])
-    print(np.max(yf_))
-
-    out_filename = 'plot.png'
     fig, axes = plt.subplots(nrows=2, sharex=False)
     axes[0].plot(x, y)
-    axes[1].plot(xf_, yf_)
+    axes[0].plot(x, y_fit)
+    axes[1].plot(xf_[:16], yf_[:16])
     axes[1].set_yscale('log')
-    fig.savefig(out_filename, dpi=300)
+    fig.savefig('plot.png', dpi=300)
 
 main()
