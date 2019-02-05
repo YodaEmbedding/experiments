@@ -38,7 +38,7 @@ def fit(x, y, n):
     coeffs = solve(B, p)
     y_fit = np.dot(bxa, coeffs)
 
-    print(f'n={n}')
+    print('n={}'.format(n))
     print('\nCoefficients of basis function cos(2pi a x):')
     print(coeffs)
     print('\nCondition number:')
