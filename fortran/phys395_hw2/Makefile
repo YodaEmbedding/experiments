@@ -1,5 +1,6 @@
 CC=gfortran
 CFLAGS=-Wall -O3 -fdefault-real-8
+LDFLAGS=-llapack
 PYTHON=python
 
 .PHONY: clean default run_phys395_hw2_curve_fitting
@@ -17,7 +18,7 @@ run_phys395_hw2_curve_fitting: phys395_hw2_curve_fitting
 	# $(PYTHON) plot.py
 
 phys395_hw2_curve_fitting: phys395_hw2_curve_fitting.o
-	$(CC) $(CFLAGS) phys395_hw2_curve_fitting.o -o phys395_hw2_curve_fitting
+	$(CC) $(CFLAGS) $(LDFLAGS) phys395_hw2_curve_fitting.o -o phys395_hw2_curve_fitting
 
 phys395_hw2_curve_fitting.o: phys395_hw2_curve_fitting.f90
-	$(CC) $(CFLAGS) -c phys395_hw2_curve_fitting.f90
+	$(CC) $(CFLAGS) $(LDFLAGS) -c phys395_hw2_curve_fitting.f90
