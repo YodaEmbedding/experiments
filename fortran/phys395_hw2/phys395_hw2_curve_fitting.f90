@@ -74,7 +74,7 @@ contains
     select case (solver)
     case ("gj");  coeffs = solve(B, p)
     case ("svd"); coeffs = solve_svd(p, U, s, Vh, 1.0e-6)
-    case ("lss"); coeffs = solve_lss(B, p, -1.0)
+    case ("lss"); coeffs = solve_lss(transpose(bax), y, -1.0)
     end select
 
     ys_fit = matmul(transpose(bax), coeffs)
