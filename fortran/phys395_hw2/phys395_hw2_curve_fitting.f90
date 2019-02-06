@@ -8,47 +8,44 @@ program phys395_hw2_curve_fitting
   integer, parameter :: lines = 9130  ! TODO: allow arbitrary lengths
   character(len=*), parameter :: filename = "results_.csv"
   integer ::  i, stat
-  real :: x, y
-  real, dimension(lines) :: xs, ys, ys_fit3, ys_fit7
+  real, dimension(lines) :: x, y, y_fit3, y_fit7
 
   open(unit=ifh, file="data.dat", action="read", status="old", &
     access="sequential", form="formatted")
 
   ! TODO another idea is to just add up/compute as we read through the file...
   do i = 1, lines
-    read(ifh, *, iostat=stat) x, y
-    xs(i) = x
-    ys(i) = y
+    read(ifh, *, iostat=stat) x(i), y(i)
     if (stat < 0) exit
   end do
 
   print *
-  ys_fit3 = fit(xs, ys, 3, "svd")
-  ys_fit7 = fit(xs, ys, 7, "svd")
+  y_fit3 = fit(x, y, 3, "svd")
+  y_fit7 = fit(x, y, 7, "svd")
 
   open(unit=ofh, file=filename, action="write", status="replace")
   write(ofh, *) "x, y, $f_3(x)$, $f_7(x)$"
   do i=1, lines
-    write(ofh, *) xs(i), ", ", ys(i), ", ", ys_fit3(i), ", ", ys_fit7(i)
+    write(ofh, *) x(i), ", ", y(i), ", ", y_fit3(i), ", ", y_fit7(i)
   end do
   close(ofh)
 
 contains
 
-  function fit(xs, ys, n, solver) result(ys_fit)
+  function fit(x, y, n, solver) result(ys_fit)
     integer :: a, i, j, k, n
-    real, dimension(:) :: xs, ys
+    real, dimension(:) :: x, y
     real, dimension(n + 1) :: ys_fit, coeffs, p, s
-    real, dimension(n + 1, size(xs, 1)) :: bax
+    real, dimension(n + 1, size(x, 1)) :: bax
     real, dimension(n + 1, n + 1) :: B, U, Vh
     real :: cond_num, chi_actual, chi_expect
     character(len=64) :: fmt_str
     character(len=*) :: solver
 
     ! Construct B and p to solve the linear equation Bc = p
-    forall (a=0:n, i=1:size(bax, 2)) bax(a + 1, i) = basis(a, xs(i))
+    forall (a=0:n, i=1:size(bax, 2)) bax(a + 1, i) = basis(a, x(i))
     forall (j=1:n+1, k=1:n+1) B(j, k) = sum(bax(j, :) * bax(k, :))
-    p = matmul(bax, ys)
+    p = matmul(bax, y)
 
     call svd(n + 1, B, U, s, Vh)
 
@@ -59,8 +56,8 @@ contains
     end select
 
     ys_fit = matmul(transpose(bax), coeffs)
-    chi_actual = sum((ys - ys_fit)**2)
-    chi_expect = size(xs, 1) - (n + 1)
+    chi_actual = sum((y - ys_fit)**2)
+    chi_expect = size(x, 1) - (n + 1)
     cond_num = s(1) / s(n + 1)
 
     write(fmt_str, "(a, i10, a)") "(", n + 1, "f7.2)"
@@ -144,5 +141,5 @@ contains
 
 end program phys395_hw2_curve_fitting
 
-! TODO rename xs, ys; x_val, y_val?
+! TODO rename x, y; x_val, y_val?
 ! TODO " (Hint: Your matrix A will have different dimensions.)"
