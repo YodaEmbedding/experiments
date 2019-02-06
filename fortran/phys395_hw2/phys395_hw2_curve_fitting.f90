@@ -28,6 +28,11 @@ program phys395_hw2_curve_fitting
   call write_csv(x, y, "results_svd.csv", solver="svd")
   call write_csv(x, y, "results_lss.csv", solver="lss")
 
+  print "(a)", "The condition number for the SVD matrix is larger than "
+  print "(a)", "the condition number for the Linear Least Squares (LSS) matrix."
+  print "(a)", "Otherwise, the best fit parameters appear to be the same."
+  print *
+
   deallocate(x, y)
 
 contains
@@ -84,19 +89,6 @@ contains
     write(fmt_str, "(a, i10, a)") "(", n + 1, "f7.2)"
     print "(a, a)", "solver = ", solver
     print "(a, i1)", "n = ", n
-    ! print *
-    ! print "(a)", "B"
-    ! print fmt_str, B
-    ! print "(a)", "U"
-    ! print fmt_str, U
-    ! print "(a)", "s"
-    ! print fmt_str, s
-    ! print "(a)", "Vh"
-    ! print fmt_str, Vh
-    ! print "(a)", "p"
-    ! print fmt_str, p
-    ! print "(a)", "coeffs"
-    ! print fmt_str, coeffs
     print *
     write(*, "(a21)", advance="no") "Best fit params: "
     print fmt_str, coeffs
@@ -159,5 +151,3 @@ contains
   end function
 
 end program phys395_hw2_curve_fitting
-
-! TODO " (Hint: Your matrix A will have different dimensions.)"
