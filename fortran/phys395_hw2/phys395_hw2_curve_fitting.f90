@@ -74,7 +74,7 @@ contains
     select case (solver)
     case ("gj");  coeffs = solve(B, p)
     case ("svd"); coeffs = solve_svd(p, U, s, Vh, 1.0e-6)
-    case ("lss"); coeffs = solve_lss(transpose(bax), y, -1.0)
+    case ("lss"); call solve_lss(transpose(bax), y, -1.0, coeffs, s)
     end select
 
     ys_fit = matmul(transpose(bax), coeffs)
@@ -108,7 +108,8 @@ contains
   end function
 
   !! Solve for x minimizing |Ax - B|^2
-  function solve_lss(A, B, rcond) result(x)
+  !! Results are returned in x, s
+  subroutine solve_lss(A, B, rcond, x, s)
     real :: A(:, :), B(:)
     real :: A_(size(A, 1), size(A, 2))
     real :: B_(size(B, 1))
@@ -125,7 +126,7 @@ contains
     call dgelss(m, n, 1, A_, m, B_, m, s, rcond, rank, work, size(work), stat)
     x = B_(1:size(x))
     if (stat /= 0) call abort
-  end function
+  end subroutine
 
   !! Solve the matrix equation (U s Vh) x = b
   function solve_svd(b, U, s, Vh, eps) result(x)
