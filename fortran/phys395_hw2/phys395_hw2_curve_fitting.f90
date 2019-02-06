@@ -1,7 +1,6 @@
 ! Compile and run: make
 
 program phys395_hw2_curve_fitting
-  use gauss_jordan
   implicit none
 
   integer, parameter :: ifh = 1
@@ -72,7 +71,6 @@ contains
     call svd(n + 1, B, U, s, Vh)
 
     select case (solver)
-    case ("gj");  coeffs = solve(B, p)
     case ("svd"); coeffs = solve_svd(p, U, s, Vh, 1.0e-6)
     case ("lss"); call solve_lss(transpose(bax), y, -1.0, coeffs, s)
     end select

@@ -17,11 +17,8 @@ run_phys395_hw2_curve_fitting: phys395_hw2_curve_fitting
 	./phys395_hw2_curve_fitting
 	$(PYTHON) plot.py
 
-phys395_hw2_curve_fitting: gauss_jordan.o phys395_hw2_curve_fitting.o
-	$(CC) $(CFLAGS) $(LDFLAGS) gauss_jordan.o phys395_hw2_curve_fitting.o -o phys395_hw2_curve_fitting
+phys395_hw2_curve_fitting: phys395_hw2_curve_fitting.o
+	$(CC) $(CFLAGS) $(LDFLAGS) phys395_hw2_curve_fitting.o -o phys395_hw2_curve_fitting
 
 phys395_hw2_curve_fitting.o: phys395_hw2_curve_fitting.f90
 	$(CC) $(CFLAGS) $(LDFLAGS) -c phys395_hw2_curve_fitting.f90
-
-gauss_jordan.o: gauss_jordan.f90
-	$(CC) $(CFLAGS) $(LDFLAGS) -c gauss_jordan.f90
