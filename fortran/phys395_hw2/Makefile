@@ -15,7 +15,7 @@ clean:
 
 run_phys395_hw2_curve_fitting: phys395_hw2_curve_fitting
 	./phys395_hw2_curve_fitting
-	# $(PYTHON) plot.py
+	$(PYTHON) plot.py
 
 phys395_hw2_curve_fitting: gauss_jordan.o phys395_hw2_curve_fitting.o
 	$(CC) $(CFLAGS) $(LDFLAGS) gauss_jordan.o phys395_hw2_curve_fitting.o -o phys395_hw2_curve_fitting
