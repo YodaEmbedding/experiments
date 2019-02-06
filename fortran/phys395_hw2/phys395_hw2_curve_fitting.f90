@@ -4,11 +4,10 @@ program phys395_hw2_curve_fitting
   use gauss_jordan
   implicit none
 
-  integer, parameter :: ifh = 1, ofh = 2
+  integer, parameter :: ifh = 1
   integer, parameter :: max_lines = 1048576
-  character(len=*), parameter :: filename = "results_.csv"
-  integer ::  i, stat
-  real, dimension(:), allocatable :: x, y, y_fit3, y_fit7
+  integer :: i, stat
+  real, dimension(:), allocatable :: x, y
   real, dimension(max_lines) :: x_, y_
 
   ! Read data
@@ -22,35 +21,50 @@ program phys395_hw2_curve_fitting
 
   ! Allocate properly-sized arrays
   i = i - 1
-  allocate(x(i), y(i), y_fit3(i), y_fit7(i))
+  allocate(x(i), y(i))
   x = x_(1:i)
   y = y_(1:i)
 
   print *
-  y_fit3 = fit(x, y, 3, "svd")
-  y_fit7 = fit(x, y, 7, "svd")
+  call write_csv(x, y, "results_svd.csv", solver="svd")
+  call write_csv(x, y, "results_lss.csv", solver="lss")
 
-  open(unit=ofh, file=filename, action="write", status="replace")
-  write(ofh, *) "x, y, $f_3(x)$, $f_7(x)$"
-  do i = 1, size(x, 1)
-    write(ofh, *) x(i), ", ", y(i), ", ", y_fit3(i), ", ", y_fit7(i)
-  end do
-  close(ofh)
+  deallocate(x, y)
 
 contains
 
+  !! Write csv for specified solver (svd/lss)
+  subroutine write_csv(x, y, filename, solver)
+    real, dimension(:) :: x, y
+    character(len=*) :: filename, solver
+    integer, parameter :: ofh = 2
+    integer :: i
+    real, dimension(size(x)) :: y_fit3, y_fit7
+
+    y_fit3 = fit(x, y, n=3, solver=solver)
+    y_fit7 = fit(x, y, n=7, solver=solver)
+
+    open(unit=ofh, file=filename, action="write", status="replace")
+    write(ofh, *) "x, y, $f_3(x)$, $f_7(x)$"
+    do i = 1, size(x)
+      write(ofh, *) x(i), ", ", y(i), ", ", y_fit3(i), ", ", y_fit7(i)
+    end do
+    close(ofh)
+  end subroutine
+
+  !! Fit data to n+1-dimensional basis via specified solver
   function fit(x, y, n, solver) result(ys_fit)
     integer :: a, i, j, k, n
     real, dimension(:) :: x, y
-    real, dimension(size(x, 1)) :: ys_fit
+    real, dimension(size(x)) :: ys_fit
     real, dimension(n + 1) :: coeffs, p, s
-    real, dimension(n + 1, size(x, 1)) :: bax
+    real, dimension(n + 1, size(x)) :: bax
     real, dimension(n + 1, n + 1) :: B, U, Vh
     real :: cond_num, chi_actual, chi_expect
     character(len=64) :: fmt_str
     character(len=*) :: solver
 
-    ! Construct B and p to solve the linear equation Bc = p
+    ! Construct B and p to solve the matrix equation Bc = p
     forall (a=0:n, i=1:size(bax, 2)) bax(a + 1, i) = basis(a, x(i))
     forall (j=1:n+1, k=1:n+1) B(j, k) = sum(bax(j, :) * bax(k, :))
     p = matmul(bax, y)
@@ -65,13 +79,13 @@ contains
 
     ys_fit = matmul(transpose(bax), coeffs)
     chi_actual = sum((y - ys_fit)**2)
-    chi_expect = size(x, 1) - (n + 1)
+    chi_expect = size(x) - (n + 1)
     cond_num = s(1) / s(n + 1)
 
     write(fmt_str, "(a, i10, a)") "(", n + 1, "f7.2)"
-    print "(a, a)",  "solver = ", solver
-    print "(a, i1)", "n      = ", n
-    print *
+    print "(a, a)", "solver = ", solver
+    print "(a, i1)", "n = ", n
+    ! print *
     ! print "(a)", "B"
     ! print fmt_str, B
     ! print "(a)", "U"
@@ -82,9 +96,11 @@ contains
     ! print fmt_str, Vh
     ! print "(a)", "p"
     ! print fmt_str, p
-    print "(a)", "coeffs"
-    print fmt_str, coeffs
+    ! print "(a)", "coeffs"
+    ! print fmt_str, coeffs
     print *
+    write(*, "(a21)", advance="no") "Best fit params: "
+    print fmt_str, coeffs
     print "(a21, f10.2)", "Condition number: ",    cond_num
     print "(a21, f10.2)", "Chi-square (actual): ", chi_actual
     print "(a21, f10.2)", "Chi-square (expect): ", chi_expect
@@ -105,7 +121,7 @@ contains
     if (stat /= 0) call abort
   end function
 
-  !! TODO
+  !! Solve the matrix equation (U s Vh) x = b
   function solve_svd(n, b, U, s, Vh, eps) result(x)
     real :: b(n), s(n), U(n, n), Vh(n, n), x(n), eps
     integer :: n
@@ -117,7 +133,7 @@ contains
     x = matmul(transpose(Vh), x)
   end function
 
-  !! TODO
+  !! Decompose A into U, s, Vh
   subroutine svd(n, A, U, s, Vh)
     integer :: n, stat
     real :: A(n, n), A_(n, n), U(n, n), Vh(n, n), s(n), work(6 * n)
@@ -137,17 +153,6 @@ contains
     basis = cos(2 * pi * a * x)
   end function
 
-  !! Return n evenly spaced points within interval [a, b]
-  pure function linspace(a, b, n)
-    real, intent(in) :: a, b
-    integer, intent(in) :: n
-    real, dimension(n) :: linspace
-    integer :: i
-
-    linspace = (/(a + (b-a) * i / (n-1), i=0,n-1)/)
-  end function
-
 end program phys395_hw2_curve_fitting
 
-! TODO rename x, y; x_val, y_val?
 ! TODO " (Hint: Your matrix A will have different dimensions.)"

@@ -15,7 +15,7 @@ def read_csv(filename):
             rows.append(tuple(map(float, line)))
     return header, rows
 
-def plot_csv(csv_filename, out_filename, ylim, title):
+def plot_csv(csv_filename, out_filename, ylim=None, title=None):
     styles = [
         {'color': '#00ffff', 'linewidth': 2},
         {'color': '#ffff00', 'linewidth': 4},
@@ -49,9 +49,13 @@ def plot_multiple(ax, x, it):
 
 def main():
     plot_csv(
-        csv_filename='results_.csv',
-        out_filename='plot.png',
-        ylim=None,
-        title=r'SOMEONE forgot to write a title for this')
+        csv_filename='results_svd.csv',
+        out_filename='plot_svd.png',
+        title=r'Minimize $\chi^2$ via SVD (dgesvd)')
+
+    plot_csv(
+        csv_filename='results_lss.csv',
+        out_filename='plot_lss.png',
+        title=r'Minimize 2-norm via Linear Least Squares (dgelss)')
 
 main()
