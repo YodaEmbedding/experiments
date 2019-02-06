@@ -11,9 +11,8 @@ program phys395_hw2_curve_fitting
   real :: x, y
   real, dimension(lines) :: xs, ys, ys_fit
   integer, parameter :: n = 3
-  real, parameter :: eps = 1.0e-6
   real, dimension(n + 1, lines) :: bax
-  real, dimension(n + 1, n + 1) :: B, B_, B_inv, U, U_inv, Vh, Vh_inv
+  real, dimension(n + 1, n + 1) :: B, U, Vh
   real, dimension(n + 1) :: coeffs, p, s
   character(len=64) :: fmt_str
 
@@ -32,36 +31,15 @@ program phys395_hw2_curve_fitting
   forall (j=1:n+1, k=1:n+1) B(j, k) = sum(bax(j, :) * bax(k, :))
   p = matmul(bax, ys)
 
-  B_ = B
-  call svd(n + 1, B_, U, s, Vh)
+  call svd(n + 1, B, U, s, Vh)
 
-  coeffs = p
-  call solve_svd(n + 1, coeffs, U, s, Vh)
-  ! coeffs = solve(B, p)  ! TODO probably use the lapack instead of our own Gauss-Jordan... actually it doesn't matter
-  ! B_ = B
-  ! coeffs = p
-  ! call solve_lss(n + 1, B_, coeffs, -1.0)
-
-  ! U_inv = transpose(U)
-  ! Vh_inv = transpose(Vh)
-  !
-  ! B_inv = U_inv
-  ! forall (i=1:n+1, j=1:n+1) &
-  !   B_inv(i, j) = merge(0.0, B_inv(i, j) / s(i), s(i) <= eps * s(1))
-  ! B_inv = matmul(Vh_inv, B_inv)
-  ! ! coeffs = matmul(B_inv, p)
-  !
-  ! coeffs = matmul(U_inv, p)
-  ! where (s > eps * s(1)); coeffs = coeffs / s
-  ! elsewhere;              coeffs = 0.0
-  ! end where
-  ! coeffs = matmul(Vh_inv, coeffs)
+  ! coeffs = solve(B, p)
+  ! coeffs = solve_svd(n + 1, p, U, s, Vh, 1.0e-6)
+  coeffs = solve_lss(n + 1, B, p, -1.0)
 
   write(fmt_str, "(a, i10, a)") "(", n + 1, "f10.2)"
   print *, "B"
   print fmt_str, B
-  print *, "B_inv"
-  print fmt_str, B_inv
   print *, "p"
   print fmt_str, p
   print *, "coeffs"
@@ -82,50 +60,40 @@ contains
   !! minimize |A.x - B|^2 using LAPACK canned SVD routine
   !! A gets destroyed, the answer is returned in B
   !! rcond determines the effective rank of A as described in LAPACK docs.
-  subroutine solve_lss(n, A, B, rcond)
+  function solve_lss(n, A, B, rcond) result(B_)
     integer :: n
-    real :: A(n, n), B(n), S(n), work(6 * n), rcond
+    real :: A(n, n), A_(n, n), B(n), B_(n), s(n), work(6 * n), rcond
     integer :: rank, stat
 
-    stat = 0 ! TODO removable?
-    call dgelss(n, n, 1, A, n, B, n, S, rcond, rank, work, 6 * n, stat)
+    A_ = A
+    B_ = B
+    call dgelss(n, n, 1, A_, n, B_, n, s, rcond, rank, work, 6 * n, stat)
     if (stat /= 0) call abort
-  end subroutine
+  end function
 
   !! TODO
-  subroutine solve_svd(n, B, U, S, Vh)
-    real :: B(n), S(n), U(n, n), Vh(n, n)
+  function solve_svd(n, b, U, s, Vh, eps) result(x)
+    real :: b(n), s(n), U(n, n), Vh(n, n), x(n), eps
     integer :: n
-    ! real, dimension(n + 1, n + 1) :: B, B_, B_inv, U, U_inv, Vh, Vh_inv
-    ! TODO don't mutate external state?
 
-    U_inv = transpose(U)
-    Vh_inv = transpose(Vh)
-
-    ! TODO removable
-    B_inv = U_inv
-    forall (i=1:n, j=1:n) &
-      B_inv(i, j) = merge(0.0, B_inv(i, j) / s(i), s(i) <= eps * s(1))
-    B_inv = matmul(Vh_inv, B_inv)
-
-    B = matmul(U_inv, B)
-    where (s > eps * s(1)); B = B / s
-    elsewhere;              B = 0.0
+    x = matmul(transpose(U), b)
+    where (s > eps * s(1)); x = x / s
+    elsewhere;              x = 0.0
     end where
-    B = matmul(Vh_inv, B)
-  end subroutine
+    x = matmul(transpose(Vh), x)
+  end function
 
   !! TODO
-  subroutine svd(n, A, U, S, Vh)
+  subroutine svd(n, A, U, s, Vh)
     integer :: n, stat
-    real :: A(n, n), U(n, n), Vh(n, n), S(n), work(6 * n)
+    real :: A(n, n), A_(n, n), U(n, n), Vh(n, n), s(n), work(6 * n)
 
-    stat = 0 ! TODO removable?
-    call dgesvd('A', 'A', n, n, A, n, S, U, n, Vh, n, work, 6 * n, stat)
+    A_ = A
+    call dgesvd('A', 'A', n, n, A_, n, s, U, n, Vh, n, work, 6 * n, stat)
     if (stat /= 0) call abort
   end subroutine
 
-  !! An even basis... from a more civilized age
+  !! An even basis... for a more civilized age
   elemental function basis(a, x)
     integer, intent(in) :: a
     real, intent(in) :: x
