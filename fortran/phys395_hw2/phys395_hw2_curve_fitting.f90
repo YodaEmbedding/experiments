@@ -111,6 +111,7 @@ contains
   function solve_lss(A, B, rcond) result(x)
     real :: A(:, :), B(:)
     real :: A_(size(A, 1), size(A, 2))
+    real :: B_(size(B, 1))
     real :: x(size(A, 2))
     real :: s(min(size(A, 1), size(A, 2)))
     real :: work(6 * max(size(A, 1), size(A, 2)))
@@ -120,8 +121,9 @@ contains
     m = size(A, 1)
     n = size(A, 2)
     A_ = A
-    x = B
-    call dgelss(m, n, 1, A_, m, x, m, s, rcond, rank, work, size(work), stat)
+    B_ = B
+    call dgelss(m, n, 1, A_, m, B_, m, s, rcond, rank, work, size(work), stat)
+    x = B_(1:size(x))
     if (stat /= 0) call abort
   end function
 
