@@ -35,21 +35,27 @@ program phys395_hw2_curve_fitting
   B_ = B
   call svd(n + 1, B_, U, s, Vh)
 
-  ! call solve_svd(n + 1, B, p, U, s, Vh)  ! TODO
+  coeffs = p
+  call solve_svd(n + 1, coeffs, U, s, Vh)
   ! coeffs = solve(B, p)  ! TODO probably use the lapack instead of our own Gauss-Jordan... actually it doesn't matter
   ! B_ = B
   ! coeffs = p
   ! call solve_lss(n + 1, B_, coeffs, -1.0)
 
-  U_inv = transpose(U)
-  Vh_inv = transpose(Vh)
-
-  B_inv = U_inv
-  where (S > eps * S(1)); B_inv = B_inv / S; elsewhere; B_inv = 0.0; end where  ! TODO column/row indexing?
-  B_inv = matmul (((
-  B_inv = matmul(Vh_inv, matmul(S_inv, U_inv))
-  coeffs = matmul(Vh_inv, matmul(S_inv, matmul(U_inv, p)))
-  ! coeffs = matmul(B_inv, s)
+  ! U_inv = transpose(U)
+  ! Vh_inv = transpose(Vh)
+  !
+  ! B_inv = U_inv
+  ! forall (i=1:n+1, j=1:n+1) &
+  !   B_inv(i, j) = merge(0.0, B_inv(i, j) / s(i), s(i) <= eps * s(1))
+  ! B_inv = matmul(Vh_inv, B_inv)
+  ! ! coeffs = matmul(B_inv, p)
+  !
+  ! coeffs = matmul(U_inv, p)
+  ! where (s > eps * s(1)); coeffs = coeffs / s
+  ! elsewhere;              coeffs = 0.0
+  ! end where
+  ! coeffs = matmul(Vh_inv, coeffs)
 
   write(fmt_str, "(a, i10, a)") "(", n + 1, "f10.2)"
   print *, "B"
@@ -84,6 +90,29 @@ contains
     stat = 0 ! TODO removable?
     call dgelss(n, n, 1, A, n, B, n, S, rcond, rank, work, 6 * n, stat)
     if (stat /= 0) call abort
+  end subroutine
+
+  !! TODO
+  subroutine solve_svd(n, B, U, S, Vh)
+    real :: B(n), S(n), U(n, n), Vh(n, n)
+    integer :: n
+    ! real, dimension(n + 1, n + 1) :: B, B_, B_inv, U, U_inv, Vh, Vh_inv
+    ! TODO don't mutate external state?
+
+    U_inv = transpose(U)
+    Vh_inv = transpose(Vh)
+
+    ! TODO removable
+    B_inv = U_inv
+    forall (i=1:n, j=1:n) &
+      B_inv(i, j) = merge(0.0, B_inv(i, j) / s(i), s(i) <= eps * s(1))
+    B_inv = matmul(Vh_inv, B_inv)
+
+    B = matmul(U_inv, B)
+    where (s > eps * s(1)); B = B / s
+    elsewhere;              B = 0.0
+    end where
+    B = matmul(Vh_inv, B)
   end subroutine
 
   !! TODO
