@@ -74,7 +74,7 @@ contains
     select case (solver)
     case ("gj");  coeffs = solve(B, p)
     case ("svd"); coeffs = solve_svd(n + 1, p, U, s, Vh, 1.0e-6)
-    case ("lss"); coeffs = solve_lss(n + 1, B, p, -1.0)
+    case ("lss"); coeffs = solve_lss(B, p, -1.0)
     end select
 
     ys_fit = matmul(transpose(bax), coeffs)
@@ -107,17 +107,21 @@ contains
     print "(/, a, /)", "----"
   end function
 
-  !! minimize |A.x - B|^2 using LAPACK canned SVD routine
-  !! A gets destroyed, the answer is returned in B
-  !! rcond determines the effective rank of A as described in LAPACK docs.
-  function solve_lss(n, A, B, rcond) result(B_)
-    integer :: n
-    real :: A(n, n), A_(n, n), B(n), B_(n), s(n), work(6 * n), rcond
-    integer :: rank, stat
+  !! Solve for x minimizing |Ax - B|^2
+  function solve_lss(A, B, rcond) result(x)
+    real :: A(:, :), B(:)
+    real :: A_(size(A, 1), size(A, 2))
+    real :: x(size(A, 2))
+    real :: s(min(size(A, 1), size(A, 2)))
+    real :: work(6 * max(size(A, 1), size(A, 2)))
+    real :: rcond
+    integer :: m, n, rank, stat
 
+    m = size(A, 1)
+    n = size(A, 2)
     A_ = A
-    B_ = B
-    call dgelss(n, n, 1, A_, n, B_, n, s, rcond, rank, work, 6 * n, stat)
+    x = B
+    call dgelss(m, n, 1, A_, m, x, m, s, rcond, rank, work, size(work), stat)
     if (stat /= 0) call abort
   end function
 
