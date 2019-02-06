@@ -5,19 +5,26 @@ program phys395_hw2_curve_fitting
   implicit none
 
   integer, parameter :: ifh = 1, ofh = 2
-  integer, parameter :: lines = 9130  ! TODO: allow arbitrary lengths
+  integer, parameter :: max_lines = 1048576
   character(len=*), parameter :: filename = "results_.csv"
   integer ::  i, stat
-  real, dimension(lines) :: x, y, y_fit3, y_fit7
+  real, dimension(:), allocatable :: x, y, y_fit3, y_fit7
+  real, dimension(max_lines) :: x_, y_
 
+  ! Read data
   open(unit=ifh, file="data.dat", action="read", status="old", &
     access="sequential", form="formatted")
-
-  ! TODO another idea is to just add up/compute as we read through the file...
-  do i = 1, lines
-    read(ifh, *, iostat=stat) x(i), y(i)
+  do i = 1, max_lines
+    read(ifh, *, iostat=stat) x_(i), y_(i)
     if (stat < 0) exit
   end do
+  close(ifh)
+
+  ! Allocate properly-sized arrays
+  i = i - 1
+  allocate(x(i), y(i), y_fit3(i), y_fit7(i))
+  x = x_(1:i)
+  y = y_(1:i)
 
   print *
   y_fit3 = fit(x, y, 3, "svd")
@@ -25,7 +32,7 @@ program phys395_hw2_curve_fitting
 
   open(unit=ofh, file=filename, action="write", status="replace")
   write(ofh, *) "x, y, $f_3(x)$, $f_7(x)$"
-  do i=1, lines
+  do i = 1, size(x, 1)
     write(ofh, *) x(i), ", ", y(i), ", ", y_fit3(i), ", ", y_fit7(i)
   end do
   close(ofh)
@@ -35,7 +42,8 @@ contains
   function fit(x, y, n, solver) result(ys_fit)
     integer :: a, i, j, k, n
     real, dimension(:) :: x, y
-    real, dimension(n + 1) :: ys_fit, coeffs, p, s
+    real, dimension(size(x, 1)) :: ys_fit
+    real, dimension(n + 1) :: coeffs, p, s
     real, dimension(n + 1, size(x, 1)) :: bax
     real, dimension(n + 1, n + 1) :: B, U, Vh
     real :: cond_num, chi_actual, chi_expect
