@@ -57,25 +57,26 @@ contains
     real, dimension(:) :: x, y
     real, dimension(size(x)) :: ys_fit
     real, dimension(n + 1) :: coeffs, p, s
-    real, dimension(n + 1, size(x)) :: bax
+    real, dimension(size(x), n + 1) :: bxa
     real, dimension(n + 1, n + 1) :: B, U, Vh
     real :: cond_num, chi_actual, chi_expect
     character(len=64) :: fmt_str
     character(len=*) :: solver
 
+    ! Construct bxa to minimize matrix equation | y - bxa x |^2
     ! Construct B and p to solve the matrix equation Bc = p
-    forall (a=0:n, i=1:size(bax, 2)) bax(a + 1, i) = basis(a, x(i))
-    forall (j=1:n+1, k=1:n+1) B(j, k) = sum(bax(j, :) * bax(k, :))
-    p = matmul(bax, y)
+    forall (a=0:n, i=1:size(bxa, 1)) bxa(i, a + 1) = basis(a, x(i))
+    forall (j=1:n+1, k=1:n+1) B(j, k) = sum(bxa(:, j) * bxa(:, k))
+    p = matmul(transpose(bxa), y)
 
     call svd(n + 1, B, U, s, Vh)
 
     select case (solver)
     case ("svd"); coeffs = solve_svd(p, U, s, Vh, 1.0e-6)
-    case ("lss"); call solve_lss(transpose(bax), y, -1.0, coeffs, s)
+    case ("lss"); call solve_lss(bxa, y, -1.0, coeffs, s)
     end select
 
-    ys_fit = matmul(transpose(bax), coeffs)
+    ys_fit = matmul(bxa, coeffs)
     chi_actual = sum((y - ys_fit)**2)
     chi_expect = size(x) - (n + 1)
     cond_num = s(1) / s(n + 1)
