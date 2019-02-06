@@ -73,7 +73,7 @@ contains
 
     select case (solver)
     case ("gj");  coeffs = solve(B, p)
-    case ("svd"); coeffs = solve_svd(n + 1, p, U, s, Vh, 1.0e-6)
+    case ("svd"); coeffs = solve_svd(p, U, s, Vh, 1.0e-6)
     case ("lss"); coeffs = solve_lss(B, p, -1.0)
     end select
 
@@ -126,9 +126,8 @@ contains
   end function
 
   !! Solve the matrix equation (U s Vh) x = b
-  function solve_svd(n, b, U, s, Vh, eps) result(x)
-    real :: b(n), s(n), U(n, n), Vh(n, n), x(n), eps
-    integer :: n
+  function solve_svd(b, U, s, Vh, eps) result(x)
+    real :: b(:), s(:), U(:, :), Vh(:, :), x(size(Vh, 2)), eps
 
     x = matmul(transpose(U), b)
     where (s > eps * s(1)); x = x / s
