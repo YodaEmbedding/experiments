@@ -1,1 +1,1 @@
-5gJ:s/* /,/g<CR>xZZ
+<C-V>GlxA,<Del><Esc>...ZZ
