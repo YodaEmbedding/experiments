@@ -1,0 +1,1 @@
+/pr<CR>qqW"tyww"syw~b"cywuGI<CR>public <C-R>tget<C-R>c() { return <C-R>s <BS>; }<CR>public void set<C-R>c( <C-R>t <BS><C-R>s ) {<CR>this.<C-R>s = <C-R>s;<CR>}<CR><Esc>nnq@qj@q=GZZ
