@@ -1,0 +1,1 @@
+cG[vimgolf]<CR>[isbeneficial]<Esc>:%s/\w/&,/g<CR>$Xk.ZZ
