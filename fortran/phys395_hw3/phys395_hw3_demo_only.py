@@ -32,7 +32,6 @@ def fit(x, y, n):
     result = optimize.minimize(loss, x0=[0.0] * (n + 2))
     return result
 
-# TODO colors
 def plot(x, y, y_fit, filename, title):
     styles = [
         {'color': '#ff00ff', 'linewidth': 2},
@@ -42,7 +41,8 @@ def plot(x, y, y_fit, filename, title):
 
     fig, axes = plt.subplots(nrows=2, sharex=False)
     plot_multiple(axes[0], x, zip(styles, ['raw', 'fit'], [y, y_fit]))
-    plot_multiple(axes[1], x, zip(styles, [None, 'fit residuals'], [None, residuals]))
+    plot_multiple(axes[1], x, zip(styles, [None, 'fit residuals'],
+        [None, residuals]))
     axes[0].set_title(title)
     axes[0].legend()
     axes[1].legend()
