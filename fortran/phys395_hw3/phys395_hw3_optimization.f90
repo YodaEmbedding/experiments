@@ -14,9 +14,9 @@ contains
     !! Find roots via Newton's method
 
     print "(a)", "1. Roots of x^3 - x + 0.25 = 0:"
-    print "(f12.6)", newton(f1, df1, -1.0)
-    print "(f12.6)", newton(f1, df1, 0.0)
-    print "(f12.6)", newton(f1, df1, 1.0)
+    print "(f12.6)", newton(f1, df1, x0=-1.0, tol=1e-6)
+    print "(f12.6)", newton(f1, df1, x0= 0.0, tol=1e-6)
+    print "(f12.6)", newton(f1, df1, x0= 1.0, tol=1e-6)
     print *
   end subroutine
 
@@ -24,6 +24,8 @@ contains
     !! Find minima via golden section search
 
     print "(a)", "3. Minima of (x^2 - 1)^2 + x:"
+    print "(f12.6)", golden(f3, x_min=-2.0, x_max=0.0, tol=1e-6)
+    print "(f12.6)", golden(f3, x_min= 0.0, x_max=1.0, tol=1e-6)
     print *
   end subroutine
 
@@ -100,11 +102,10 @@ contains
   !   ! print "(/, a, /)", "----"
   ! end function
 
-  function newton(f, df, x0) result(x)
+  function newton(f, df, x0, tol) result(x)
     !! Find root of f(x) via Newton's method
     real, external :: f, df
-    real, intent(in) :: x0
-    real, parameter :: tol = 1e-6
+    real, intent(in) :: x0, tol
     real :: x, y
 
     x = x0
@@ -114,6 +115,33 @@ contains
       x = x - y / df(x)
       y = f(x)
     end do
+  end function
+
+  function golden(f, x_min, x_max, tol)
+    !! Find a minimum of f(x) within interval via golden section search
+    !! This implementation doubles the necessary calls to f; but it is simpler
+    real, external :: f
+    real, intent(in) :: x_min, x_max, tol
+    real :: golden, a, b, c, d
+    real, parameter :: phi = 1.6180339887498948482045868343656381177203091798057
+
+    a = x_min
+    b = x_max
+    c = b - (b - a) / phi
+    d = a + (b - a) / phi
+
+    do while (tol < abs(c - d))
+      if (f(c) < f(d)) then
+        b = d
+      else
+        a = c
+      end if
+
+      c = b - (b - a) / phi
+      d = a + (b - a) / phi
+    end do
+
+    golden = 0.5 * (b + a)
   end function
 
   pure function f1(x)
@@ -130,6 +158,14 @@ contains
     real :: df1
 
     df1 = 3.0 * x**2 - 1.0
+  end function
+
+  pure function f3(x)
+    !! Function for question 3
+    real, intent(in) :: x
+    real :: f3
+
+    f3 = (x**2 - 1.0)**2 + x
   end function
 
   elemental function basis(a, x)
