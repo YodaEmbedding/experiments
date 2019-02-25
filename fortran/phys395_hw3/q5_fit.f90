@@ -1,6 +1,13 @@
 module q5_fit
   implicit none
 
+  interface
+    function df_interface(x)
+      real, intent(in) :: x(:)
+      real :: df_interface(size(x))
+    end function df_interface
+  end interface
+
 contains
 
   subroutine q5()
@@ -14,12 +21,12 @@ contains
     allocate(y_fit(size(x)))
 
     coeffs = 0.0  ! TODO randomize initial point?
-    coeffs = gradient_descent(loss, x0=coeffs, tol=1e-6)
-    ! iterations = ...
-    ! y_fit = fit(x, y, n=3)
+    coeffs = gradient_descent(dloss, x0=coeffs, tol=1e-6)
     forall (i=1:size(x)) y_fit(i) = model(coeffs, x(i))
 
     print "(a)", "5. Fit of data:"
+    print *, coeffs
+    ! print *, iterations  ! TODO
     call write_csv("results.csv", x, y, y_fit)
     print *
 
@@ -32,7 +39,17 @@ contains
       real :: loss
 
       forall (i=1:size(x)) y_fit(i) = model(c, x(i))
-      loss = sum((y - y_fit)**2)
+      loss = 0.5 * sum((y - y_fit)**2)
+    end function
+
+    function dloss(c)
+      real, intent(in) :: c(:)
+      real :: dloss(size(c))
+      real :: df_dc(size(c), size(x))
+
+      forall (i=1:size(x)) y_fit(i) = model(c, x(i))
+      forall (i=1:size(x)) df_dc(:, i) = dmodel(c, x(i))
+      forall (i=1:size(c)) dloss(i) = sum((y_fit - y) * df_dc(i, :))
     end function
 
   end subroutine
@@ -77,19 +94,26 @@ contains
     close(ofh)
   end subroutine
 
-  function gradient_descent(f, x0, tol) result(x)
-    real, external :: f
+  function gradient_descent(df, x0, tol) result(x)
     real, intent(in) :: x0(:), tol
-    real, dimension(size(x0)) :: x, x1, x2
+    procedure(df_interface) :: df
+    real :: x(size(x0))
     real, parameter :: step = 1e-2
-    real :: y1, y2
+    integer :: i
+    ! interface
+    !   function df_interface(x)
+    !     real, intent(in) :: x(:)
+    !     real :: df_interface(size(x))
+    !   end function df_interface
+    ! end interface
 
-    x1 = x0
+    x = x0
 
-    ! dy
-    ! ?? = f(x)
-
-    x = x1
+    ! TODO tol?
+    do i = 1, 100
+      ! print *, df(x)
+      x = x - step * df(x)
+    end do
   end function
 
   function levenberg_marquardt(f, x_min, x_max, tol)
@@ -121,12 +145,24 @@ contains
   pure function model(coeffs, x)
     !! Non-linear model that we will fit our data to
     real, intent(in) :: coeffs(:), x
-    real :: model
-    real :: terms(size(coeffs) - 1)
+    real :: model, const, terms(size(coeffs) - 1)
     integer :: a
 
-    forall (a=1:size(coeffs)-1) terms(a) = coeffs(a) * basis(a, x)
+    forall (a=1:size(coeffs)-1) terms(a) = coeffs(a) * basis(a - 1, x)
+    const = coeffs(size(coeffs))
     model = exp(sum(terms)) + coeffs(size(coeffs))
+  end function
+
+  pure function dmodel(coeffs, x)
+    !! Derivative of non-linear model with respect to coefficients
+    real, intent(in) :: coeffs(:), x
+    real :: dmodel(size(coeffs)), factor, terms(size(coeffs) - 1)
+    integer :: a
+
+    factor = exp(sum(terms))
+    forall (a=1:size(coeffs)-1) terms(a) = coeffs(a) * basis(a - 1, x)
+    forall (a=1:size(coeffs)-1) dmodel(a) = factor * basis(a - 1, x)
+    dmodel(size(coeffs)) = 1.0
   end function
 
 end module q5_fit
