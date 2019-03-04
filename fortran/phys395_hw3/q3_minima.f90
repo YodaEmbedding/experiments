@@ -1,6 +1,14 @@
 module q3_minima
   implicit none
 
+  interface
+    function R2R(x)
+      !! Real -> Real
+      real, intent(in) :: x
+      real :: R2R
+    end function R2R
+  end interface
+
 contains
 
   subroutine q3()
@@ -14,7 +22,7 @@ contains
   function golden(f, x_min, x_max, tol)
     !! Find a minimum of f(x) within interval via golden section search
     !! This implementation doubles the necessary calls to f; but it is simpler
-    real, external :: f
+    procedure(R2R) :: f
     real, intent(in) :: x_min, x_max, tol
     real :: golden, a, b, c, d
     real, parameter :: phi = 1.6180339887498948482045868343656381177203091798057

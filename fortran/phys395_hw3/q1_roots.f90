@@ -1,6 +1,14 @@
 module q1_roots
   implicit none
 
+  interface
+    function R2R(x)
+      !! Real -> Real
+      real, intent(in) :: x
+      real :: R2R
+    end function R2R
+  end interface
+
 contains
 
   subroutine q1()
@@ -14,7 +22,7 @@ contains
 
   function newton(f, df, x0, tol) result(x)
     !! Find root of f(x) via Newton's method
-    real, external :: f, df
+    procedure(R2R) :: f, df
     real, intent(in) :: x0, tol
     real :: x, y
 

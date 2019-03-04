@@ -2,10 +2,17 @@ module q5_fit
   implicit none
 
   interface
-    function df_interface(x)
+    function RV2R(x)
+      !! [Real] -> Real
       real, intent(in) :: x(:)
-      real :: df_interface(size(x))
-    end function df_interface
+      real :: RV2R
+    end function RV2R
+
+    function RV2RV(x)
+      !! [Real] -> [Real]
+      real, intent(in) :: x(:)
+      real :: RV2RV(size(x))
+    end function RV2RV
   end interface
 
 contains
@@ -20,14 +27,14 @@ contains
     call read_data("data.dat", x, y)
     allocate(y_fit(size(x)))
 
-    coeffs = 0.0  ! TODO randomize initial point?
-    coeffs = gradient_descent(dloss, x0=coeffs, tol=1e-6)
+    coeffs = 0.1
+    coeffs = gradient_descent(loss, dloss, x0=coeffs)
     forall (i=1:size(x)) y_fit(i) = model(coeffs, x(i))
 
     print "(a)", "5. Fit of data:"
-    print *, coeffs
+    print "(5f9.3)", coeffs
     ! print *, iterations  ! TODO
-    call write_csv("results.csv", x, y, y_fit)
+    call write_csv("results_gradient_descent.csv", x, y, y_fit)
     print *
 
     deallocate(x, y, y_fit)
@@ -94,30 +101,31 @@ contains
     close(ofh)
   end subroutine
 
-  function gradient_descent(df, x0, tol) result(x)
-    real, intent(in) :: x0(:), tol
-    procedure(df_interface) :: df
+  function gradient_descent(f, df, x0) result(x)
+    real, intent(in) :: x0(:)
+    procedure(RV2R) :: f
+    procedure(RV2RV) :: df
     real :: x(size(x0))
-    real, parameter :: step = 1e-2
+    real :: step
     integer :: i
-    ! interface
-    !   function df_interface(x)
-    !     real, intent(in) :: x(:)
-    !     real :: df_interface(size(x))
-    !   end function df_interface
-    ! end interface
 
     x = x0
+    step = 1e-6
+    i = 0
 
-    ! TODO tol?
-    do i = 1, 100
-      ! print *, df(x)
+    do while (step > 1e-8)
+      ! print "('x    ', 5f9.3)", x
+      ! print "('df(x)', 5f9.3)", df(x)
       x = x - step * df(x)
+      step = step * 0.999
+      i = i + 1
     end do
+
+    print "('Fit iterations', i9)", i
   end function
 
   function levenberg_marquardt(f, x_min, x_max, tol)
-    real, external :: f
+    procedure(RV2R) :: f
     real, intent(in) :: x_min, x_max, tol
     real :: levenberg_marquardt
 
