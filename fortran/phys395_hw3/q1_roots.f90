@@ -2,11 +2,11 @@ module q1_roots
   implicit none
 
   interface
-    function R2R(x)
+    function pR2R(x)
       !! Real -> Real
       real, intent(in) :: x
-      real :: R2R
-    end function R2R
+      real :: pR2R
+    end function pR2R
   end interface
 
 contains
@@ -22,7 +22,7 @@ contains
 
   function newton(f, df, x0, tol) result(x)
     !! Find root of f(x) via Newton's method
-    procedure(R2R) :: f, df
+    procedure(pR2R) :: f, df
     real, intent(in) :: x0, tol
     real :: x, y
 

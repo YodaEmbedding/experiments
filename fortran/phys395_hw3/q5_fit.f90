@@ -136,8 +136,8 @@ contains
     close(ofh)
   end subroutine
 
-  ! TODO this doesn't really need f as a parameter...
   function gradient_descent(f, df, c0, tol, maxiter) result(c)
+    !! Minimize f using df starting at c0
     procedure(RV2R) :: f
     procedure(RV2RV) :: df
     real, intent(in) :: c0(:), tol
@@ -217,7 +217,6 @@ contains
         lambda = lambda * lambda_up
       end if
 
-      ! print "(i5, f9.0)", iter, loss
       if (tol_new <= tol) exit
     end do
 
