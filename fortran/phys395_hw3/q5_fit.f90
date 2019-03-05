@@ -43,26 +43,34 @@ contains
     print "(a)", "5. Data fit:"
     print *
 
-    print "(a)", "   Gradient descent:"
-    coeffs = 0.0
-    coeffs = gradient_descent(loss, dloss, c0=coeffs, tol=0.1, maxiter=2000)
-    print "('   Fit params (0..n): ', 4f9.3)", coeffs(1:n+1)
-    print "('   Fit params (const):', f9.3)",  coeffs(n+2)
-    print *
-
-    forall (i=1:size(x)) y_fit(i) = model(coeffs, x(i))
-    call write_csv("results_gradient_descent.csv", x, y, y_fit)
-
     print "(a)", "   Levenberg-Marquardt:"
     coeffs = 0.0
     coeffs = levenberg_marquardt(x, y, model, dmodel, &
         c0=coeffs, lambda0=0.7, tol=0.1, maxiter=100)
     print "('   Fit params (0..n): ', 4f9.3)", coeffs(1:n+1)
     print "('   Fit params (const):', f9.3)",  coeffs(n+2)
+    print "('   Loss:              ', f9.0)", loss(coeffs)
     print *
 
     forall (i=1:size(x)) y_fit(i) = model(coeffs, x(i))
     call write_csv("results_levenberg_marquardt.csv", x, y, y_fit)
+
+    print "(a)", "   Gradient Descent:"
+    coeffs = 0.0
+    coeffs = gradient_descent(loss, dloss, c0=coeffs, tol=0.1, maxiter=2000)
+    print "('   Fit params (0..n): ', 4f9.3)", coeffs(1:n+1)
+    print "('   Fit params (const):', f9.3)",  coeffs(n+2)
+    print "('   Loss:              ', f9.0)", loss(coeffs)
+    print *
+
+    forall (i=1:size(x)) y_fit(i) = model(coeffs, x(i))
+    call write_csv("results_gradient_descent.csv", x, y, y_fit)
+
+    print "(a)", "Evidently, Levenberg-Marquardt requires far fewer iterations"
+    print "(a)", "than Gradient Descent. It also results in a better fit,"
+    print "(a)", "with less tweaking needed -- GD does not converge for poorly"
+    print "(a)", "chosen step sizes and step decay rates."
+    print *
 
     deallocate(x, y, y_fit)
 
@@ -137,13 +145,13 @@ contains
     real :: c(size(c0)), step, tol_new, loss, loss_new
     integer :: iter
 
-    step = 1e-6
+    step = 1e-5
     c = c0
     loss = f(c)
 
     do iter = 1, maxiter
       c = c - step * df(c)
-      step = step * 0.997
+      step = step * 0.995
 
       loss_new = f(c)
       tol_new = abs(loss_new - loss)
