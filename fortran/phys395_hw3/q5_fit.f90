@@ -42,7 +42,7 @@ contains
 
     coeffs = 0.1
     ! coeffs = gradient_descent(loss, dloss, x0=coeffs)
-    coeffs = levenberg_marquardt(x, y, model, dmodel, c0=coeffs)
+    coeffs = levenberg_marquardt(x, y, model, dmodel, c0=coeffs, lambda0=0.7)
     forall (i=1:size(x)) y_fit(i) = model(coeffs, x(i))
 
     print "(a)", "5. Fit of data:"
@@ -139,11 +139,11 @@ contains
     print "('Fit iterations', i9)", i
   end function
 
-  function levenberg_marquardt(x, y, f, df, c0) result(c)
+  function levenberg_marquardt(x, y, f, df, c0, lambda0) result(c)
     !! Minimize f w.r.t. chi-square for given data x, y points starting at c0
     procedure(pRVR2R) :: f
     procedure(pRVR2RV) :: df
-    real, intent(in) :: x(:), y(:), c0(:)
+    real, intent(in) :: x(:), y(:), c0(:), lambda0
     real, dimension(size(c0)) :: c, c_new, dloss
     real, dimension(size(x)) :: r, r_new
     real, dimension(size(c0), size(c0)) :: g, JTJ
@@ -154,16 +154,18 @@ contains
     integer :: i, k
     real, parameter :: lambda_up = 1.1, lambda_down = 1 / 1.1
 
-    lambda = 0.2
+    lambda = lambda0
     c = c0
     forall (i=1:size(x)) r(i) = y(i) - f(c, x(i))
     loss = 0.5 * sum(r**2)
     invalidated = .true.
 
-    do k = 1, 100  ! TODO 100?
+    do k = 1, 30
       ! Compute J, JT, JTJ, and loss-gradient
       ! but only if coefficients have changed
       if (invalidated) then
+        ! print "(5f9.3)", c
+        ! print "(f9.5)", lambda
         forall (i=1:size(x)) JT(:, i) = df(c, x(i))
         J = transpose(JT)
         JTJ = matmul(JT, J)
@@ -171,16 +173,14 @@ contains
         invalidated = .false.
       end if
 
-      ! Compute g (metric)
+      ! Compute g
       g = JTJ
       forall (i=1:size(c0)) g(i, i) = (1.0 + lambda) * g(i, i)
-      ! forall (i=1:size(c0)) g(i, i) = g(i, i) + lambda
 
       ! Compute new coefficients, new residuals, and new loss
-      c_new = solve(g, dloss)   ! TODO WRONG... this is supposed to be delta
+      c_new = c + solve(g, dloss)
       forall (i=1:size(x)) r_new(i) = y(i) - f(c_new, x(i))
       loss_new = 0.5 * sum(r_new**2)
-      print *, loss, loss_new
 
       ! If loss is smaller, accept new coefficients
       if (loss_new < loss) then
@@ -192,6 +192,8 @@ contains
       else
         lambda = lambda * lambda_up
       end if
+
+      ! print "(i5, f9.0)", k, loss
     end do
   end function
 
@@ -205,27 +207,30 @@ contains
     basis = cos(2 * pi * a * x)
   end function
 
-  pure function model(coeffs, x)
+  pure function model(c, x)
     !! Non-linear model that we will fit our data to
-    real, intent(in) :: coeffs(:), x
-    real :: model, const, terms(size(coeffs) - 1)
-    integer :: a
+    !! f(x) = exp(sum(c_a * b_a(x))) + const
+    real, intent(in) :: c(:), x
+    real :: model, b(size(c) - 1)
+    integer :: a, n
+    n = size(c) - 1
 
-    forall (a=1:size(coeffs)-1) terms(a) = coeffs(a) * basis(a - 1, x)
-    const = coeffs(size(coeffs))
-    model = exp(sum(terms)) + coeffs(size(coeffs))
+    forall (a=1:n) b(a) = basis(a - 1, x)
+    model = exp(sum(c(1:n) * b)) + c(n+1)
   end function
 
-  pure function dmodel(coeffs, x)
+  pure function dmodel(c, x)
     !! Derivative of non-linear model with respect to coefficients
-    real, intent(in) :: coeffs(:), x
-    real :: dmodel(size(coeffs)), factor, terms(size(coeffs) - 1)
-    integer :: a
+    !! df(x)/dc_k = exp(sum(c_a * b_a(x))) * b_k(x)
+    real, intent(in) :: c(:), x
+    real :: dmodel(size(c)), b(size(c) - 1), factor
+    integer :: a, n
+    n = size(c) - 1
 
-    forall (a=1:size(coeffs)-1) terms(a)  = coeffs(a) * basis(a - 1, x)
-    factor = exp(sum(terms))
-    forall (a=1:size(coeffs)-1) dmodel(a) = factor    * basis(a - 1, x)
-    dmodel(size(coeffs)) = 1.0
+    forall (a=1:n) b(a) = basis(a - 1, x)
+    factor = exp(sum(c(1:n) * b))
+    dmodel(1:n) = factor * b
+    dmodel(n+1) = 1.0
   end function
 
 end module q5_fit
