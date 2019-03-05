@@ -193,7 +193,7 @@ contains
         J = transpose(JT)
         JTJ = matmul(JT, J)
         dloss = matmul(JT, r)
-        invalidated = .false.
+        ! invalidated = .false.  ! NOTE this seems to cause weird issues
       end if
 
       ! Compute g
