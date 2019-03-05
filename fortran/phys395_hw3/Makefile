@@ -29,5 +29,10 @@ q1_roots.o: q1_roots.f90
 q3_minima.o: q3_minima.f90
 	$(CC) $(CFLAGS) $(LDFLAGS) -c q3_minima.f90
 
-q5_fit.o: q5_fit.f90
+q5_fit.o: q5_fit.f90 solver.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -c q5_fit.f90
+	ld -r solver.o q5_fit.o -o q5_fit.o.1
+	mv q5_fit.o.1 q5_fit.o
+
+solver.o: solver.f90
+	$(CC) $(CFLAGS) $(LDFLAGS) -c solver.f90
