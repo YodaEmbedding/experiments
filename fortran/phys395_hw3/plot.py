@@ -48,4 +48,9 @@ def main():
         out_filename='plot_gradient_descent.png',
         title=r'Minimize $\chi^2$ via Gradient Descent')
 
+    plot_csv(
+        csv_filename='results_levenberg_marquardt.csv',
+        out_filename='plot_levenberg_marquardt.png',
+        title=r'Minimize $\chi^2$ via Levenberg-Marquardt')
+
 main()

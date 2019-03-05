@@ -40,16 +40,29 @@ contains
     call read_data("data.dat", x, y)
     allocate(y_fit(size(x)))
 
-    coeffs = 0.1
-    ! coeffs = gradient_descent(loss, dloss, x0=coeffs)
-    coeffs = levenberg_marquardt(x, y, model, dmodel, c0=coeffs, lambda0=0.7)
-    forall (i=1:size(x)) y_fit(i) = model(coeffs, x(i))
-
-    print "(a)", "5. Fit of data:"
-    print "(5f9.3)", coeffs
-    ! print *, iterations  ! TODO
-    call write_csv("results_gradient_descent.csv", x, y, y_fit)
+    print "(a)", "5. Data fit:"
     print *
+
+    print "(a)", "   Gradient descent:"
+    coeffs = 0.0
+    coeffs = gradient_descent(loss, dloss, c0=coeffs, tol=0.1, maxiter=2000)
+    print "('   Fit params (0..n): ', 4f9.3)", coeffs(1:n+1)
+    print "('   Fit params (const):', f9.3)",  coeffs(n+2)
+    print *
+
+    forall (i=1:size(x)) y_fit(i) = model(coeffs, x(i))
+    call write_csv("results_gradient_descent.csv", x, y, y_fit)
+
+    print "(a)", "   Levenberg-Marquardt:"
+    coeffs = 0.0
+    coeffs = levenberg_marquardt(x, y, model, dmodel, &
+        c0=coeffs, lambda0=0.7, tol=0.1, maxiter=100)
+    print "('   Fit params (0..n): ', 4f9.3)", coeffs(1:n+1)
+    print "('   Fit params (const):', f9.3)",  coeffs(n+2)
+    print *
+
+    forall (i=1:size(x)) y_fit(i) = model(coeffs, x(i))
+    call write_csv("results_levenberg_marquardt.csv", x, y, y_fit)
 
     deallocate(x, y, y_fit)
 
@@ -116,42 +129,46 @@ contains
   end subroutine
 
   ! TODO this doesn't really need f as a parameter...
-  function gradient_descent(f, df, x0) result(x)
-    real, intent(in) :: x0(:)
+  function gradient_descent(f, df, c0, tol, maxiter) result(c)
     procedure(RV2R) :: f
     procedure(RV2RV) :: df
-    real :: x(size(x0))
-    real :: step
-    integer :: i
+    real, intent(in) :: c0(:), tol
+    integer, intent(in) :: maxiter
+    real :: c(size(c0)), step, tol_new, loss, loss_new
+    integer :: iter
 
-    x = x0
     step = 1e-6
-    i = 0
+    c = c0
+    loss = f(c)
 
-    do while (step > 1e-8)
-      ! print "('x    ', 5f9.3)", x
-      ! print "('df(x)', 5f9.3)", df(x)
-      x = x - step * df(x)
+    do iter = 1, maxiter
+      c = c - step * df(c)
       step = step * 0.997
-      i = i + 1
+
+      loss_new = f(c)
+      tol_new = abs(loss_new - loss)
+      loss = loss_new
+
+      if (tol_new <= tol) exit
     end do
 
-    print "('Fit iterations', i9)", i
+    print "('   Iterations:        ', i9)", iter
   end function
 
-  function levenberg_marquardt(x, y, f, df, c0, lambda0) result(c)
+  function levenberg_marquardt(x, y, f, df, c0, lambda0, tol, maxiter) result(c)
     !! Minimize f w.r.t. chi-square for given data x, y points starting at c0
     procedure(pRVR2R) :: f
     procedure(pRVR2RV) :: df
-    real, intent(in) :: x(:), y(:), c0(:), lambda0
+    real, intent(in) :: x(:), y(:), c0(:), lambda0, tol
+    integer, intent(in) :: maxiter
     real, dimension(size(c0)) :: c, c_new, dloss
     real, dimension(size(x)) :: r, r_new
     real, dimension(size(c0), size(c0)) :: g, JTJ
     real :: J(size(x), size(c0))
     real :: JT(size(c0), size(x))
-    real :: loss, loss_new, lambda
+    real :: loss, loss_new, lambda, tol_new
     logical :: invalidated
-    integer :: i, k
+    integer :: i, iter
     real, parameter :: lambda_up = 1.1, lambda_down = 1 / 1.1
 
     lambda = lambda0
@@ -160,12 +177,10 @@ contains
     loss = 0.5 * sum(r**2)
     invalidated = .true.
 
-    do k = 1, 30
+    do iter = 1, maxiter
       ! Compute J, JT, JTJ, and loss-gradient
       ! but only if coefficients have changed
       if (invalidated) then
-        ! print "(5f9.3)", c
-        ! print "(f9.5)", lambda
         forall (i=1:size(x)) JT(:, i) = df(c, x(i))
         J = transpose(JT)
         JTJ = matmul(JT, J)
@@ -181,6 +196,7 @@ contains
       c_new = c + solve(g, dloss)
       forall (i=1:size(x)) r_new(i) = y(i) - f(c_new, x(i))
       loss_new = 0.5 * sum(r_new**2)
+      tol_new = abs(loss_new - loss)
 
       ! If loss is smaller, accept new coefficients
       if (loss_new < loss) then
@@ -193,8 +209,11 @@ contains
         lambda = lambda * lambda_up
       end if
 
-      ! print "(i5, f9.0)", k, loss
+      ! print "(i5, f9.0)", iter, loss
+      if (tol_new <= tol) exit
     end do
+
+    print "('   Iterations:        ', i9)", iter
   end function
 
   elemental function basis(a, x)
