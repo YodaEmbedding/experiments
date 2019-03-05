@@ -167,9 +167,9 @@ contains
     real :: dmodel(size(coeffs)), factor, terms(size(coeffs) - 1)
     integer :: a
 
+    forall (a=1:size(coeffs)-1) terms(a)  = coeffs(a) * basis(a - 1, x)
     factor = exp(sum(terms))
-    forall (a=1:size(coeffs)-1) terms(a) = coeffs(a) * basis(a - 1, x)
-    forall (a=1:size(coeffs)-1) dmodel(a) = factor * basis(a - 1, x)
+    forall (a=1:size(coeffs)-1) dmodel(a) = factor    * basis(a - 1, x)
     dmodel(size(coeffs)) = 1.0
   end function
 
