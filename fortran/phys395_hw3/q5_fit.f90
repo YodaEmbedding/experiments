@@ -160,7 +160,7 @@ contains
       if (tol_new <= tol) exit
     end do
 
-    print "('   Iterations:        ', i9)", iter
+    print "('   Iterations:        ', i9)", iter - 1
   end function
 
   function levenberg_marquardt(x, y, f, df, c0, lambda0, tol, maxiter) result(c)
@@ -220,7 +220,7 @@ contains
       if (tol_new <= tol) exit
     end do
 
-    print "('   Iterations:        ', i9)", iter
+    print "('   Iterations:        ', i9)", iter - 1
   end function
 
   elemental function basis(a, x)
