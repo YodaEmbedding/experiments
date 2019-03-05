@@ -11,7 +11,7 @@ clean:
 	rm -rf *.mod *.o \
 		phys395_hw3_optimization \
 		results*.csv \
-		plot*.png
+		plot*.svg
 
 run_phys395_hw3_optimization: phys395_hw3_optimization
 	./phys395_hw3_optimization

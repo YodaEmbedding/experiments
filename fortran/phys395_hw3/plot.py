@@ -45,12 +45,12 @@ def plot_multiple(ax, x, it):
 def main():
     plot_csv(
         csv_filename='results_gradient_descent.csv',
-        out_filename='plot_gradient_descent.png',
+        out_filename='plot_gradient_descent.svg',
         title=r'Minimize $\chi^2$ via Gradient Descent')
 
     plot_csv(
         csv_filename='results_levenberg_marquardt.csv',
-        out_filename='plot_levenberg_marquardt.png',
+        out_filename='plot_levenberg_marquardt.svg',
         title=r'Minimize $\chi^2$ via Levenberg-Marquardt')
 
 main()
