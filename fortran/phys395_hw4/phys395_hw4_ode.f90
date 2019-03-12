@@ -22,6 +22,8 @@ contains
   end subroutine
 
   subroutine run(n, dt, ts, ys, y0)
+    !! Run simulation for given initial condition y0 at time step dt
+    !! Returns simulation results in ts and ys
     integer :: n, i
     real :: ys(4, n), ts(n), y0(4), y(4), dt
 
@@ -56,17 +58,12 @@ contains
     close(ofh)
   end subroutine
 
-  function evalf(y) result(dydt)
-    real :: y(4), dydt(4)
+  pure function evalf(y) result(dydt)
+    real, intent(in) :: y(4)
     real, parameter :: g = 9.806
-    real :: m, c, s, s1, s2, scale1, scale2
+    real :: dydt(4), m, c, s, s1, s2, scale1, scale2
 
     associate(th1 => y(1), w1 => y(2), th2 => y(3), w2 => y(4))
-      th1 = y(1)
-      w1  = y(2)
-      th2 = y(3)
-      w2  = y(4)
-
       m = m1 + m2
       c = cos(th2 - th1)
       s = sin(th2 - th1)
@@ -93,10 +90,10 @@ contains
     end associate
   end function
 
-  function energy(y)
-    real :: y(4), energy
+  pure function energy(y)
+    real, intent(in) :: y(4)
     real, parameter :: g = 9.806
-    real :: T, V, y1, y2
+    real :: energy, T, V, y1, y2
 
     associate(th1 => y(1), w1 => y(2), th2 => y(3), w2 => y(4))
       y1 = -l1 * cos(th1) + 2.0
