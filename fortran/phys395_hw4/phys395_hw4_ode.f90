@@ -33,7 +33,6 @@ contains
     do i = 1, n
       ys(:, i) = y
       call gl10(y, dt)
-      ! call euler(y, dt)
     end do
   end subroutine
 
@@ -110,81 +109,6 @@ contains
 
     energy = T + V
   end function
-
-  subroutine euler(y, dt)
-    integer, parameter :: n = 4
-    real y(n), dydt(n), dt
-
-    dydt = evalf(y)
-    y = y + dydt * dt
-  end subroutine
-
-  ! 6th order implicit Gauss-Legendre integrator
-  subroutine gl6(y, dt)
-    integer, parameter :: s = 3, n = 4
-    real y(n), g(n, s), dt
-    integer i, k
-
-    ! Butcher tableau for 6th order Gauss-Legendre method
-    real, parameter :: a(s, s) = reshape([ &
-      5.0/36.0, 2.0/9.0 - 1.0/sqrt(15.0), 5.0/36.0 - 0.5/sqrt(15.0), &
-      5.0/36.0 + sqrt(15.0)/24.0, 2.0/9.0, 5.0/36.0 - sqrt(15.0)/24.0, &
-      5.0/36.0 + 0.5/sqrt(15.0), 2.0/9.0 + 1.0/sqrt(15.0), 5.0/36.0 ], [s, s])
-
-    real, parameter :: b(s) = [ 5.0/18.0, 4.0/9.0, 5.0/18.0]
-
-    g = 0.0
-    do k = 1, 16
-      g = matmul(g, a)
-      do i = 1, s
-        g(:, i) = evalf(y + g(:, i)*dt)
-      end do
-    end do
-
-    y = y + matmul(g, b)*dt
-  end subroutine gl6
-
-  ! 8th order implicit Gauss-Legendre integrator
-  subroutine gl8(y, dt)
-    integer, parameter :: s = 4, n = 4
-    real y(n), g(n, s), dt
-    integer i, k
-
-    ! Butcher tableau for 8th order Gauss-Legendre method
-    real, parameter :: a(s, s) = reshape([ &
-      0.869637112843634643432659873054998518Q-1,  &
-      -0.266041800849987933133851304769531093Q-1, &
-      0.126274626894047245150568805746180936Q-1,  &
-      -0.355514968579568315691098184956958860Q-2, &
-      0.188118117499868071650685545087171160Q0,   &
-      0.163036288715636535656734012694500148Q0,   &
-      -0.278804286024708952241511064189974107Q-1, &
-      0.673550059453815551539866908570375889Q-2,  &
-      0.167191921974188773171133305525295945Q0,   &
-      0.353953006033743966537619131807997707Q0,   &
-      0.163036288715636535656734012694500148Q0,   &
-      -0.141906949311411429641535704761714564Q-1, &
-      0.177482572254522611843442956460569292Q0,   &
-      0.313445114741868346798411144814382203Q0,   &
-      0.352676757516271864626853155865953406Q0,   &
-      0.869637112843634643432659873054998518Q-1], [s, s])
-
-    real, parameter :: b(s) = [ &
-      0.173927422568726928686531974610999704Q0, &
-      0.326072577431273071313468025389000296Q0, &
-      0.326072577431273071313468025389000296Q0, &
-      0.173927422568726928686531974610999704Q0]
-
-    g = 0.0
-    do k = 1, 16
-      g = matmul(g, a)
-      do i = 1, s
-        g(:, i) = evalf(y + g(:, i)*dt)
-      end do
-    end do
-
-    y = y + matmul(g, b)*dt
-  end subroutine gl8
 
   ! 10th order implicit Gauss-Legendre integrator
   subroutine gl10(y, dt)
