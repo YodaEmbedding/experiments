@@ -2,6 +2,7 @@
 
 import csv
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from matplotlib.collections import LineCollection
 import numpy as np
 
@@ -31,8 +32,8 @@ def plot_time_series(csv_filename, out_filename, ylim=None, title=None):
 
     axes[0].set_title(title)
     axes[0].set_ylim(ylim)
-    axes[0].legend(framealpha=0.9)
-    axes[1].legend(framealpha=0.9)
+    axes[0].legend(framealpha=0.9, loc='upper right')
+    axes[1].legend(framealpha=0.9, loc='upper right')
     fig.savefig(out_filename, dpi=300)
 
 def plot_trajectory(csv_filename, out_filename, xlim=None, ylim=None, title=None):
@@ -62,6 +63,51 @@ def plot_trajectory(csv_filename, out_filename, xlim=None, ylim=None, title=None
     ax.legend(handles=legend_elements, framealpha=0.9)
     fig.savefig(out_filename, dpi=300)
 
+def plot_animation(csv_filename, out_filename, xlim=None, ylim=None, title=None):
+    header, rows = read_csv(csv_filename)
+    series = list(map(np.array, zip(*rows)))
+    t, th1, th2, energy = series
+
+    l1, l2 = 1.0, 1.0
+    x1 =  l1 * np.sin(th1)
+    y1 = -l1 * np.cos(th1)
+    x2 =  l2 * np.sin(th2) + x1
+    y2 = -l2 * np.cos(th2) + y1
+
+    fps = 15
+    idxs = np.linspace(0, len(t) - 1, int(fps * t[-1]), dtype=np.int32)
+    idxs_msg = idxs[np.linspace(0, len(idxs) - 1, 11, dtype=np.int32)]
+
+    fig, ax = plt.subplots(nrows=1)
+    line, = ax.plot([], [], 'o-', lw=2, color='#00ffff')
+    time_text = ax.text(0.05, 0.9, '', transform=ax.transAxes)
+    ax.set_title(title)
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    ax.set_aspect('equal')
+
+    def init():
+        line.set_data([], [])
+        time_text.set_text('')
+        return line, time_text
+
+    def animate(i):
+        if i in idxs_msg:
+            print('{}% complete'.format(int(100 * i / idxs[-1])))
+        x = [0, x1[i], x2[i]]
+        y = [0, y1[i], y2[i]]
+        line.set_data(x, y)
+        time_text.set_text('Time: {:.2f}s'.format(t[i]))
+        return line, time_text
+
+    print('Animating video...')
+    print('While we wait, you can look at the plots :)\n')
+    ani = animation.FuncAnimation(
+        fig, animate, idxs,
+        interval=int(1.0/fps), blit=True, init_func=init)
+
+    ani.save(out_filename, dpi=300, fps=fps)
+
 def plot_cmapped(fig, ax, t, x, y, cmap='viridis'):
     points = np.array([x, y]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -90,7 +136,14 @@ def main():
         csv_filename='results.csv',
         out_filename='plot_trajectory.svg',
         title=r'Double pendulum',
-		xlim=(-2.0, 2.0),
-		ylim=(-2.0, 2.0))
+        xlim=(-2.0, 2.0),
+        ylim=(-2.0, 2.0))
+
+    plot_animation(
+        csv_filename='results.csv',
+        out_filename='plot_animation.mp4',
+        title=r'Double pendulum',
+        xlim=(-2.0, 2.0),
+        ylim=(-2.0, 2.0))
 
 main()
