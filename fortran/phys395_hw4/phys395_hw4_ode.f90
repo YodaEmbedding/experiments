@@ -43,16 +43,76 @@ contains
       ! "(g24.16, ',', g24.16, ',', g24.16, ',', g24.16)"
     character(len=*) :: filename
     integer :: n, i
-    real :: t(n), y(4, n), E
+    real :: t(n), y(4, n)
+    real :: E0
+
+    E0 = energy(y(:, 1))
 
     open(unit=ofh, file=filename, action="write", status="replace")
     write(ofh, *) "Time, $\theta_1$, $\theta_2$, Energy violation"
     do i = 1, n
-      E = 0.0  ! TODO
-      write(ofh, fmt_str) t(i), y(1, i), y(3, i), E
+      write(ofh, fmt_str) t(i), y(1, i), y(3, i), energy(y(:, i)) / E0 - 1.0
     end do
     close(ofh)
   end subroutine
+
+  function evalf(y) result(dydt)
+    real :: y(4), dydt(4)
+    real, parameter :: g = 9.806
+    real :: m, c, s, s1, s2, scale1, scale2
+
+    associate(th1 => y(1), w1 => y(2), th2 => y(3), w2 => y(4))
+      th1 = y(1)
+      w1  = y(2)
+      th2 = y(3)
+      w2  = y(4)
+
+      m = m1 + m2
+      c = cos(th2 - th1)
+      s = sin(th2 - th1)
+      s1 = sin(th1)
+      s2 = sin(th2)
+      scale1 = m * l1 - m2 * l1 * c * c
+      scale2 = (l2 / l1) * scale1
+
+      dydt(1) = w1
+
+      dydt(2) = ( &
+        (m2 * l1 * w1**2 * s * c) + &
+        (m2 * l2 * w2**2 * s) +     &
+        (m2 * g * s2 * c) +         &
+        (-m * g * s1)) / scale1
+
+      dydt(3) = w2
+
+      dydt(4) = ( &
+        (-m2 * l2 * w2**2 * s * c) + &
+        (-m  * l1 * w1**2 * s) +     &
+        ( m * g * s1 * c) +          &
+        (-m * g * s2)) / scale2
+    end associate
+  end function
+
+  function energy(y)
+    real :: y(4), energy
+    real, parameter :: g = 9.806
+    real :: T, V, y1, y2
+
+    associate(th1 => y(1), w1 => y(2), th2 => y(3), w2 => y(4))
+      y1 = -l1 * cos(th1) + 2.0
+      y2 = -l2 * cos(th2) + y1
+
+      T = 0.5 * ( &
+        m1 * l1**2 * w1**2 + &
+        m2 * ( &
+          l1**2 * w1**2 + &
+          l2**2 * w2**2 + &
+          2 * l1 * l2 * w1 * w2 * cos(th2 - th1)))
+      V = g * (m1 * y1 + m2 * y2)
+    end associate
+
+    energy = T + V
+  end function
 
   subroutine euler(y, dt)
     integer, parameter :: n = 4
@@ -61,42 +121,6 @@ contains
     dydt = evalf(y)
     y = y + dydt * dt
   end subroutine
-
-  function evalf(y) result(dydt)
-    real :: y(4), dydt(4)
-    real :: th1, w1, th2, w2
-    real :: m, c, s, s1, s2, scale1, scale2
-    real, parameter :: g = 9.806
-
-    th1 = y(1)
-    w1  = y(2)
-    th2 = y(3)
-    w2  = y(4)
-
-    m = m1 + m2
-    c = cos(th2 - th1)
-    s = sin(th2 - th1)
-    s1 = sin(th1)
-    s2 = sin(th2)
-    scale1 = m * l1 - m2 * l1 * c * c
-    scale2 = (l2 / l1) * scale1
-
-    dydt(1) = w1
-
-    dydt(2) = ( &
-        (m2 * l1 * w1**2 * s * c) + &
-        (m2 * l2 * w2**2 * s) +     &
-        (m2 * g * s2 * c) +         &
-        (-m * g * s1)) / scale1
-
-    dydt(3) = w2
-
-    dydt(4) = ( &
-        (-m2 * l2 * w2**2 * s * c) + &
-        (-m  * l1 * w1**2 * s) +     &
-        ( m * g * s1 * c) +          &
-        (-m * g * s2)) / scale2
-  end function
 
   ! 6th order implicit Gauss-Legendre integrator
   subroutine gl6(y, dt)

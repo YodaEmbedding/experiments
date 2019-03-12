@@ -1,5 +1,5 @@
 CC=gfortran
-CFLAGS=-Wall -O0 -fcheck=all -fimplicit-none -fdefault-real-16
+CFLAGS=-Wall -Wno-real-q-constant -O3 -fcheck=all -fimplicit-none -fdefault-real-16
 LDFLAGS=-llapack
 PYTHON=python
 
