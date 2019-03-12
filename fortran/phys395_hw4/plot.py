@@ -63,7 +63,9 @@ def plot_trajectory(csv_filename, out_filename, xlim=None, ylim=None, title=None
     ax.legend(handles=legend_elements, framealpha=0.9)
     fig.savefig(out_filename, dpi=300)
 
-def plot_animation(csv_filename, out_filename, xlim=None, ylim=None, title=None):
+def plot_animation(
+        csv_filename, out_filename,
+        xlim=None, ylim=None, title=None, fps=15, dpi=300):
     header, rows = read_csv(csv_filename)
     series = list(map(np.array, zip(*rows)))
     t, th1, th2, energy = series
@@ -74,13 +76,12 @@ def plot_animation(csv_filename, out_filename, xlim=None, ylim=None, title=None)
     x2 =  l2 * np.sin(th2) + x1
     y2 = -l2 * np.cos(th2) + y1
 
-    fps = 15
     idxs = np.linspace(0, len(t) - 1, int(fps * t[-1]), dtype=np.int32)
     idxs_msg = idxs[np.linspace(0, len(idxs) - 1, 11, dtype=np.int32)]
 
     fig, ax = plt.subplots(nrows=1)
     line, = ax.plot([], [], 'o-', lw=2, color='#00ffff')
-    time_text = ax.text(0.05, 0.9, '', transform=ax.transAxes)
+    time_text = ax.text(0.65, 0.9, '', transform=ax.transAxes)
     ax.set_title(title)
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
@@ -106,7 +107,7 @@ def plot_animation(csv_filename, out_filename, xlim=None, ylim=None, title=None)
         fig, animate, idxs,
         interval=int(1.0/fps), blit=True, init_func=init)
 
-    ani.save(out_filename, dpi=300, fps=fps)
+    ani.save(out_filename, dpi=dpi, fps=fps)
 
 def plot_cmapped(fig, ax, t, x, y, cmap='viridis'):
     points = np.array([x, y]).T.reshape(-1, 1, 2)
@@ -144,6 +145,8 @@ def main():
         out_filename='plot_animation.mp4',
         title=r'Double pendulum',
         xlim=(-2.0, 2.0),
-        ylim=(-2.0, 2.0))
+        ylim=(-2.0, 2.0),
+        fps=15,
+        dpi=200)
 
 main()
