@@ -2,10 +2,14 @@
 
 import argparse
 import csv
-import matplotlib.pyplot as plt
+import os
+
+import astropy.io.fits as pyfits
 import matplotlib.animation as animation
-from matplotlib.collections import LineCollection
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.collections import LineCollection
 
 plt.style.use('dark_background')
 
@@ -48,7 +52,7 @@ def plot_trajectory(csv_filename, out_filename, xlim=None, ylim=None, title=None
     x2 =  l2 * np.sin(th2) + x1
     y2 = -l2 * np.cos(th2) + y1
 
-    cmaps = [plt.cm.viridis, plt.cm.magma]
+    cmaps = [cm.viridis, cm.magma]
     legend_elements = [
         plt.Line2D([0], [0], color=cmaps[0](0.7), lw=2, label=header[1]),
         plt.Line2D([0], [0], color=cmaps[1](0.7), lw=2, label=header[2])]
@@ -102,13 +106,35 @@ def plot_animation(
         time_text.set_text('Time: {:.2f}s'.format(t[i]))
         return line, time_text
 
-    print('Animating video...')
-    print('While we wait, you can look at the plots :)\n')
     ani = animation.FuncAnimation(
         fig, animate, idxs,
         interval=int(1.0/fps), blit=True, init_func=init)
 
+    print('Animating video...')
     ani.save(out_filename, dpi=dpi, fps=fps)
+
+def plot_fractal(fits_filename, out_filename, title=None, dpi=300):
+    with pyfits.open(fits_filename) as hdulist:
+        data = hdulist[0].data
+        x0 = hdulist[0].header['CRVAL1']
+        y0 = hdulist[0].header['CRVAL2']
+        dx = hdulist[0].header['CDELT1']
+        dy = hdulist[0].header['CDELT2']
+
+    x = (x0, x0 + (data.shape[1] - 1) * dx)
+    y = (y0, y0 + (data.shape[0] - 1) * dy)
+
+    fig, ax = plt.subplots(nrows=1)
+    img = plt.imshow(
+        data,
+        extent=(*x, *y),
+        origin='lower',
+        aspect=dx/dy,
+        cmap=cm.inferno)
+    fig.colorbar(img)
+
+    ax.set_title(title)
+    fig.savefig(out_filename, dpi=dpi)
 
 def plot_cmapped(fig, ax, t, x, y, cmap='viridis'):
     points = np.array([x, y]).T.reshape(-1, 1, 2)
@@ -130,37 +156,45 @@ def plot_multiple(ax, x, it):
 
 def main():
     parser = argparse.ArgumentParser(description='Plot.')
-    parser.add_argument(
-        '--animation-dpi', dest='animation_dpi', action='store',
-        type=int, default=150)
-    parser.add_argument(
-        '--animation-fps', dest='animation_fps', action='store',
-        type=float, default=12.0)
-    parser.add_argument(
-        '--disable-animation', dest='disable_animation', action='store_true',
-        default=False)
+    parser.add_argument('filename', action='store')
+    parser.add_argument('--plot-results', action='store_true', default=False)
+    parser.add_argument('--plot-fractal', action='store_true', default=False)
+    parser.add_argument('--no-animation', action='store_true', default=False)
+    parser.add_argument('--animation-dpi', action='store', type=int, default=150)
+    parser.add_argument('--animation-fps', action='store', type=float, default=12.0)
     args = parser.parse_args()
 
-    plot_time_series(
-        csv_filename='results.csv',
-        out_filename='plot_time_series.svg',
-        title=r'Double pendulum')
+    if args.plot_results:
+        print('Generating plots...')
 
-    plot_trajectory(
-        csv_filename='results.csv',
-        out_filename='plot_trajectory.svg',
-        title=r'Double pendulum',
-        xlim=(-2.0, 2.0),
-        ylim=(-2.0, 2.0))
+        plot_time_series(
+            csv_filename=args.filename,
+            out_filename='plot_time_series.svg',
+            title=r'Double pendulum')
 
-    if not args.disable_animation:
-        plot_animation(
-            csv_filename='results.csv',
-            out_filename='plot_animation.mp4',
+        plot_trajectory(
+            csv_filename=args.filename,
+            out_filename='plot_trajectory.svg',
             title=r'Double pendulum',
             xlim=(-2.0, 2.0),
-            ylim=(-2.0, 2.0),
-            fps=args.animation_fps,
-            dpi=args.animation_dpi)
+            ylim=(-2.0, 2.0))
+
+        print('Done! See output images.\n')
+
+        if not args.no_animation:
+            plot_animation(
+                csv_filename=args.filename,
+                out_filename='plot_animation.mp4',
+                title=r'Double pendulum',
+                xlim=(-2.0, 2.0),
+                ylim=(-2.0, 2.0),
+                fps=args.animation_fps,
+                dpi=args.animation_dpi)
+
+    if args.plot_fractal:
+        plot_fractal(
+            fits_filename=args.filename,
+            out_filename=os.path.splitext(args.filename)[0] + '.png',
+            title='Double pendulum (flipping fractal)')
 
 main()

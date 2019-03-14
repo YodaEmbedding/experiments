@@ -12,16 +12,13 @@ clean:
 	rm -rf *.mod *.o \
 		phys395_hw4_ode \
 		results*.csv \
+		plot*.fit \
 		plot*.mp4 \
+		plot*.png \
 		plot*.svg
 
 run: phys395_hw4_ode
 	./$<
-	# $(PYTHON) plot.py
-
-perf_test: phys395_hw4_ode
-	time ./$<
-	# $(PYTHON) plot.py --disable-animation
 
 phys395_hw4_ode: phys395_hw4_ode.o fitsio.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@

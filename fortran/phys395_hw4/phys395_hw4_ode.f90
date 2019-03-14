@@ -13,8 +13,9 @@ program phys395_hw4_ode
 
 contains
 
+  ! TODO enforce real(8) for floating point computations for this question
   subroutine q2()
-    integer, parameter :: steps_per_second = 64
+    integer, parameter :: steps_per_second = 2**8 ! TODO change this
     real, parameter :: time_period = 100.0 * sqrt(1.0 / 9.806)
     real, parameter :: dt = 1.0 / steps_per_second
     integer, parameter :: steps = steps_per_second * time_period
@@ -22,17 +23,18 @@ contains
     real :: ts(steps)
 
     print *
-    print "(a)", "Q2. Sample run for theta_1 = pi / 3, theta_2 = -pi/3"
-    print "(a)", "    Plot energy violation and create video animation"
+    print "(a)", "Q2. Plot energy violation and create video animation"
+    print "(a)", "    Initial conditions: theta_1 = pi / 3, theta_2 = -pi/3"
+    print "(a, f9.7)", "    dt: ", dt
     print *
     call run(steps, dt, ts, ys, y0=[pi / 3, 0.0, -pi / 3, 0.0])
     call write_csv("results.csv", steps, ts, ys)
-    call execute_command_line('python plot.py')
+    call execute_command_line("python plot.py results.csv --plot-results")
     print *
   end subroutine
 
   subroutine q3()
-    integer, parameter :: steps_per_second = 7
+    integer, parameter :: steps_per_second = 7  ! TODO increase for stability?
     real, parameter :: time_period = 10000.0 * sqrt(1.0 / 9.806)
     real, parameter :: dt = 1.0 / steps_per_second
     integer, parameter :: steps = steps_per_second * time_period
@@ -41,6 +43,7 @@ contains
     print *
     call write_fractal("plot_fractal_16x16.fit",   dt, steps, [-pi, pi], [-pi, pi], 16, 16)
     call write_fractal("plot_fractal_64x64.fit",   dt, steps, [-pi, pi], [-pi, pi], 64, 64)
+    call write_fractal("plot_fractal_128x128.fit", dt, steps, [-pi, pi], [-pi, pi], 128, 128)
     call write_fractal("plot_fractal_256x256.fit", dt, steps, [-pi, pi], [-pi, pi], 256, 256)
 
   end subroutine
@@ -103,7 +106,8 @@ contains
   subroutine write_fractal(filename, dt, steps, th1, th2, width, height)
     !! Write phase plot within ranges given by th1 and th2
     character(len=*) :: filename
-    integer :: steps, width, height, i, j
+    character(len=256) :: cmd
+    integer :: steps, width, height, i, j, iters_since_msg
     real :: dt, th1(2), th2(2), data_(1, width, height)
 
     print "(a, i3, a, i3, a, f5.2, a, f5.2, a, f5.2, a, f5.2, a)", &
@@ -111,22 +115,32 @@ contains
       width, "x", height, " from [", &
       th1(1), ", ", th2(1), "] to [", th1(2), ", ", th2(2), "]"
 
+    iters_since_msg = 1000
+
     ! TODO exploit symmetry?
     do j = 1, height
-      print "(i3, a)", 100 * j / height, "% complete"
+      if (iters_since_msg > 100) then
+        print "(i3, a)", 100 * j / height, "% complete"
+        iters_since_msg = 0
+      end if
+
       !$omp parallel do
       do i = 1, width
         data_(1, i, j) = find_flip(steps, dt, y0=[ &
           th1(1) + (th1(2) - th1(1)) * (i - 1) / (width  - 1), 0.0, &
           th2(1) + (th2(2) - th2(1)) * (j - 1) / (height - 1), 0.0])
       end do
+
+      iters_since_msg = iters_since_msg + width
     end do
 
     data_ = log(1.0 + data_)
 
-    ! TODO what is 'iterations'?
     call write2fits(filename, data_, th1, th2, &
-      ['iterations'], '($theta_1$,$theta_2$)')
+      ['magnitude'], '($theta_1$,$theta_2$)')
+
+    write (cmd, "(3a)") "python plot.py ", filename, " --plot-fractal"
+    call execute_command_line(cmd)
 
     print "(2a)", "Written output to ", filename
     print *
