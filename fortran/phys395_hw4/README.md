@@ -1,3 +1,11 @@
-Simply run `make` and wait a bit.
+**Instructions:** Simply run `make` and wait a bit.
 
-If you wish to skip the waiting, simply `cd pregenerated_output_images` and behold the beautiful images and videos!
+**Image gallery:** https://imgur.com/a/jc6DLNl
+
+![](https://i.imgur.com/osCF6Wb.gif)
+
+![](https://i.imgur.com/ZDNl3Gt.png)
+
+![](https://i.imgur.com/VyzqyGS.png)
+
+![](https://i.imgur.com/vxbmlZR.png)
