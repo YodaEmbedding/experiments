@@ -110,8 +110,21 @@ def plot_animation(
         fig, animate, idxs,
         interval=int(1.0/fps), blit=True, init_func=init)
 
-    print('Animating video...')
-    ani.save(out_filename, dpi=dpi, fps=fps)
+    ani_test = animation.FuncAnimation(
+        fig, animate, idxs[:2],
+        interval=int(1.0/fps), blit=True, init_func=init)
+
+    print('Animating video...\n')
+    try:
+        print('Checking for ffmpeg...')
+        ani_test.save(out_filename + '.mp4', dpi=50, fps=fps)
+        print('\nffmpeg is available!')
+        print('Animating actual video...')
+        ani.save(out_filename + '.mp4', dpi=dpi, fps=fps)
+    except:
+        print('\nffmpeg is not available :(')
+        print('Animating with super-slow, low-quality imagemagick :(')
+        ani.save(out_filename + '.gif', dpi=50, fps=6.0, writer='imagemagick')
 
 def plot_fractal(fits_filename, out_filename, title=None, dpi=300):
     with pyfits.open(fits_filename) as hdulist:
@@ -160,7 +173,7 @@ def main():
     parser.add_argument('--plot-fractal', action='store_true', default=False)
     parser.add_argument('--no-animation', action='store_true', default=False)
     parser.add_argument('--animation-dpi', action='store', type=int, default=150)
-    parser.add_argument('--animation-fps', action='store', type=float, default=12.0)
+    parser.add_argument('--animation-fps', action='store', type=float, default=24.0)
     args = parser.parse_args()
 
     if args.plot_results:
@@ -183,7 +196,7 @@ def main():
         if not args.no_animation:
             plot_animation(
                 csv_filename=args.filename,
-                out_filename='plot_animation.mp4',
+                out_filename='plot_animation',
                 title=r'Double pendulum',
                 xlim=(-2.0, 2.0),
                 ylim=(-2.0, 2.0),

@@ -11,7 +11,7 @@ program q2
 contains
 
   subroutine main()
-    integer, parameter :: steps_per_second = 2**8 ! TODO change this
+    integer, parameter :: steps_per_second = 2**8
     real, parameter :: time_period = 100.0 * sqrt(1.0 / 9.806)
     real, parameter :: dt = 1.0 / steps_per_second
     integer, parameter :: steps = steps_per_second * time_period
@@ -27,21 +27,6 @@ contains
     call write_csv("results.csv", steps, ts, ys)
     call execute_command_line("python plot.py results.csv --plot-results")
     print *
-  end subroutine
-
-  subroutine run(n, dt, ts, ys, y0)
-    !! Run simulation for given initial condition y0 at time step dt
-    !! Returns simulation results in ts and ys
-    integer :: n, i
-    real :: ys(4, n), ts(n), y0(4), y(4), dt
-
-    ts = [(i * dt, i=0,n-1)]
-    y = y0
-
-    do i = 1, n
-      ys(:, i) = y
-      call gl10(y, dt)
-    end do
   end subroutine
 
   subroutine write_csv(filename, n, t, y)
@@ -64,8 +49,19 @@ contains
     close(ofh)
   end subroutine
 
-end program q2
+  subroutine run(n, dt, ts, ys, y0)
+    !! Run simulation for given initial condition y0 at time step dt
+    !! Returns simulation results in ts and ys
+    integer :: n, i
+    real :: ys(4, n), ts(n), y0(4), y(4), dt
 
-! TODO ensure animation works on VM
-! TODO exploit symmetry?
-! TODO fdefault-real-8 for part 2
+    ts = [(i * dt, i=0,n-1)]
+    y = y0
+
+    do i = 1, n
+      ys(:, i) = y
+      call gl10(y, dt)
+    end do
+  end subroutine
+
+end program q2

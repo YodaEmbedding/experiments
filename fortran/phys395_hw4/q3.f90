@@ -17,7 +17,7 @@ program q3
 contains
 
   subroutine main()
-    integer, parameter :: steps_per_second = 7  ! TODO increase for stability?
+    integer, parameter :: steps_per_second = 7
     real, parameter :: time_period = 10000.0 * sqrt(1.0 / 9.806)
     real, parameter :: dt = 1.0 / steps_per_second
     integer, parameter :: steps = steps_per_second * time_period
@@ -29,32 +29,10 @@ contains
     call write_fractal("plot_fractal_64x64.fit",     dt, steps, [-pi, pi], [-pi, pi], 64, 64)
     call write_fractal("plot_fractal_128x128.fit",   dt, steps, [-pi, pi], [-pi, pi], 128, 128)
     call write_fractal("plot_fractal_256x256.fit",   dt, steps, [-pi, pi], [-pi, pi], 256, 256)
-    call write_fractal("plot_fractal_512x512.fit",   dt, steps, [-pi, pi], [-pi, pi], 512, 512)
-    call write_fractal("plot_fractal_1024x1024.fit", dt, steps, [-pi, pi], [-pi, pi], 1024, 1024)
-    call write_fractal("plot_fractal_2048x2048.fit", dt, steps, [-pi, pi], [-pi, pi], 2048, 2048)
-    call write_fractal("plot_fractal_4096x4096.fit", dt, steps, [-pi, pi], [-pi, pi], 4096, 4096)
-    call write_fractal("plot_fractal_8192x8192.fit", dt, steps, [-pi, pi], [-pi, pi], 8192, 8192)
+    ! call write_fractal("plot_fractal_512x512.fit",   dt, steps, [-pi, pi], [-pi, pi], 512, 512)
+    ! call write_fractal("plot_fractal_1024x1024.fit", dt, steps, [-pi, pi], [-pi, pi], 1024, 1024)
+    ! call write_fractal("plot_fractal_2048x2048.fit", dt, steps, [-pi, pi], [-pi, pi], 2048, 2048)
   end subroutine
-
-  function find_flip(n, dt, y0) result(i)
-    !! Run simulation for given initial condition y0 at time step dt
-    !! Returns steps taken until a flip occurs
-    real, parameter :: g = 9.806
-    real :: y0(4), y(4), dt
-    integer :: n, i
-
-    ! Exit if energy of system is too low to allow flip
-    if (energy(y0) < energy_flip_min) then
-      i = n + 1
-      return
-    end if
-
-    y = y0
-    do i = 1, n
-      if ((abs(y(1)) > pi) .or. (abs(y(3)) > pi)) exit
-      call gl10(y, dt)
-    end do
-  end function
 
   subroutine write_fractal(filename, dt, steps, th1, th2, width, height)
     !! Write phase plot within ranges given by th1 and th2
@@ -87,8 +65,8 @@ contains
       iters_since_msg = iters_since_msg + width
     end do
 
+    print "(i3, a)", 100, "% complete"
     data_ = log(data_)
-
     call write2fits(filename, data_, th1, th2, &
       ['magnitude'], '($theta_1$,$theta_2$)')
 
@@ -99,8 +77,28 @@ contains
     print *
   end subroutine
 
+  function find_flip(n, dt, y0) result(i)
+    !! Run simulation for given initial condition y0 at time step dt
+    !! Returns steps taken until a flip occurs
+    real, parameter :: g = 9.806
+    real :: y0(4), y(4), dt
+    integer :: n, i
+
+    ! Exit if energy of system is too low to allow flip
+    if (energy(y0) < energy_flip_min) then
+      i = n + 1
+      return
+    end if
+
+    y = y0
+    do i = 1, n
+      if ((abs(y(1)) > pi) .or. (abs(y(3)) > pi)) exit
+      call gl10(y, dt)
+    end do
+  end function
+
 end program q3
 
-! TODO ensure animation works on VM
-! TODO exploit symmetry?
-! TODO fdefault-real-8 for part 2
+! TODO increase steps for stability?
+! TODO zoom into regions
+! TODO write readme
