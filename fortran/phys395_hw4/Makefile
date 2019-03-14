@@ -14,7 +14,6 @@ clean:
 	rm -rf *.mod *.o \
 		q2 \
 		q3 \
-		integrator_r8.f90 \
 		results*.csv \
 		plot*.fit \
 		plot*.mp4 \
@@ -43,10 +42,5 @@ fitsio.o: fitsio.f90
 integrator.o: integrator.f90
 	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
 
-integrator_r8.o: integrator_r8.f90
+integrator_r8.o: integrator.f90
 	$(FC) $(FR8FLAGS) $(LDFLAGS) -c $< -o $@
-
-# Unholy hackery... pure evil
-integrator_r8.f90: integrator.f90
-	cp integrator.f90 integrator_r8.f90
-	sed -i 's/module integrator/module integrator_r8/g' integrator_r8.f90

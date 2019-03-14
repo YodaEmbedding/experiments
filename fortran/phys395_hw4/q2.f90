@@ -1,7 +1,7 @@
 ! To compile and run: make
 
 program q2
-  use integrator_r8
+  use integrator
   implicit none
 
   real, parameter :: pi = 3.1415926535897932384626433832795028841971693993751058
