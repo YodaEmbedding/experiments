@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import csv
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -65,7 +66,7 @@ def plot_trajectory(csv_filename, out_filename, xlim=None, ylim=None, title=None
 
 def plot_animation(
         csv_filename, out_filename,
-        xlim=None, ylim=None, title=None, fps=15, dpi=300):
+        xlim=None, ylim=None, title=None, fps=None, dpi=None):
     header, rows = read_csv(csv_filename)
     series = list(map(np.array, zip(*rows)))
     t, th1, th2, energy = series
@@ -128,6 +129,18 @@ def plot_multiple(ax, x, it):
         ax.plot(x_, data, label=label, zorder=i, **style)
 
 def main():
+    parser = argparse.ArgumentParser(description='Plot.')
+    parser.add_argument(
+        '--animation-dpi', dest='animation_dpi', action='store',
+        type=int, default=150)
+    parser.add_argument(
+        '--animation-fps', dest='animation_fps', action='store',
+        type=float, default=12.0)
+    parser.add_argument(
+        '--disable-animation', dest='disable_animation', action='store_true',
+        default=False)
+    args = parser.parse_args()
+
     plot_time_series(
         csv_filename='results.csv',
         out_filename='plot_time_series.svg',
@@ -140,13 +153,14 @@ def main():
         xlim=(-2.0, 2.0),
         ylim=(-2.0, 2.0))
 
-    plot_animation(
-        csv_filename='results.csv',
-        out_filename='plot_animation.mp4',
-        title=r'Double pendulum',
-        xlim=(-2.0, 2.0),
-        ylim=(-2.0, 2.0),
-        fps=15,
-        dpi=200)
+    if not args.disable_animation:
+        plot_animation(
+            csv_filename='results.csv',
+            out_filename='plot_animation.mp4',
+            title=r'Double pendulum',
+            xlim=(-2.0, 2.0),
+            ylim=(-2.0, 2.0),
+            fps=args.animation_fps,
+            dpi=args.animation_dpi)
 
 main()
