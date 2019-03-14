@@ -120,7 +120,7 @@ def plot_animation(
     print('Animating video...\n')
     try:
         print('Checking for ffmpeg...')
-        ani_test.save(out_filename + '.mp4', dpi=50, fps=fps)
+        ani_test.save(out_filename + '_ignore_test_only.mp4', dpi=50, fps=fps)
         print('\nffmpeg is available!')
         print('Animating actual video...')
         ani.save(out_filename + '.mp4', dpi=dpi, fps=fps)

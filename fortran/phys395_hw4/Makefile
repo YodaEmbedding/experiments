@@ -17,13 +17,32 @@ clean:
 		integrator_r8.f90 \
 		results*.csv \
 		plot*.fit \
+		plot*.gif \
 		plot*.mp4 \
 		plot*.png \
 		plot*.svg
 
 run: q2 q3
+	@printf "\nPlease see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n\n"
+	@sleep 1
 	./q2
+	@printf "\nPlease see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n\n"
+	@sleep 1
 	./q3
+	@printf "\nPlease see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n"
+	@printf "Please see pregenerated_output_images to avoid the wait!\n\n"
+	@sleep 1
 
 q2: q2.o integrator_r8.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
