@@ -21,6 +21,10 @@ contains
     real, parameter :: time_period = 10000.0 * sqrt(1.0 / 9.806)
     real, parameter :: dt = 1.0 / steps_per_second
     integer, parameter :: steps = steps_per_second * time_period
+    real, parameter :: zoom_factor = 3.0
+    character(len=64) :: filenames(5)
+    real :: th1(2) = [-1, 0], th2(2) = [2, 3]
+    integer :: i
 
     print "(a)", "Q3. Fractal generation"
     print *
@@ -32,6 +36,17 @@ contains
     ! call write_fractal("plot_fractal_512x512.fit",   dt, steps, [-pi, pi], [-pi, pi], 512, 512)
     ! call write_fractal("plot_fractal_1024x1024.fit", dt, steps, [-pi, pi], [-pi, pi], 1024, 1024)
     ! call write_fractal("plot_fractal_2048x2048.fit", dt, steps, [-pi, pi], [-pi, pi], 2048, 2048)
+
+    ! Recursively zoom into a specific region
+    filenames(1) = "plot_fractal_zoom3x_256x256.fit"
+    filenames(2) = "plot_fractal_zoom9x_256x256.fit"
+    filenames(3) = "plot_fractal_zoom27x_256x256.fit"
+    filenames(4) = "plot_fractal_zoom81x_256x256.fit"
+    filenames(5) = "plot_fractal_zoom243x_256x256.fit"
+    do i = 1, 5
+      call write_fractal(filenames(i), dt, steps, th1, th2, 256, 256)
+      call zoom_ranges(th1, th2, zoom_factor)
+    end do
   end subroutine
 
   subroutine write_fractal(filename, dt, steps, th1, th2, width, height)
@@ -42,10 +57,10 @@ contains
     integer :: steps, width, height, i, j, iters_since_msg
     real :: dt, th1(2), th2(2), data_(1, width, height)
 
-    print "(a, i4, a, i4, a, f5.2, a, f5.2, a, f5.2, a, f5.2, a)", &
-      "Plotting fractal with dimensions ", &
-      width, "x", height, " from [", &
-      th1(1), ", ", th2(1), "] to [", th1(2), ", ", th2(2), "]"
+    print "(a)", "Plotting fractal"
+    print "(a, i4, a, i4)", "Dimensions: ", width, " x ", height
+    print "(a, 2f6.2)", "theta_1 range: ", th1
+    print "(a, 2f6.2)", "theta_2 range: ", th2
 
     iters_since_msg = iters_since_msg_max
 
@@ -97,8 +112,12 @@ contains
     end do
   end function
 
-end program q3
+  subroutine zoom_ranges(th1, th2, factor)
+    real :: th1(2), th2(2), factor, avg(2), diff(2)
+    avg  = [(th1(1) + th1(2)), (th2(1) + th2(2))] / 2
+    diff = [(th1(2) - th1(1)), (th2(2) - th2(1))] / (factor * 2)
+    th1 = [avg(1) - diff(1), avg(1) + diff(1)]
+    th2 = [avg(2) - diff(2), avg(2) + diff(2)]
+  end subroutine
 
-! TODO increase steps for stability?
-! TODO zoom into regions
-! TODO write readme
+end program q3
