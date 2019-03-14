@@ -99,7 +99,7 @@ def plot_animation(
 
     def animate(i):
         if i in idxs_msg:
-            print('{}% complete'.format(int(100 * i / idxs[-1])))
+            print('{}% complete'.format(round(100 * i / idxs[-1])))
         x = [0, x1[i], x2[i]]
         y = [0, y1[i], y2[i]]
         line.set_data(x, y)

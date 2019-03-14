@@ -7,6 +7,11 @@ program phys395_hw4_ode
   real, parameter :: pi = 3.1415926535897932384626433832795028841971693993751058
   real, parameter :: m1 = 1.0, m2 = 1.0
   real, parameter :: l1 = 1.0, l2 = 1.0
+  real :: energy_flip_min
+
+  energy_flip_min = min( &
+    energy([pi, 0.0, 0.0, 0.0]), &
+    energy([0.0, 0.0, pi, 0.0]))
 
   call q2()
   call q3()
@@ -65,29 +70,29 @@ contains
 
   function find_flip(n, dt, y0) result(i)
     !! Run simulation for given initial condition y0 at time step dt
-    !! Returns steps taken until a flip occurs (and -1 if no flip happens)
+    !! Returns steps taken until a flip occurs
+    real, parameter :: g = 9.806
+    real :: y0(4), y(4), dt
     integer :: n, i
-    real :: ys(4, n), ts(n), y0(4), y(4), dt
 
-    ts = [(i * dt, i=0,n-1)]
+    ! Exit if energy of system is too low to allow flip
+    if (energy(y0) < energy_flip_min) then
+      i = n + 1
+      return
+    end if
+
     y = y0
-
-    ! TODO figure out where to put break/exit
-    ! TODO be careful to subtract 1 from i... when necessary...
     do i = 1, n
       if ((abs(y(1)) > pi) .or. (abs(y(3)) > pi)) exit
-      ys(:, i) = y
       call gl10(y, dt)
     end do
   end function
 
-  ! TODO rename, generalize
   subroutine write_csv(filename, n, t, y)
     !! Output a csv file with plottable data
     integer, parameter :: ofh = 2
     character(len=64), parameter :: fmt_str = &
       "(ES24.16, ',', ES24.16, ',', ES24.16, ',', ES24.16)"
-      ! "(g24.16, ',', g24.16, ',', g24.16, ',', g24.16)"
     character(len=*) :: filename
     integer :: n, i
     real :: t(n), y(4, n)
@@ -107,6 +112,7 @@ contains
     !! Write phase plot within ranges given by th1 and th2
     character(len=*) :: filename
     character(len=256) :: cmd
+    integer, parameter :: iters_since_msg_max = 512
     integer :: steps, width, height, i, j, iters_since_msg
     real :: dt, th1(2), th2(2), data_(1, width, height)
 
@@ -115,12 +121,11 @@ contains
       width, "x", height, " from [", &
       th1(1), ", ", th2(1), "] to [", th1(2), ", ", th2(2), "]"
 
-    iters_since_msg = 1000
+    iters_since_msg = iters_since_msg_max
 
-    ! TODO exploit symmetry?
     do j = 1, height
-      if (iters_since_msg > 100) then
-        print "(i3, a)", 100 * j / height, "% complete"
+      if (iters_since_msg >= iters_since_msg_max) then
+        print "(i3, a)", 100 * (j - 1) / (height - 1), "% complete"
         iters_since_msg = 0
       end if
 
@@ -134,7 +139,7 @@ contains
       iters_since_msg = iters_since_msg + width
     end do
 
-    data_ = log(1.0 + data_)
+    data_ = log(data_)
 
     call write2fits(filename, data_, th1, th2, &
       ['magnitude'], '($theta_1$,$theta_2$)')
@@ -254,3 +259,4 @@ contains
 end program phys395_hw4_ode
 
 ! TODO ensure animation works on VM
+! TODO exploit symmetry?
