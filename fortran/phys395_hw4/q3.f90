@@ -1,6 +1,6 @@
 ! To compile and run: make
 
-program phys395_hw4_ode
+program q3
   use fitsio
   use integrator
   implicit none
@@ -12,31 +12,11 @@ program phys395_hw4_ode
     energy([pi, 0.0, 0.0, 0.0]), &
     energy([0.0, 0.0, pi, 0.0]))
 
-  call q2()
-  call q3()
+  call main()
 
 contains
 
-  subroutine q2()
-    integer, parameter :: steps_per_second = 2**8 ! TODO change this
-    real, parameter :: time_period = 100.0 * sqrt(1.0 / 9.806)
-    real, parameter :: dt = 1.0 / steps_per_second
-    integer, parameter :: steps = steps_per_second * time_period
-    real :: ys(4, steps)
-    real :: ts(steps)
-
-    print *
-    print "(a)", "Q2. Plot energy violation and create video animation"
-    print "(a)", "    Initial conditions: theta_1 = pi / 3, theta_2 = -pi/3"
-    print "(a, f9.7, a)", "    dt: ", dt, "s"
-    print *
-    call run(steps, dt, ts, ys, y0=[pi / 3, 0.0, -pi / 3, 0.0])
-    call write_csv("results.csv", steps, ts, ys)
-    call execute_command_line("python plot.py results.csv --plot-results")
-    print *
-  end subroutine
-
-  subroutine q3()
+  subroutine main()
     integer, parameter :: steps_per_second = 7  ! TODO increase for stability?
     real, parameter :: time_period = 10000.0 * sqrt(1.0 / 9.806)
     real, parameter :: dt = 1.0 / steps_per_second
@@ -54,21 +34,6 @@ contains
     call write_fractal("plot_fractal_2048x2048.fit", dt, steps, [-pi, pi], [-pi, pi], 2048, 2048)
     call write_fractal("plot_fractal_4096x4096.fit", dt, steps, [-pi, pi], [-pi, pi], 4096, 4096)
     call write_fractal("plot_fractal_8192x8192.fit", dt, steps, [-pi, pi], [-pi, pi], 8192, 8192)
-  end subroutine
-
-  subroutine run(n, dt, ts, ys, y0)
-    !! Run simulation for given initial condition y0 at time step dt
-    !! Returns simulation results in ts and ys
-    integer :: n, i
-    real :: ys(4, n), ts(n), y0(4), y(4), dt
-
-    ts = [(i * dt, i=0,n-1)]
-    y = y0
-
-    do i = 1, n
-      ys(:, i) = y
-      call gl10(y, dt)
-    end do
   end subroutine
 
   function find_flip(n, dt, y0) result(i)
@@ -90,26 +55,6 @@ contains
       call gl10(y, dt)
     end do
   end function
-
-  subroutine write_csv(filename, n, t, y)
-    !! Output a csv file with plottable data
-    integer, parameter :: ofh = 2
-    character(len=64), parameter :: fmt_str = &
-      "(ES24.16, ',', ES24.16, ',', ES24.16, ',', ES24.16)"
-    character(len=*) :: filename
-    integer :: n, i
-    real :: t(n), y(4, n)
-    real :: E0
-
-    E0 = energy(y(:, 1))
-
-    open(unit=ofh, file=filename, action="write", status="replace")
-    write(ofh, *) "Time, $\theta_1$, $\theta_2$, Energy violation"
-    do i = 1, n
-      write(ofh, fmt_str) t(i), y(1, i), y(3, i), energy(y(:, i)) / E0 - 1.0
-    end do
-    close(ofh)
-  end subroutine
 
   subroutine write_fractal(filename, dt, steps, th1, th2, width, height)
     !! Write phase plot within ranges given by th1 and th2
@@ -154,7 +99,7 @@ contains
     print *
   end subroutine
 
-end program phys395_hw4_ode
+end program q3
 
 ! TODO ensure animation works on VM
 ! TODO exploit symmetry?
