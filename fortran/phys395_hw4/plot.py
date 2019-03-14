@@ -146,7 +146,9 @@ def plot_fractal(fits_filename, out_filename, title=None, dpi=300):
         extent=(x[0], x[1], y[0], y[1]),
         aspect=dx/dy,
         cmap=cm.inferno)
-    fig.colorbar(img)
+    yticklabels = [str(10**x) for x in range(5)]
+    cbar = fig.colorbar(img, ticks=[0, 2.5, 5, 7.5, 10])
+    cbar.ax.set_yticklabels(yticklabels)
 
     ax.set_title(title)
     fig.savefig(out_filename, dpi=dpi)
