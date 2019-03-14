@@ -4,12 +4,15 @@ import argparse
 import csv
 import os
 
-import astropy.io.fits as pyfits
 import matplotlib.animation as animation
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
+try:
+    import astropy.io.fits as pyfits
+except ImportError:
+    import pyfits
 
 plt.style.use('dark_background')
 
@@ -140,7 +143,7 @@ def plot_fractal(fits_filename, out_filename, title=None, dpi=300):
     fig, ax = plt.subplots(nrows=1)
     img = plt.imshow(
         data,
-        extent=(*x, *y),
+        extent=(x[0], x[1], y[0], y[1]),
         aspect=dx/dy,
         cmap=cm.inferno)
     fig.colorbar(img)
