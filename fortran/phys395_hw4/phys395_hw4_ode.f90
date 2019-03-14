@@ -46,11 +46,16 @@ contains
 
     print "(a)", "Q3. Fractal output"
     print *
-    call write_fractal("plot_fractal_16x16.fit",   dt, steps, [-pi, pi], [-pi, pi], 16, 16)
-    call write_fractal("plot_fractal_64x64.fit",   dt, steps, [-pi, pi], [-pi, pi], 64, 64)
-    call write_fractal("plot_fractal_128x128.fit", dt, steps, [-pi, pi], [-pi, pi], 128, 128)
-    call write_fractal("plot_fractal_256x256.fit", dt, steps, [-pi, pi], [-pi, pi], 256, 256)
-
+    call write_fractal("plot_fractal_16x16.fit",     dt, steps, [-pi, pi], [-pi, pi], 16, 16)
+    call write_fractal("plot_fractal_32x32.fit",     dt, steps, [-pi, pi], [-pi, pi], 32, 32)
+    call write_fractal("plot_fractal_64x64.fit",     dt, steps, [-pi, pi], [-pi, pi], 64, 64)
+    call write_fractal("plot_fractal_128x128.fit",   dt, steps, [-pi, pi], [-pi, pi], 128, 128)
+    call write_fractal("plot_fractal_256x256.fit",   dt, steps, [-pi, pi], [-pi, pi], 256, 256)
+    call write_fractal("plot_fractal_512x512.fit",   dt, steps, [-pi, pi], [-pi, pi], 512, 512)
+    call write_fractal("plot_fractal_1024x1024.fit", dt, steps, [-pi, pi], [-pi, pi], 1024, 1024)
+    call write_fractal("plot_fractal_2048x2048.fit", dt, steps, [-pi, pi], [-pi, pi], 2048, 2048)
+    call write_fractal("plot_fractal_4096x4096.fit", dt, steps, [-pi, pi], [-pi, pi], 4096, 4096)
+    call write_fractal("plot_fractal_8192x8192.fit", dt, steps, [-pi, pi], [-pi, pi], 8192, 8192)
   end subroutine
 
   subroutine run(n, dt, ts, ys, y0)
@@ -116,7 +121,7 @@ contains
     integer :: steps, width, height, i, j, iters_since_msg
     real :: dt, th1(2), th2(2), data_(1, width, height)
 
-    print "(a, i3, a, i3, a, f5.2, a, f5.2, a, f5.2, a, f5.2, a)", &
+    print "(a, i4, a, i4, a, f5.2, a, f5.2, a, f5.2, a, f5.2, a)", &
       "Plotting fractal with dimensions ", &
       width, "x", height, " from [", &
       th1(1), ", ", th2(1), "] to [", th1(2), ", ", th2(2), "]"
@@ -260,3 +265,4 @@ end program phys395_hw4_ode
 
 ! TODO ensure animation works on VM
 ! TODO exploit symmetry?
+! TODO fdefault-real-8 for part 2

@@ -128,7 +128,6 @@ def plot_fractal(fits_filename, out_filename, title=None, dpi=300):
     img = plt.imshow(
         data,
         extent=(*x, *y),
-        origin='lower',
         aspect=dx/dy,
         cmap=cm.inferno)
     fig.colorbar(img)
