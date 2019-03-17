@@ -3,6 +3,7 @@
 __pycache__/
 bin/
 build/
+env/
 obj/
 obj_dir/
 target/
