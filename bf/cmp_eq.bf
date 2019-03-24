@@ -1,14 +1,9 @@
 [ Tests to see if two input characters are equal to each other.
-  If they are, print =.
+  If they are, echo =.
+  Otherwise, echo !.
 ]
 
-mov #3 '='
-+++++ +++++ [ >>> +++++ + <<< - ] >>> +
-<<<
-
-mov #4 '!'
-+++++ +++++ + [ >>>> +++ <<<< - ]
-
+Input characters into #1 and #2
 @Input first character:\n
 > ,.
 @\n\n
@@ -17,24 +12,24 @@ mov #4 '!'
 @\n\n
 <<
 
-sub #2 #2 #1    ; subtract
-mov #1 0        ; destroy #1
-> [->-<]
-<
+Take difference of two characters
+> [->-<] <                                      sub #2 #2 #1 ; mov #1 0
 
-eq #1 #2 0      ; check if #2 equals 0
-notl #2 #1      ; logical not
-> +
-> [< - < + >> [-]]
-<< [- >> + <<]
+Not equal sign
+>>> [-] > [-] <<<<                              mov #3 0 ; mov #4 0
+>> [>>+<] > [-<<                                if #2 ne 0 then
+    >> +++++ +++++ + [ > +++ < - ] <<           mov #5 '!'
+>]< <<                                          end if
 
-@Equality:\n
+Equal sign
+>>> [-] > [-] <<<<                              mov #3 0 ; mov #4 0
+>> [>>+<] >- [+<                                if #2 eq 0 then
+    >> +++++ +++++ [ > +++++ + < - ] >+< <<     mov #5 '='
+>>]<< <<                                        end if
 
-if #1 "print #3"
-> [>> . << [-]]
+Display resulting sign
+@Sign result:\n
+>>>>> . <<<<<                                   echo #5
 
-if #2 "print #4"
-> [>> . << [-]]
-
-@\n\nPROGRAM END
-?               ; dump final register contents
+@\n\nPROGRAM END\n
+?                                               dump final register contents
