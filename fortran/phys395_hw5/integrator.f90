@@ -2,22 +2,9 @@ module integrator
   implicit none
 
   real, parameter :: hbar2 = 1.0, m = 1.0, omega = 1.0
-  real, parameter :: E = 0.5
+  real :: E = 0.5, dx_dt = 1.0
 
 contains
-
-  pure function energy(y)
-    real, intent(in) :: y(3)
-    real :: energy, T, V
-
-    associate(x => y(1), psi => y(2), dpsi => y(3))
-      ! TODO
-      T = 0.0
-      V = 0.0
-    end associate
-
-    energy = T + V
-  end function
 
   pure function V(x)
     real, intent(in) :: x
@@ -31,7 +18,7 @@ contains
     real :: dydt(3)
 
     associate(x => y(1), psi => y(2), dpsi => y(3))
-      dydt(1) = 1.0
+      dydt(1) = dx_dt
       dydt(2) = dpsi
       dydt(3) = (2 * m / hbar2) * (V(x) - E) * psi
     end associate
