@@ -12,13 +12,10 @@ program q1
 contains
 
   subroutine main()
-    integer, parameter :: steps_per_second = 2**8
-    real, parameter :: time_period = 5.0
-    real, parameter :: dt = 1.0 / steps_per_second
-    integer, parameter :: steps = steps_per_second * time_period
-    integer, parameter :: total_steps = 2 * steps - 1
-    real :: ys(nn, total_steps)
-    real :: y0(nn) = [0.0, 0.4, 0.0]
+    integer, parameter :: steps = 2**8 * 4.0, bi_steps = 2 * steps - 1
+    real, parameter :: dt = 1.0 / 2**8
+    real :: ys(nn, bi_steps)
+    real :: y0(nn) = [0.0, 0.0, 1.0]
 
     print *
     print "(a)", "Q1. Plot wavefunction"
@@ -28,10 +25,39 @@ contains
     call integrate_ode_bidirectional(steps, dt, ys, y0)
     print "(a, f9.7)", "    N:       ", integrate_sum(dt, ys)
     print *
-    call write_csv("results.csv", total_steps, ys)
+    call write_csv("results.csv", bi_steps, ys)
     call execute_command_line("python plot.py results.csv --plot-results")
     print *
+
+    call find_eigenvalues()
   end subroutine
+
+  subroutine find_eigenvalues()
+    integer, parameter :: steps = 2**8 * 4.0, bi_steps = 2 * steps - 1
+    integer, parameter :: iters = 101
+    real, parameter :: dt = 1.0 / 2**8
+    real :: ys(nn, bi_steps)
+    real :: y0(nn) = [0.0, 1.0, 0.0]
+    real :: results(2, iters)
+    integer :: i
+
+    do i = 1, iters
+      E = (i - 1) / 10.0
+      call integrate_ode_bidirectional(steps, dt, ys, y0)
+      results(1, i) = E
+      results(2, i) = ys(2, 1)
+    end do
+    print "(2f24.16)", results
+  end subroutine
+
+  ! subroutine calc_step_params(steps, bi_steps, dt, step_rate, t)
+  !   integer :: steps, bi_steps, step_rate
+  !   real :: dt, t
+  !
+  !   dt = 1.0 / step_rate
+  !   steps = step_rate * t
+  !   bi_steps = 2 * steps - 1
+  ! end function
 
   subroutine write_csv(filename, n, y)
     !! Output a csv file with plottable data
@@ -71,7 +97,7 @@ contains
     real :: ys(nn, 2*n-1), ys_(nn, n), y0(nn), y(nn), dt
 
     dx_dt = -1.0
-    call integrate_ode(n, dt, ys_, y0)
+    call integrate_ode(n, dt, ys_, y0=[y0(1), y0(2), y0(3)])
     ys(:, n:1:-1) = ys_
 
     dx_dt = 1.0
@@ -89,8 +115,16 @@ contains
 
 end program q1
 
-! TODO
+! Q1 TODO
 ! Try E non-eigenvalue
 ! Plot odd/even solutions
 ! Accuracy 10^-12 (what is error?)
 ! Integration stop condition
+
+! Q2 TODO
+! Violation of BC
+! Find E values via bisection on "bracketed roots" (? what's this) for even/odd modes
+! Plot psi and psi^2
+
+! TODO uhh... the dx_dt = -1.0 doesn't seem to give correct odd functions
+
