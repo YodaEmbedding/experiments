@@ -31,6 +31,43 @@ contains
     close(ofh)
   end subroutine
 
+  subroutine plot_wavefunctions(suffix, lambdas)
+    integer, parameter :: step_rate = 2**4
+    real, parameter :: dt = 1.0 / step_rate
+    integer, parameter :: steps = 4.0 * step_rate, bi_steps = 2 * steps - 1
+    real :: ys(nn, bi_steps), y0(nn), lambdas(:), results(11, bi_steps)
+    character(len=*) :: suffix
+    integer :: i
+
+    do i = 1, size(lambdas, 1)
+      E = lambdas(i)
+      if (mod(i - 1, 2) == 0) y0 = [0.0, 1.0, 0.0]
+      if (mod(i - 1, 2) == 1) y0 = [0.0, 0.0, 1.0]
+      call integrate_ode_bidirectional(steps, dt, ys, y0)  ! TODO odd, even?
+      results(i + 1, :) = ys(2, :)
+    end do
+    results(1, :) = ys(1, :)
+
+    ! TODO specific energy labels? (construct string)
+    call write_csv("results_" // suffix // ".csv", results, &
+      "$x$, &
+      &$\psi(x; E_1)$, &
+      &$\psi(x; E_2)$, &
+      &$\psi(x; E_3)$, &
+      &$\psi(x; E_4)$, &
+      &$\psi(x; E_5)$, &
+      &$\psi(x; E_6)$, &
+      &$\psi(x; E_7)$, &
+      &$\psi(x; E_8)$, &
+      &$\psi(x; E_9)$, &
+      &$\psi(x; E_{10})$")
+
+    call execute_command_line("python plot.py --time-series &
+      &--title 'Wavefunctions for various energy eigenvalues' &
+      &results_" // suffix // ".csv &
+      &plot_"    // suffix // ".png")
+  end subroutine
+
   subroutine integrate_ode(n, dt, ys, y0)
     !! Integrate ODE for given initial condition y0
     !! Returns results in ys
@@ -79,7 +116,7 @@ contains
     integer, parameter :: steps = 8.0 * step_rate
     integer, parameter :: bi_steps = 2 * steps - 1
     real,    parameter :: dt = 1.0 / step_rate
-    real,    parameter :: x_pad = 0.01
+    real,    parameter :: x_pad = 0.1
     real :: ys_(nn, bi_steps)
     real, dimension(bi_steps) :: psis_even, psis_odd
     logical :: is_even, mask(size(ys, 1))
@@ -123,6 +160,7 @@ contains
     fa = f(a)
     fb = f(b)
 
+    print *, a, b
     if (fa*fb > 0.0) stop "Root not bracketed"
 
     ! bisect the interval
