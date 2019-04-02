@@ -17,7 +17,8 @@ def read_csv(filename):
             rows.append(tuple(map(float, line)))
     return header, rows
 
-def plot_time_series(csv_filename, out_filename, ylim=None, title=None):
+def plot_time_series(csv_filename, out_filename, ylim=None, title=None,
+                     nrows=2, case=''):
     styles = [
         {'color': '#00ffff', 'linewidth': 2},
         {'color': '#ffff00', 'linewidth': 2},
@@ -26,14 +27,25 @@ def plot_time_series(csv_filename, out_filename, ylim=None, title=None):
     series = list(map(np.array, zip(*rows)))
     t, *_ = series
 
-    fig, axes = plt.subplots(nrows=2, sharex=True)
-    plot_multiple(axes[0], t, zip(styles[:-1], header[1:-1], series[1:-1]))
-    plot_multiple(axes[1], t, [(styles[-1], header[-1], series[-1])])
+    if case == 'q2':
+        series[1:] = [np.log10(np.abs(s) + 1) for s in series[1:]]
+
+    fig, axes = plt.subplots(nrows=nrows, sharex=True)
+
+    if nrows == 1:
+        axes = [axes]
+        plot_multiple(axes[0], t, zip(styles, header[1:], series[1:]))
+    elif nrows == 2:
+        plot_multiple(axes[0], t, zip(styles[:-1], header[1:-1], series[1:-1]))
+        plot_multiple(axes[1], t, [(styles[-1], header[-1], series[-1])])
 
     axes[0].set_title(title)
     axes[0].set_ylim(ylim)
-    axes[0].legend(framealpha=0.9, loc='upper right')
-    axes[1].legend(framealpha=0.9, loc='upper right')
+    axes[-1].set_xlabel(header[0])
+    for ax in axes:
+        ax.legend(framealpha=0.9, loc='upper right')
+    if case == 'q2':
+        axes[-1].set_xticks(np.arange(0.5, 11.0, step=1.0))
     fig.savefig(out_filename, dpi=300)
 
 def plot_multiple(ax, x, it):
@@ -45,20 +57,31 @@ def plot_multiple(ax, x, it):
 
 def main():
     parser = argparse.ArgumentParser(description='Plot.')
-    parser.add_argument('filename', action='store')
-    parser.add_argument('--plot-results', action='store_true', default=False)
+    parser.add_argument('infile',  action='store')
+    parser.add_argument('outfile', action='store')
+    parser.add_argument('--time-series', action='store_true', default=False)
+    parser.add_argument('--q1', action='store_true', default=False)
+    parser.add_argument('--q2', action='store_true', default=False)
     args = parser.parse_args()
 
-    img_ext = '.png'
-
-    if args.plot_results:
-        print('Generating plots...')
-
+    if args.time_series:
         plot_time_series(
-            csv_filename=args.filename,
-            out_filename='plot_time_series' + img_ext,
+            csv_filename=args.infile,
+            out_filename=args.outfile,
+            title=r'Title')
+
+    if args.q1:
+        plot_time_series(
+            csv_filename=args.infile,
+            out_filename=args.outfile,
             title=r'Wavefunction')
 
-        print('Done! See output images.\n')
+    if args.q2:
+        plot_time_series(
+            csv_filename=args.infile,
+            out_filename=args.outfile,
+            nrows=1,
+            case='q2',
+            title=r'Energy eigenvalues')
 
 main()

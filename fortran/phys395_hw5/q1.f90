@@ -8,6 +8,7 @@ program q1
   real, parameter :: pi = 3.1415926535897932384626433832795028841971693993751058
 
   call main()
+  call find_eigenvalues()
 
 contains
 
@@ -25,39 +26,44 @@ contains
     call integrate_ode_bidirectional(steps, dt, ys, y0)
     print "(a, f9.7)", "    N:       ", integrate_sum(dt, ys)
     print *
-    call write_csv("results.csv", ys, "$x$, $\psi(x)$, $\psi'(x)$")
-    call execute_command_line("python plot.py results.csv --plot-results")
-    print *
 
-    call find_eigenvalues()
+    call write_csv("results_q1.csv", ys, &
+      "$x$, &
+      &$\psi(x)$, &
+      &$\frac{d}{dx}\psi(x)$")
+
+    call execute_command_line("python plot.py --q1 results_q1.csv plot_q1.png")
   end subroutine
 
   subroutine find_eigenvalues()
-    integer, parameter :: steps = 2**8 * 4.0, bi_steps = 2 * steps - 1
+    integer, parameter :: steps = 2**8 * 8.0, bi_steps = 2 * steps - 1
     integer, parameter :: iters = 101
     real, parameter :: dt = 1.0 / 2**8
-    real :: ys(nn, bi_steps)
-    real :: y0(nn) = [0.0, 1.0, 0.0]
-    real :: results(2, iters)
+    real :: ys(nn, bi_steps), results(3, iters), eigenvalues(10)
     integer :: i
 
     do i = 1, iters
-      E = (i - 1) / 10.0
-      call integrate_ode_bidirectional(steps, dt, ys, y0)
+      E = 0.5 + 10.0 * (i - 1) / (iters - 1)
       results(1, i) = E
-      results(2, i) = ys(2, 1)
+      ! TODO function for separating into odd, even wavefunctions?
+      call integrate_ode_bidirectional(steps, dt, ys, y0=[0.0, 1.0, 0.0])
+      results(2, i) = ys(2, bi_steps)
+      call integrate_ode_bidirectional(steps, dt, ys, y0=[0.0, 0.0, 1.0])
+      results(3, i) = ys(2, bi_steps)
     end do
-    print "(2f24.16)", results
-  end subroutine
 
-  ! subroutine calc_step_params(steps, bi_steps, dt, step_rate, t)
-  !   integer :: steps, bi_steps, step_rate
-  !   real :: dt, t
-  !
-  !   dt = 1.0 / step_rate
-  !   steps = step_rate * t
-  !   bi_steps = 2 * steps - 1
-  ! end function
+    print "(a)", "Q2. Energy eigenvalues"
+
+    call write_csv("results_q2.csv", results, &
+      "$E$, &
+      &$\log (1 + |\psi_+(\infty)|)$, &
+      &$\log (1 + |\psi_-(\infty)|)$")
+
+    call execute_command_line("python plot.py --q2 results_q2.csv plot_q2.png")
+
+    ! TODO plot the various psi, psi^2 graphs for eigenvalues
+    ! TODO bracketed roots version?
+  end subroutine
 
   subroutine write_csv(filename, mat, header, num_fmt)
     !! Output a csv file with plottable data
