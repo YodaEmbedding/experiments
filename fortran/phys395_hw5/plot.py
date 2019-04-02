@@ -17,6 +17,14 @@ def read_csv(filename):
             rows.append(tuple(map(float, line)))
     return header, rows
 
+def read_gnuplot(filename):
+    rows = []
+    with open(filename, 'r') as f:
+        for line in f:
+            split_line = line.split()
+            rows.append(tuple(map(float, split_line)))
+    return [''] * len(rows[0]), rows
+
 def plot_time_series(csv_filename, out_filename, ylim=None, title=None,
                      nrows=2, case=''):
     styles = [

@@ -2,6 +2,7 @@
 
 program q1
   use integrator
+  use utils
   implicit none
 
   integer, parameter :: nn = 3
@@ -61,34 +62,11 @@ contains
 
     call execute_command_line("python plot.py --q2 results_q2.csv plot_q2.png")
 
+    ! TODO determine eigenvalues by finding n minimums; check if enough 0 tol, and find bracketed root in nearby location, then mask
+    ! out a certain region out of the minimum finding array
+
     ! TODO plot the various psi, psi^2 graphs for eigenvalues
     ! TODO bracketed roots version?
-  end subroutine
-
-  subroutine write_csv(filename, mat, header, num_fmt)
-    !! Output a csv file with plottable data
-    integer, parameter :: ofh = 2
-    real :: mat(:, :)
-    character(len=*) :: filename, header
-    character(len=*), optional :: num_fmt
-    character(:), allocatable :: num_fmt_, fmt_str
-    integer :: i
-
-    if (      present(num_fmt)) num_fmt_ = num_fmt
-    if (.not. present(num_fmt)) num_fmt_ = "ES32.16"
-
-    fmt_str = "(" // num_fmt_
-    do i = 2, size(mat, 1)
-      fmt_str = fmt_str // ", ',', " // num_fmt_
-    end do
-    fmt_str = fmt_str // ")"
-
-    open(unit=ofh, file=filename, action="write", status="replace")
-    write(ofh, *) header
-    do i = 1, size(mat, 2)
-      write(ofh, fmt_str) mat(:, i)
-    end do
-    close(ofh)
   end subroutine
 
   subroutine integrate_ode(n, dt, ys, y0)
@@ -109,7 +87,7 @@ contains
     !! Integrate ODE for given initial condition y0 in both directions
     !! Returns results in ys
     integer :: n
-    real :: ys(nn, 2*n-1), y0(nn), y(nn), dt
+    real :: ys(nn, 2*n-1), y0(nn), dt
 
     call integrate_ode(n, -dt, ys(:, n:1:-1), y0)
     call integrate_ode(n,  dt, ys(:, n:),     y0)
@@ -128,7 +106,7 @@ end program q1
 ! Q1 TODO
 ! Try E non-eigenvalue
 ! Plot odd/even solutions
-! Accuracy 10^-12 (what is error?)
+! Accuracy 1e-12 (what's error) similar to delta = matmul(H,psi) - lmbda*psi?
 ! Integration stop condition
 
 ! Q2 TODO

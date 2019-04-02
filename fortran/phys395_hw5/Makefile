@@ -18,11 +18,14 @@ clean:
 run: q1
 	./q1
 
-q1: q1.o integrator.o
+q1: q1.o integrator.o utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
 
-q1.o: q1.f90 integrator.o
+q1.o: q1.f90 integrator.o utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
 
 integrator.o: integrator.f90
+	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
+
+utils.o: utils.f90
 	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
