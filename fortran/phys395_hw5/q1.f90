@@ -40,7 +40,7 @@ contains
     integer, parameter :: steps = 2**8 * 8.0, bi_steps = 2 * steps - 1
     integer, parameter :: iters = 101
     real, parameter :: dt = 1.0 / 2**8
-    real :: ys(nn, bi_steps), results(3, iters), eigenvalues(10)
+    real :: ys(nn, bi_steps), results(3, iters), lambdas(10)
     integer :: i
 
     do i = 1, iters
@@ -67,6 +67,47 @@ contains
 
     ! TODO plot the various psi, psi^2 graphs for eigenvalues
     ! TODO bracketed roots version?
+
+    lambdas = [(0.5 + i, i = 0, 9)]
+    call plot_wavefunctions("q2_wavefunctions", lambdas)
+  end subroutine
+
+  subroutine plot_wavefunctions(suffix, lambdas)
+    integer, parameter :: steps = 2**4 * 4.0, bi_steps = 2 * steps - 1
+    real, parameter :: dt = 1.0 / 2**4
+    real :: ys(nn, bi_steps)
+    real :: y0(nn) = [0.0, 0.0, 1.0]
+    character(len=*) :: suffix
+    real :: lambdas(:), results(11, bi_steps)
+    integer :: i
+
+    do i = 1, size(lambdas, 1)
+      E = lambdas(i)
+      if (mod(i - 1, 2) == 0) y0 = [0.0, 1.0, 0.0]
+      if (mod(i - 1, 2) == 1) y0 = [0.0, 0.0, 1.0]
+      call integrate_ode_bidirectional(steps, dt, ys, y0)  ! TODO odd, even?
+      results(i + 1, :) = ys(2, :)
+    end do
+    results(1, :) = ys(1, :)
+
+    ! TODO specific energy labels? (construct string)
+    call write_csv("results_" // suffix // ".csv", results, &
+      "$x$, &
+      &$\psi(x; E_1)$, &
+      &$\psi(x; E_2)$, &
+      &$\psi(x; E_3)$, &
+      &$\psi(x; E_4)$, &
+      &$\psi(x; E_5)$, &
+      &$\psi(x; E_6)$, &
+      &$\psi(x; E_7)$, &
+      &$\psi(x; E_8)$, &
+      &$\psi(x; E_9)$, &
+      &$\psi(x; E_{10})$")
+
+    call execute_command_line("python plot.py --time-series &
+      &--title 'Wavefunctions for various energy eigenvalues' &
+      &results_" // suffix // ".csv &
+      &plot_"    // suffix // ".png")
   end subroutine
 
   subroutine integrate_ode(n, dt, ys, y0)

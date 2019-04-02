@@ -26,11 +26,29 @@ def read_gnuplot(filename):
     return [''] * len(rows[0]), rows
 
 def plot_time_series(csv_filename, out_filename, ylim=None, title=None,
-                     nrows=2, case=''):
+                     nrows=1, case=''):
     styles = [
         {'color': '#00ffff', 'linewidth': 2},
-        {'color': '#ffff00', 'linewidth': 2},
-        {'color': '#ff00ff', 'linewidth': 2}]
+        {'color': '#ff00ff', 'linewidth': 2},
+        {'color': '#00cfcf', 'linewidth': 2},
+        {'color': '#cf00cf', 'linewidth': 2},
+        {'color': '#00afaf', 'linewidth': 2},
+        {'color': '#af00af', 'linewidth': 2},
+        {'color': '#008f8f', 'linewidth': 2},
+        {'color': '#8f008f', 'linewidth': 2},
+        {'color': '#006f6f', 'linewidth': 2},
+        {'color': '#6f006f', 'linewidth': 2},
+        # {'color': '#00ffff', 'linewidth': 2},
+        # {'color': '#ffff00', 'linewidth': 2},
+        # {'color': '#ff00ff', 'linewidth': 2},
+        # {'color': '#007fff', 'linewidth': 2},
+        # {'color': '#00ff7f', 'linewidth': 2},
+        # {'color': '#7f00ff', 'linewidth': 2},
+        # {'color': '#ff007f', 'linewidth': 2},
+        # {'color': '#7fff00', 'linewidth': 2},
+        # {'color': '#ff7f00', 'linewidth': 2},
+        # {'color': '#ffffff', 'linewidth': 2},
+    ]
     header, rows = read_csv(csv_filename)
     series = list(map(np.array, zip(*rows)))
     t, *_ = series
@@ -57,11 +75,12 @@ def plot_time_series(csv_filename, out_filename, ylim=None, title=None,
     fig.savefig(out_filename, dpi=300)
 
 def plot_multiple(ax, x, it):
+    it = list(it)
     for i, (style, label, data) in enumerate(it):
         mask = ~np.isnan(data)
         x_ = x[mask]
         data = data[mask]
-        ax.plot(x_, data, label=label, zorder=i, **style)
+        ax.plot(x_, data, label=label, zorder=i - len(it), **style)
 
 def main():
     parser = argparse.ArgumentParser(description='Plot.')
@@ -70,18 +89,22 @@ def main():
     parser.add_argument('--time-series', action='store_true', default=False)
     parser.add_argument('--q1', action='store_true', default=False)
     parser.add_argument('--q2', action='store_true', default=False)
+    parser.add_argument('--nrows', action='store', default=1)
+    parser.add_argument('--title', action='store', default='')
     args = parser.parse_args()
 
     if args.time_series:
         plot_time_series(
             csv_filename=args.infile,
             out_filename=args.outfile,
-            title=r'Title')
+            nrows=args.nrows,
+            title=args.title)
 
     if args.q1:
         plot_time_series(
             csv_filename=args.infile,
             out_filename=args.outfile,
+            nrows=2,
             title=r'Wavefunction')
 
     if args.q2:
