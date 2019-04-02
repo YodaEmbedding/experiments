@@ -2,7 +2,7 @@ module integrator
   implicit none
 
   real, parameter :: hbar2 = 1.0, m = 1.0, omega = 1.0
-  real :: E = 1.5, dx_dt = 1.0
+  real :: E = 1.5
 
 contains
 
@@ -18,9 +18,9 @@ contains
     real :: dydt(3)
 
     associate(x => y(1), psi => y(2), dpsi => y(3))
-      dydt(1) = dx_dt
-      dydt(2) = dx_dt * dpsi
-      dydt(3) = dx_dt * (2 * m / hbar2) * (V(x) - E) * psi
+      dydt(1) = 1.0
+      dydt(2) = dpsi
+      dydt(3) = (2 * m / hbar2) * (V(x) - E) * psi
     end associate
   end function
 
