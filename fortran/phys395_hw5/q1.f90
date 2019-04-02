@@ -14,26 +14,40 @@ program q1
 contains
 
   subroutine main()
-    integer, parameter :: steps = 2**8 * 4.0, bi_steps = 2 * steps - 1
+    integer, parameter :: steps = 2**8 * 2.0, bi_steps = 2 * steps - 1
     real, parameter :: dt = 1.0 / 2**8
     real :: ys(nn, bi_steps)
-    real :: y0(nn) = [0.0, 0.0, 1.0]
+    real :: y0(nn) = [0.0, 1.0, 1.0]
+    real :: results(4, bi_steps)
+    real, dimension(bi_steps) :: psis_even, psis_odd
 
+    E = 4.20
     print *
     print "(a)", "Q1. Plot wavefunction"
     print "(a, f9.7)", "    dt:      ", dt
+    print "(a, f9.7)", "    E:       ", E
     print "(a, f9.7)", "    psi(0):  ", y0(2)
     print "(a, f9.7)", "    dpsi(0): ", y0(3)
     call integrate_ode_bidirectional(steps, dt, ys, y0)
     print "(a, f9.7)", "    N:       ", integrate_sum(dt, ys)
     print *
 
-    call write_csv("results_q1.csv", ys, &
+    call separate_even_odd(ys(2, :), psis_even, psis_odd)
+    results(1, :) = ys(1, :)
+    results(2, :) = psis_even
+    results(3, :) = psis_odd
+    results(4, :) = ys(3, :)
+
+    call write_csv("results_q1.csv", results, &
       "$x$, &
-      &$\psi(x)$, &
+      &$\psi_+(x)$, &
+      &$\psi_-(x)$, &
       &$\frac{d}{dx}\psi(x)$")
 
-    call execute_command_line("python plot.py --q1 results_q1.csv plot_q1.png")
+    call execute_command_line("python plot.py --time-series --nrows 2 &
+      &--title 'Even/odd wavefunctions at E = 4.2' &
+      &results_q1.csv &
+      &plot_q1.png")
   end subroutine
 
   subroutine find_eigenvalues()
@@ -41,17 +55,17 @@ contains
     integer, parameter :: iters = 101
     real, parameter :: dt = 1.0 / 2**8
     real, dimension(nn, bi_steps) :: ys
-    real, dimension(bi_steps) :: phis_even, phis_odd
+    real, dimension(bi_steps) :: psis_even, psis_odd
     real :: results(3, iters), lambdas(10)
     integer :: i
 
     do i = 1, iters
       E = 0.5 + 10.0 * (i - 1) / (iters - 1)
       call integrate_ode_bidirectional(steps, dt, ys, y0=[0.0, 1.0, 1.0])
-      call separate_even_odd(ys(2, :), phis_even, phis_odd)
+      call separate_even_odd(ys(2, :), psis_even, psis_odd)
       results(1, i) = E
-      results(2, i) = phis_even(bi_steps)
-      results(3, i) = phis_odd(bi_steps)
+      results(2, i) = psis_even(bi_steps)
+      results(3, i) = psis_odd(bi_steps)
     end do
 
     print "(a)", "Q2. Energy eigenvalues"
@@ -154,8 +168,6 @@ contains
 end program q1
 
 ! Q1 TODO
-! Try E non-eigenvalue
-! Plot odd/even solutions
 ! Accuracy 1e-12 (what's error) similar to delta = matmul(H,psi) - lmbda*psi?
 ! Integration stop condition
 

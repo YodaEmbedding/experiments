@@ -87,9 +87,8 @@ def main():
     parser.add_argument('infile',  action='store')
     parser.add_argument('outfile', action='store')
     parser.add_argument('--time-series', action='store_true', default=False)
-    parser.add_argument('--q1', action='store_true', default=False)
     parser.add_argument('--q2', action='store_true', default=False)
-    parser.add_argument('--nrows', action='store', default=1)
+    parser.add_argument('--nrows', action='store', type=int, default=1)
     parser.add_argument('--title', action='store', default='')
     args = parser.parse_args()
 
@@ -99,13 +98,6 @@ def main():
             out_filename=args.outfile,
             nrows=args.nrows,
             title=args.title)
-
-    if args.q1:
-        plot_time_series(
-            csv_filename=args.infile,
-            out_filename=args.outfile,
-            nrows=2,
-            title=r'Wavefunction')
 
     if args.q2:
         plot_time_series(
