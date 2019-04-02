@@ -1,16 +1,32 @@
 module integrator
   implicit none
 
+  interface
+    function pR2R(x)
+      !! Real -> Real
+      real, intent(in) :: x
+      real :: pR2R
+    end function pR2R
+  end interface
+
   real, parameter :: hbar2 = 1.0, m = 1.0, omega = 1.0
   real :: E = 1.5
+  procedure(pR2R), pointer :: V => V_harmonic
 
 contains
 
-  pure function V(x)
+  function V_harmonic(x)
     real, intent(in) :: x
-    real V
+    real :: V_harmonic
 
-    V = 0.5 * m * omega**2 * x**2
+    V_harmonic = 0.5 * m * omega**2 * x**2
+  end function
+
+  function V_anharmonic(x)
+    real, intent(in) :: x
+    real :: V_anharmonic
+
+    V_anharmonic = 0.25 * x**4
   end function
 
   function evalf(y) result(dydt)

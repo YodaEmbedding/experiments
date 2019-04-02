@@ -128,10 +128,12 @@ contains
     !! Integrate ODE for given initial condition y0 in both directions
     !! Returns results in ys
     integer :: n
-    real :: ys(nn, 2*n-1), y0(nn), dt
+    real :: ys(nn, 2*n-1), ys_(nn, n), y0(nn), dt
 
-    call integrate_ode(n, -dt, ys(:, n:1:-1), y0)
-    call integrate_ode(n,  dt, ys(:, n:),     y0)
+    call integrate_ode(n, -dt, ys_, y0)
+    ys(:, n:1:-1) = ys_
+    call integrate_ode(n,  dt, ys_, y0)
+    ys(:, n:) = ys_
   end subroutine
 
   pure function integrate_sum(dt, ys) result(res)
