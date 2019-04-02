@@ -27,5 +27,5 @@ q1.o: q1.f90 integrator.o utils.o
 integrator.o: integrator.f90
 	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
 
-utils.o: utils.f90
+utils.o: utils.f90 integrator.o
 	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@

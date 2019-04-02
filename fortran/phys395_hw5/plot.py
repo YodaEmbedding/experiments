@@ -54,6 +54,7 @@ def plot_time_series(csv_filename, out_filename, ylim=None, title=None,
     t, *_ = series
 
     if case == 'q2':
+        # series[1:] = [np.sign(s) * np.log10(np.abs(s) + 1) for s in series[1:]]
         series[1:] = [np.log10(np.abs(s) + 1) for s in series[1:]]
 
     fig, axes = plt.subplots(nrows=nrows, sharex=True)

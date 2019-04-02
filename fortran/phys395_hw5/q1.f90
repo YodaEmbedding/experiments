@@ -6,6 +6,8 @@ program q1
   implicit none
 
   integer, parameter :: nn = 3
+  integer, parameter :: step_rate = 2**8
+  real, parameter :: dt = 1.0 / step_rate
   real, parameter :: pi = 3.1415926535897932384626433832795028841971693993751058
 
   call main()
@@ -14,8 +16,7 @@ program q1
 contains
 
   subroutine main()
-    integer, parameter :: steps = 2**8 * 2.0, bi_steps = 2 * steps - 1
-    real, parameter :: dt = 1.0 / 2**8
+    integer, parameter :: steps = 2.0 * step_rate, bi_steps = 2 * steps - 1
     real :: ys(nn, bi_steps)
     real :: y0(nn) = [0.0, 1.0, 1.0]
     real :: results(4, bi_steps)
@@ -51,12 +52,10 @@ contains
   end subroutine
 
   subroutine find_eigenvalues()
-    integer, parameter :: steps = 2**8 * 8.0, bi_steps = 2 * steps - 1
+    integer, parameter :: steps = 8.0 * step_rate, bi_steps = 2 * steps - 1
     integer, parameter :: iters = 101
-    real, parameter :: dt = 1.0 / 2**8
-    real, dimension(nn, bi_steps) :: ys
+    real :: ys(nn, bi_steps), results(3, iters), lambdas(10)
     real, dimension(bi_steps) :: psis_even, psis_odd
-    real :: results(3, iters), lambdas(10)
     integer :: i
 
     do i = 1, iters
@@ -77,19 +76,20 @@ contains
 
     call execute_command_line("python plot.py --q2 results_q2.csv plot_q2.png")
 
-    ! TODO determine eigenvalues by finding n minimums; check if enough 0 tol, and find bracketed root in nearby location, then mask
-    ! out a certain region out of the minimum finding array
-
     ! TODO plot the various psi, psi^2 graphs for eigenvalues
-    ! TODO bracketed roots version?
 
-    lambdas = [(0.5 + i, i = 0, 9)]
+    ! lambdas = [(0.5 + i, i = 0, 9)]
+    lambdas(1:10:2) = k_minimums(5, results(1, :), results(2, :), .true.)
+    lambdas(2:10:2) = k_minimums(5, results(1, :), results(3, :), .false.)
+    call partial_sort(lambdas)
+    ! print *, min(results(2:3, :), 1)
+    ! lambdas = k_minimums(10, results(1, :), min(results(2:3, :), 1))
+    print "(f19.12)", lambdas
     call plot_wavefunctions("q2_wavefunctions", lambdas)
   end subroutine
 
   subroutine plot_wavefunctions(suffix, lambdas)
-    integer, parameter :: steps = 2**4 * 4.0, bi_steps = 2 * steps - 1
-    real, parameter :: dt = 1.0 / 2**4
+    integer, parameter :: steps = 4.0 * step_rate, bi_steps = 2 * steps - 1
     real :: ys(nn, bi_steps)
     real :: y0(nn) = [0.0, 0.0, 1.0]
     character(len=*) :: suffix
@@ -124,46 +124,6 @@ contains
       &results_" // suffix // ".csv &
       &plot_"    // suffix // ".png")
   end subroutine
-
-  subroutine separate_even_odd(ys, ys_even, ys_odd)
-    real, dimension(:) :: ys, ys_even, ys_odd
-    ys_even = 0.5 * (ys + ys(size(ys, 1):1:-1))
-    ys_odd  = 0.5 * (ys - ys(size(ys, 1):1:-1))
-  end subroutine
-
-  subroutine integrate_ode(n, dt, ys, y0)
-    !! Integrate ODE for given initial condition y0
-    !! Returns results in ys
-    integer :: n, i
-    real :: ys(nn, n), y0(nn), y(nn), dt
-
-    y = y0
-
-    do i = 1, n
-      ys(:, i) = y
-      call gl10(y, dt)
-    end do
-  end subroutine
-
-  subroutine integrate_ode_bidirectional(n, dt, ys, y0)
-    !! Integrate ODE for given initial condition y0 in both directions
-    !! Returns results in ys
-    integer :: n
-    real :: ys(nn, 2*n-1), ys_(nn, n), y0(nn), dt
-
-    call integrate_ode(n, -dt, ys_, y0)
-    ys(:, n:1:-1) = ys_
-    call integrate_ode(n,  dt, ys_, y0)
-    ys(:, n:) = ys_
-  end subroutine
-
-  pure function integrate_sum(dt, ys) result(res)
-    !! Integrate via Reimann sum
-    real, intent(in) :: dt, ys(:, :)
-    real :: res
-
-    res = dt * sum(ys(2, :))
-  end function
 
 end program q1
 
