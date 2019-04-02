@@ -32,10 +32,11 @@ contains
   end subroutine
 
   subroutine plot_wavefunctions(suffix, lambdas)
-    integer, parameter :: step_rate = 2**4
+    integer, parameter :: step_rate = 2**6
     real, parameter :: dt = 1.0 / step_rate
     integer, parameter :: steps = 4.0 * step_rate, bi_steps = 2 * steps - 1
     real :: ys(nn, bi_steps), y0(nn), lambdas(:), results(11, bi_steps)
+    real :: N
     character(len=*) :: suffix
     integer :: i
 
@@ -43,13 +44,15 @@ contains
       E = lambdas(i)
       if (mod(i - 1, 2) == 0) y0 = [0.0, 1.0, 0.0]
       if (mod(i - 1, 2) == 1) y0 = [0.0, 0.0, 1.0]
-      call integrate_ode_bidirectional(steps, dt, ys, y0)  ! TODO odd, even?
-      results(i + 1, :) = ys(2, :)
+      call integrate_ode_bidirectional(steps, dt, ys, y0)
+      N = integrate_normalization(dt, ys(2, :))
+      results(i + 1, :) = ys(2, :) / sqrt(N)
     end do
+
     results(1, :) = ys(1, :)
 
     ! TODO specific energy labels? (construct string)
-    call write_csv("results_" // suffix // ".csv", results, &
+    call write_csv("results_" // suffix // "_wavefunctions.csv", results, &
       "$x$, &
       &$\psi(x; E_1)$, &
       &$\psi(x; E_2)$, &
@@ -64,8 +67,28 @@ contains
 
     call execute_command_line("python plot.py --time-series &
       &--title 'Wavefunctions for various energy eigenvalues' &
-      &results_" // suffix // ".csv &
-      &plot_"    // suffix // ".png")
+      &results_" // suffix // "_wavefunctions.csv &
+      &plot_"    // suffix // "_wavefunctions.png")
+
+    results(2:, :) = results(2:, :)**2
+
+    call write_csv("results_" // suffix // "_probability.csv", results, &
+      "$x$, &
+      &$|\psi(x; E_1)|^2$, &
+      &$|\psi(x; E_2)|^2$, &
+      &$|\psi(x; E_3)|^2$, &
+      &$|\psi(x; E_4)|^2$, &
+      &$|\psi(x; E_5)|^2$, &
+      &$|\psi(x; E_6)|^2$, &
+      &$|\psi(x; E_7)|^2$, &
+      &$|\psi(x; E_8)|^2$, &
+      &$|\psi(x; E_9)|^2$, &
+      &$|\psi(x; E_{10})|^2$")
+
+    call execute_command_line("python plot.py --time-series &
+      &--title 'Probability density functions for various energy eigenvalues' &
+      &results_" // suffix // "_probability.csv &
+      &plot_"    // suffix // "_probability.png")
   end subroutine
 
   subroutine integrate_ode(n, dt, ys, y0)
@@ -94,12 +117,12 @@ contains
     ys(:, n:) = ys_
   end subroutine
 
-  pure function integrate_sum(dt, ys) result(res)
+  pure function integrate_normalization(dt, psis) result(N)
     !! Integrate via Reimann sum
-    real, intent(in) :: dt, ys(:, :)
-    real :: res
+    real, intent(in) :: dt, psis(:)
+    real :: N
 
-    res = dt * sum(ys(2, :))
+    N = dt * sum(psis * psis)
   end function
 
   subroutine separate_even_odd(ys, ys_even, ys_odd)
@@ -160,7 +183,7 @@ contains
     fa = f(a)
     fb = f(b)
 
-    print *, a, b
+    ! print *, a, b
     if (fa*fb > 0.0) stop "Root not bracketed"
 
     ! bisect the interval
@@ -190,5 +213,33 @@ contains
       x(idx) = tmp
     end do
   end subroutine
+
+  function eigenvalues(A)
+    real, intent(in) :: A(:, :)
+    real, dimension(size(A, 1)) :: WR, WI
+    real, dimension(size(A, 1), size(A, 1)) :: VL, VR
+    real :: eigenvalues(2, size(A, 1))
+    real :: work(6 * size(A, 1))
+    integer :: n, stat
+
+    if (size(A, 1) /= size(A, 2)) call abort
+    n = size(A, 1)
+
+    call dgeev('N', 'N', n, A, n, WR, WI, &
+      VL, n, VR, n, &
+      work, size(work, 1), stat)
+
+    eigenvalues(1, :) = WR
+    eigenvalues(2, :) = WI
+  end function
+
+  function real_eigenvalues(A)
+    real, intent(in) :: A(:, :)
+    real :: real_eigenvalues(size(A, 1))
+    real :: e_(2, size(A, 1))
+
+    e_ = eigenvalues(A)
+    real_eigenvalues = e_(1, :)
+  end function
 
 end module

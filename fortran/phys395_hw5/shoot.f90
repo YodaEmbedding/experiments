@@ -1,6 +1,6 @@
 ! To compile and run: make
 
-program q1
+program shoot
   use integrator
   use utils
   implicit none
@@ -10,12 +10,12 @@ program q1
   real, parameter :: dt = 1.0 / step_rate
   real, parameter :: pi = 3.1415926535897932384626433832795028841971693993751058
 
-  call main()
-  call find_eigenvalues()
+  call q1()
+  call q2_find_eigenvalues()
 
 contains
 
-  subroutine main()
+  subroutine q1()
     integer, parameter :: steps = 2.0 * step_rate, bi_steps = 2 * steps - 1
     real :: ys(nn, bi_steps)
     real :: y0(nn) = [0.0, 1.0, 1.0]
@@ -30,7 +30,6 @@ contains
     print "(a, f9.7)", "    psi(0):  ", y0(2)
     print "(a, f9.7)", "    dpsi(0): ", y0(3)
     call integrate_ode_bidirectional(steps, dt, ys, y0)
-    print "(a, f9.7)", "    N:       ", integrate_sum(dt, ys)
     print *
 
     call separate_even_odd(ys(2, :), psis_even, psis_odd)
@@ -51,9 +50,9 @@ contains
       &plot_q1.png")
   end subroutine
 
-  subroutine find_eigenvalues()
+  subroutine q2_find_eigenvalues()
     integer, parameter :: steps = 8.0 * step_rate, bi_steps = 2 * steps - 1
-    integer, parameter :: iters = 101
+    integer, parameter :: iters = 201
     real :: ys(nn, bi_steps), results(3, iters), lambdas(12)
     real, dimension(bi_steps) :: psis_even, psis_odd
     integer :: i
@@ -82,22 +81,22 @@ contains
     lambdas(1:12:2) = k_minimums(6, results(1, :), results(2, :), .true.)
     lambdas(2:12:2) = k_minimums(6, results(1, :), results(3, :), .false.)
     call partial_sort(lambdas)
-    ! print *, min(results(2:3, :), 1)
-    ! lambdas = k_minimums(10, results(1, :), min(results(2:3, :), 1))
     print "(f19.12)", lambdas(1:10)
-    call plot_wavefunctions("q2_wavefunctions", lambdas(1:10))
+    call plot_wavefunctions("q2", lambdas(1:10))
   end subroutine
 
-end program q1
+end program shoot
 
 ! Q1 TODO
 ! Accuracy 1e-12 (what's error) similar to delta = matmul(H,psi) - lmbda*psi?
 ! Integration stop condition
 
 ! Q2 TODO
-! Violation of BC
-! Find E values via bisection on "bracketed roots" (? what's this) for even/odd modes
 ! Plot psi and psi^2
+! Normalize
 
-! TODO uhh... the dx_dt = -1.0 doesn't seem to give correct odd functions
+! Q4 TODO
 
+! TODO Anharmonic potential... might need hand-done brackets and other parameters
+
+! TODO Rename this program q1...

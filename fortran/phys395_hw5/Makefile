@@ -10,18 +10,26 @@ default: run
 
 clean:
 	rm -rf *.mod *.o \
-		q1 \
+		shoot \
+		spectral \
 		results*.csv \
 		plot*.png \
 		plot*.svg
 
-run: q1
-	./q1
+run: shoot spectral
+	./shoot
+	./spectral
 
-q1: q1.o integrator.o utils.o
+shoot: shoot.o integrator.o utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
 
-q1.o: q1.f90 integrator.o utils.o
+shoot.o: shoot.f90 integrator.o utils.o
+	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
+
+spectral: spectral.f90 utils.o integrator.o
+	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
+
+spectral.o: spectral.f90 utils.o integrator.o
 	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
 
 integrator.o: integrator.f90
