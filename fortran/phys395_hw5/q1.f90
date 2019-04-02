@@ -40,17 +40,18 @@ contains
     integer, parameter :: steps = 2**8 * 8.0, bi_steps = 2 * steps - 1
     integer, parameter :: iters = 101
     real, parameter :: dt = 1.0 / 2**8
-    real :: ys(nn, bi_steps), results(3, iters), lambdas(10)
+    real, dimension(nn, bi_steps) :: ys
+    real, dimension(bi_steps) :: phis_even, phis_odd
+    real :: results(3, iters), lambdas(10)
     integer :: i
 
     do i = 1, iters
       E = 0.5 + 10.0 * (i - 1) / (iters - 1)
+      call integrate_ode_bidirectional(steps, dt, ys, y0=[0.0, 1.0, 1.0])
+      call separate_even_odd(ys(2, :), phis_even, phis_odd)
       results(1, i) = E
-      ! TODO function for separating into odd, even wavefunctions?
-      call integrate_ode_bidirectional(steps, dt, ys, y0=[0.0, 1.0, 0.0])
-      results(2, i) = ys(2, bi_steps)
-      call integrate_ode_bidirectional(steps, dt, ys, y0=[0.0, 0.0, 1.0])
-      results(3, i) = ys(2, bi_steps)
+      results(2, i) = phis_even(bi_steps)
+      results(3, i) = phis_odd(bi_steps)
     end do
 
     print "(a)", "Q2. Energy eigenvalues"
@@ -108,6 +109,12 @@ contains
       &--title 'Wavefunctions for various energy eigenvalues' &
       &results_" // suffix // ".csv &
       &plot_"    // suffix // ".png")
+  end subroutine
+
+  subroutine separate_even_odd(ys, ys_even, ys_odd)
+    real, dimension(:) :: ys, ys_even, ys_odd
+    ys_even = 0.5 * (ys + ys(size(ys, 1):1:-1))
+    ys_odd  = 0.5 * (ys - ys(size(ys, 1):1:-1))
   end subroutine
 
   subroutine integrate_ode(n, dt, ys, y0)
