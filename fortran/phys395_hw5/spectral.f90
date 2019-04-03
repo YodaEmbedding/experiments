@@ -78,12 +78,14 @@ contains
 
   ! initialize linear spectral derivative operator
   subroutine init_l()
-    integer i, pivot(n), status
-    real A(n,n), B(n,n)
+    integer :: i, pivot(n), status
+    real :: A(n,n), B(n,n), Tn(n), Tnxx(n)
 
     ! evaluate basis and differential operator values on collocation grid
     do i = 1,n
-      call evalb(i-1, n, theta, Tn=A(i,:), Tnxx=B(i,:))
+      call evalb(i-1, n, theta, Tn=Tn, Tnxx=Tnxx)
+      A(i, :) = Tn
+      B(i, :) = Tnxx
     end do
 
     ! find linear operator matrix
