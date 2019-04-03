@@ -11,8 +11,20 @@ program shoot
   real, parameter :: pi = 3.1415926535897932384626433832795028841971693993751058
   logical :: is_even = .false.
 
+  print *
+  print "(a)", "Q1. Plot wavefunction"
   call q1()
-  call q2_find_eigenvalues()
+
+  print *
+  print "(a)", "Q2. Determine energy eigenvalues for harmonic oscillator"
+  V => V_harmonic
+  call find_eigenvalues("q2")
+
+  print *
+  print "(a)", "Q3. Determine energy eigenvalues for anharmonic oscillator"
+  V => V_anharmonic
+  call find_eigenvalues("q3")
+
   print *
 
 contains
@@ -26,8 +38,6 @@ contains
 
     E = 4.20
 
-    print *
-    print "(a)", "Q1. Plot wavefunction"
     print "(a, f9.7)", "    dt:      ", dt
     print "(a, f9.7)", "    E:       ", E
     print "(a, f9.7)", "    psi(0):  ", y0(2)
@@ -52,14 +62,12 @@ contains
       &plot_q1.png")
   end subroutine
 
-  subroutine q2_find_eigenvalues()
+  subroutine find_eigenvalues(suffix)
+    character(len=*) :: suffix
     integer, parameter :: steps = 8.0 * step_rate, bi_steps = 2 * steps - 1
     integer, parameter :: imax = 401
     real :: results(3, imax + 10), lambda_results(3, 10), lambdas(10), mode(3)
     integer :: i
-
-    print *
-    print "(a)", "Q2. Determine energy eigenvalues"
 
     do i = 1, imax
       results(:, i) = psi_max_modes(20.0 * (i - 1) / (imax - 1))
@@ -82,20 +90,20 @@ contains
 
     call insert_results(results, lambda_results)
 
-    call write_csv("results_q2_eigenvalues.csv", &
+    call write_csv("results_" // suffix // "_eigenvalues.csv", &
       reshape(lambdas, [1, size(lambdas)]))
 
-    call write_csv("results_q2.csv", results, &
+    call write_csv("results_" // suffix // ".csv", results, &
       "$E$, &
       &$\log (1 + |\psi_+(\infty)|)$, &
       &$\log (1 + |\psi_-(\infty)|)$")
 
     call execute_command_line("python plot.py --q2 &
-      &--ticks results_q2_eigenvalues.csv &
-      &results_q2.csv &
-      &plot_q2.png")
+      &--ticks results_" // suffix // "_eigenvalues.csv &
+      &results_" // suffix // ".csv &
+      &plot_" // suffix // "_eigenvalues.png")
 
-    call plot_wavefunctions("q2", lambdas(1:10))
+    call plot_wavefunctions(suffix, lambdas(1:10))
   end subroutine
 
   function psi_max_modes(x)
@@ -149,5 +157,3 @@ end program shoot
 ! Q1 TODO
 ! Accuracy 1e-12 (what's error) similar to delta = matmul(H,psi) - lmbda*psi?
 ! Integration stop condition
-
-! TODO Anharmonic potential... might need hand-done brackets and other parameters

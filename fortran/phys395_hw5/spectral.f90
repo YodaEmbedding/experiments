@@ -17,14 +17,16 @@ program spectral
   call init_grid()
   call init_l()
 
-  call find_eigenvalues()
+  print *
   print "(a)", "Q4. Spectral-based eigenvalues (harmonic potential)"
+  call find_eigenvalues()
   print "(f19.12)", lambdas(1:10)
   call plot_wavefunctions("q4", lambdas(1:10))
 
   V => V_anharmonic
-  call find_eigenvalues()
+  print *
   print "(a)", "Q5. Spectral-based eigenvalues (anharmonic potential)"
+  call find_eigenvalues()
   print "(f19.12)", lambdas(1:10)
   call plot_wavefunctions("q5", lambdas(1:10))
 
@@ -122,15 +124,3 @@ contains
   end function
 
 end program
-
-! Anharmonic
-! 0.4208049744760120
-! 1.5079012411610024
-! 2.9587956874798009
-! 4.6212203186662482
-! 6.4535099323117455
-! 8.4284538781270122
-! 10.5278307660341319
-! 12.7383369433435316
-! 15.0497529312282889
-! 17.4539341574481206
