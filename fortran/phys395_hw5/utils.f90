@@ -52,44 +52,43 @@ contains
 
     results(1, :) = ys(1, :)
 
-    ! TODO specific energy labels? (construct string)
     call write_csv("results/" // suffix // "_wavefunctions.csv", results, &
       "$x$, &
-      &$\psi(x; E_1)$, &
-      &$\psi(x; E_2)$, &
-      &$\psi(x; E_3)$, &
-      &$\psi(x; E_4)$, &
-      &$\psi(x; E_5)$, &
-      &$\psi(x; E_6)$, &
-      &$\psi(x; E_7)$, &
-      &$\psi(x; E_8)$, &
-      &$\psi(x; E_9)$, &
-      &$\psi(x; E_{10})$")
+      &$\psi(x; E_1 = "    // str(lambdas(1),  "(f5.1)") // ")$, &
+      &$\psi(x; E_2 = "    // str(lambdas(2),  "(f5.1)") // ")$, &
+      &$\psi(x; E_3 = "    // str(lambdas(3),  "(f5.1)") // ")$, &
+      &$\psi(x; E_4 = "    // str(lambdas(4),  "(f5.1)") // ")$, &
+      &$\psi(x; E_5 = "    // str(lambdas(5),  "(f5.1)") // ")$, &
+      &$\psi(x; E_6 = "    // str(lambdas(6),  "(f5.1)") // ")$, &
+      &$\psi(x; E_7 = "    // str(lambdas(7),  "(f5.1)") // ")$, &
+      &$\psi(x; E_8 = "    // str(lambdas(8),  "(f5.1)") // ")$, &
+      &$\psi(x; E_9 = "    // str(lambdas(9),  "(f5.1)") // ")$, &
+      &$\psi(x; E_{10} = " // str(lambdas(10), "(f5.1)") // ")$")
 
     call execute_command_line("python plot.py --time-series &
       &--title 'Wavefunctions for various energy eigenvalues' &
       &results/" // suffix // "_wavefunctions.csv &
-      &plots/"    // suffix // "_wavefunctions" // img_fileext)
+      &plots/"   // suffix // "_wavefunctions" // img_fileext)
 
     results(2:, :) = results(2:, :)**2
 
     call write_csv("results/" // suffix // "_probability.csv", results, &
       "$x$, &
-      &$|\psi(x; E_1)|^2$, &
-      &$|\psi(x; E_2)|^2$, &
-      &$|\psi(x; E_3)|^2$, &
-      &$|\psi(x; E_4)|^2$, &
-      &$|\psi(x; E_5)|^2$, &
-      &$|\psi(x; E_6)|^2$, &
-      &$|\psi(x; E_7)|^2$, &
-      &$|\psi(x; E_8)|^2$, &
-      &$|\psi(x; E_9)|^2$, &
-      &$|\psi(x; E_{10})|^2$")
+      &$|\psi(x; E_1 = "    // str(lambdas(1),  "(f5.1)") // ")|^2$, &
+      &$|\psi(x; E_2 = "    // str(lambdas(2),  "(f5.1)") // ")|^2$, &
+      &$|\psi(x; E_3 = "    // str(lambdas(3),  "(f5.1)") // ")|^2$, &
+      &$|\psi(x; E_4 = "    // str(lambdas(4),  "(f5.1)") // ")|^2$, &
+      &$|\psi(x; E_5 = "    // str(lambdas(5),  "(f5.1)") // ")|^2$, &
+      &$|\psi(x; E_6 = "    // str(lambdas(6),  "(f5.1)") // ")|^2$, &
+      &$|\psi(x; E_7 = "    // str(lambdas(7),  "(f5.1)") // ")|^2$, &
+      &$|\psi(x; E_8 = "    // str(lambdas(8),  "(f5.1)") // ")|^2$, &
+      &$|\psi(x; E_9 = "    // str(lambdas(9),  "(f5.1)") // ")|^2$, &
+      &$|\psi(x; E_{10} = " // str(lambdas(10), "(f5.1)") // ")|^2$")
 
     call execute_command_line("python plot.py --time-series &
       &--title 'Probability density functions for various energy eigenvalues' &
       &results/" // suffix // "_probability.csv &
-      &plots/"    // suffix // "_probability" // img_fileext)
+      &plots/"   // suffix // "_probability" // img_fileext)
   end subroutine
 
   subroutine integrate_ode(n, dt, ys, y0)
@@ -242,5 +241,14 @@ contains
     e_ = eigenvalues(A)
     real_eigenvalues = e_(1, :)
   end function
+
+  function str(x, num_fmt)
+    real, intent(in) :: x
+    character(len=*) :: num_fmt
+    character(len=32) :: str
+
+    write (str, num_fmt) x
+    str = adjustl(str)
+  end function str
 
 end module

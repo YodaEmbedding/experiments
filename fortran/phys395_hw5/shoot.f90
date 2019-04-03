@@ -95,8 +95,8 @@ contains
 
     call write_csv("results/" // suffix // ".csv", results, &
       "$E$, &
-      &$\log (1 + |\psi_+(\infty)|)$, &
-      &$\log (1 + |\psi_-(\infty)|)$")
+      &$\log(1 + |\psi_+(x = \infty)|)$, &
+      &$\log(1 + |\psi_-(x = \infty)|)$")
 
     call execute_command_line("python plot.py --eigenvalues &
       &--ticks results/" // suffix // "_eigenvalues.csv &
