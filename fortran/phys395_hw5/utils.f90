@@ -152,12 +152,12 @@ contains
     end do
   end function
 
-  function k_zeros(k, xs, ys, is_even)
+  function k_zeros(k, f, xs, ys)
+    procedure(pR2R) :: f
     real :: xs(:), ys(:), k_zeros(k)
     integer :: i, k, n, idx, idx_a, idx_b, zcs(k)
     integer, parameter :: idx_pad = 1
     real,    parameter :: x_pad = 0.1
-    logical :: is_even
 
     n = size(ys, 1)
     zcs = zero_crossings(k, ys)
@@ -169,24 +169,6 @@ contains
       idx_b = min(n, idx + idx_pad)
       k_zeros(i) = bisect(f, xs(idx_a) - x_pad, xs(idx_b) + x_pad, tol=1e-12)
     end do
-
-  contains
-
-    function f(x)
-      integer, parameter :: step_rate = 2**4
-      integer, parameter :: steps = 8.0 * step_rate
-      integer, parameter :: bi_steps = 2 * steps - 1
-      real,    parameter :: dt = 1.0 / step_rate
-      real, intent(in) :: x
-      real :: f, ys_(nn, bi_steps)
-      real, dimension(bi_steps) :: psis_even, psis_odd
-
-      E = x
-      call integrate_ode_bidirectional(steps, dt, ys_, y0=[0.0, 1.0, 1.0])
-      call separate_even_odd(ys_(2, :), psis_even, psis_odd)
-      if (is_even)       f = psis_even(bi_steps)
-      if (.not. is_even) f = psis_odd(bi_steps)
-    end function
   end function
 
   function bisect(f, x_min, x_max, tol) result(c)

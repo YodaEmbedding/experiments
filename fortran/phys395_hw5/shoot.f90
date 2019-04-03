@@ -9,6 +9,7 @@ program shoot
   integer, parameter :: step_rate = 2**8
   real, parameter :: dt = 1.0 / step_rate
   real, parameter :: pi = 3.1415926535897932384626433832795028841971693993751058
+  logical :: is_even = .false.
 
   call q1()
   call q2_find_eigenvalues()
@@ -78,12 +79,31 @@ contains
     ! TODO plot the various psi, psi^2 graphs for eigenvalues
 
     ! lambdas = [(0.5 + i, i = 0, 9)]
-    lambdas(1:10:2) = k_zeros(5, results(1, :), results(2, :), .true.)
-    lambdas(2:10:2) = k_zeros(5, results(1, :), results(3, :), .false.)
-    call partial_sort(lambdas)
+    is_even = .true.
+    lambdas(1:10:2) = k_zeros(5, boundary_value, results(1, :), results(2, :))
+    is_even = .false.
+    lambdas(2:10:2) = k_zeros(5, boundary_value, results(1, :), results(3, :))
+    call partial_sort(lambdas, k=10)
     print "(f19.12)", lambdas(1:10)
+
     call plot_wavefunctions("q2", lambdas(1:10))
   end subroutine
+
+  function boundary_value(x) result(y)
+    integer, parameter :: step_rate = 2**4
+    integer, parameter :: steps = 8.0 * step_rate
+    integer, parameter :: bi_steps = 2 * steps - 1
+    real,    parameter :: dt = 1.0 / step_rate
+    real, intent(in) :: x
+    real :: y, ys(nn, bi_steps)
+    real, dimension(bi_steps) :: psis_even, psis_odd
+
+    E = x
+    call integrate_ode_bidirectional(steps, dt, ys, y0=[0.0, 1.0, 1.0])
+    call separate_even_odd(ys(2, :), psis_even, psis_odd)
+    if (is_even)       y = psis_even(bi_steps)
+    if (.not. is_even) y = psis_odd(bi_steps)
+  end function
 
 end program shoot
 
