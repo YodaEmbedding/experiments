@@ -70,12 +70,11 @@ def plot_time_series(csv_filename, out_filename, ylim=None, title=None,
     fig.savefig(out_filename, dpi=300)
 
 def plot_multiple(ax, x, it):
-    it = list(it)
     for i, (style, label, data) in enumerate(it):
         mask = ~np.isnan(data)
         x_ = x[mask]
         data = data[mask]
-        ax.plot(x_, data, label=label, zorder=i - len(it), **style)
+        ax.plot(x_, data, label=label, zorder=-i, **style)
 
 def main():
     parser = argparse.ArgumentParser(description='Plot.')
