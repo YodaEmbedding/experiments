@@ -46,7 +46,7 @@ def plot_time_series(csv_filename, out_filename, ylim=None, title=None,
     series = list(map(np.array, zip(*rows)))
     t = series[0]
 
-    if case == 'q2':
+    if case == 'eigenvalues':
         # series[1:] = [np.sign(s) * np.log10(np.abs(s) + 1) for s in series[1:]]
         series[1:] = [np.log10(np.abs(s) + 1) for s in series[1:]]
 
@@ -82,7 +82,7 @@ def main():
     parser.add_argument('infile',  action='store')
     parser.add_argument('outfile', action='store')
     parser.add_argument('--time-series', action='store_true', default=False)
-    parser.add_argument('--q2', action='store_true', default=False)
+    parser.add_argument('--eigenvalues', action='store_true', default=False)
     parser.add_argument('--ticks', action='store', default=None)
     parser.add_argument('--nrows', action='store', type=int, default=1)
     parser.add_argument('--title', action='store', default='')
@@ -103,12 +103,12 @@ def main():
             ticks=args.ticks,
             title=args.title)
 
-    if args.q2:
+    if args.eigenvalues:
         plot_time_series(
             csv_filename=args.infile,
             out_filename=args.outfile,
             nrows=1,
-            case='q2',
+            case='eigenvalues',
             ticks=args.ticks,
             title=r'Energy eigenvalues')
 

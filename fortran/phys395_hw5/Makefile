@@ -12,11 +12,11 @@ clean:
 	rm -rf *.mod *.o \
 		shoot \
 		spectral \
-		results*.csv \
-		plot*.png \
-		plot*.svg
+		results/ \
+		plots/
 
 run: shoot spectral
+	mkdir -p results plots
 	./shoot
 	./spectral
 

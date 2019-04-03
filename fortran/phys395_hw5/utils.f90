@@ -3,6 +3,7 @@ module utils
   implicit none
 
   integer, private, parameter :: nn = 3
+  character(len=*), parameter :: img_fileext = ".png"
 contains
 
   subroutine write_csv(filename, mat, header, num_fmt)
@@ -52,7 +53,7 @@ contains
     results(1, :) = ys(1, :)
 
     ! TODO specific energy labels? (construct string)
-    call write_csv("results_" // suffix // "_wavefunctions.csv", results, &
+    call write_csv("results/" // suffix // "_wavefunctions.csv", results, &
       "$x$, &
       &$\psi(x; E_1)$, &
       &$\psi(x; E_2)$, &
@@ -67,12 +68,12 @@ contains
 
     call execute_command_line("python plot.py --time-series &
       &--title 'Wavefunctions for various energy eigenvalues' &
-      &results_" // suffix // "_wavefunctions.csv &
-      &plot_"    // suffix // "_wavefunctions.png")
+      &results/" // suffix // "_wavefunctions.csv &
+      &plots/"    // suffix // "_wavefunctions" // img_fileext)
 
     results(2:, :) = results(2:, :)**2
 
-    call write_csv("results_" // suffix // "_probability.csv", results, &
+    call write_csv("results/" // suffix // "_probability.csv", results, &
       "$x$, &
       &$|\psi(x; E_1)|^2$, &
       &$|\psi(x; E_2)|^2$, &
@@ -87,8 +88,8 @@ contains
 
     call execute_command_line("python plot.py --time-series &
       &--title 'Probability density functions for various energy eigenvalues' &
-      &results_" // suffix // "_probability.csv &
-      &plot_"    // suffix // "_probability.png")
+      &results/" // suffix // "_probability.csv &
+      &plots/"    // suffix // "_probability" // img_fileext)
   end subroutine
 
   subroutine integrate_ode(n, dt, ys, y0)

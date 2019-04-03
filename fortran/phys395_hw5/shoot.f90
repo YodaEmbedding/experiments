@@ -50,7 +50,7 @@ contains
     results(3, :) = psis_odd
     results(4, :) = ys(3, :)
 
-    call write_csv("results_q1.csv", results, &
+    call write_csv("results/q1.csv", results, &
       "$x$, &
       &$\psi_+(x)$, &
       &$\psi_-(x)$, &
@@ -58,8 +58,8 @@ contains
 
     call execute_command_line("python plot.py --time-series --nrows 2 &
       &--title 'Even/odd wavefunctions at E = 4.2' &
-      &results_q1.csv &
-      &plot_q1.png")
+      &results/q1.csv &
+      &plots/q1" // img_fileext)
   end subroutine
 
   subroutine find_eigenvalues(suffix)
@@ -90,18 +90,18 @@ contains
 
     call insert_results(results, lambda_results)
 
-    call write_csv("results_" // suffix // "_eigenvalues.csv", &
+    call write_csv("results/" // suffix // "_eigenvalues.csv", &
       reshape(lambdas, [1, size(lambdas)]))
 
-    call write_csv("results_" // suffix // ".csv", results, &
+    call write_csv("results/" // suffix // ".csv", results, &
       "$E$, &
       &$\log (1 + |\psi_+(\infty)|)$, &
       &$\log (1 + |\psi_-(\infty)|)$")
 
-    call execute_command_line("python plot.py --q2 &
-      &--ticks results_" // suffix // "_eigenvalues.csv &
-      &results_" // suffix // ".csv &
-      &plot_" // suffix // "_eigenvalues.png")
+    call execute_command_line("python plot.py --eigenvalues &
+      &--ticks results/" // suffix // "_eigenvalues.csv &
+      &results/" // suffix // ".csv &
+      &plots/" // suffix // "_eigenvalues" // img_fileext)
 
     call plot_wavefunctions(suffix, lambdas(1:10))
   end subroutine
