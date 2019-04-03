@@ -53,7 +53,7 @@ contains
   subroutine q2_find_eigenvalues()
     integer, parameter :: steps = 8.0 * step_rate, bi_steps = 2 * steps - 1
     integer, parameter :: iters = 201
-    real :: ys(nn, bi_steps), results(3, iters), lambdas(12)
+    real :: ys(nn, bi_steps), results(3, iters), lambdas(10)
     real, dimension(bi_steps) :: psis_even, psis_odd
     integer :: i
 
@@ -78,8 +78,8 @@ contains
     ! TODO plot the various psi, psi^2 graphs for eigenvalues
 
     ! lambdas = [(0.5 + i, i = 0, 9)]
-    lambdas(1:12:2) = k_minimums(6, results(1, :), results(2, :), .true.)
-    lambdas(2:12:2) = k_minimums(6, results(1, :), results(3, :), .false.)
+    lambdas(1:10:2) = k_zeros(5, results(1, :), results(2, :), .true.)
+    lambdas(2:10:2) = k_zeros(5, results(1, :), results(3, :), .false.)
     call partial_sort(lambdas)
     print "(f19.12)", lambdas(1:10)
     call plot_wavefunctions("q2", lambdas(1:10))
@@ -92,7 +92,6 @@ end program shoot
 ! Integration stop condition
 
 ! Q2 TODO
-! Plot psi and psi^2
 ! Normalize
 
 ! Q4 TODO

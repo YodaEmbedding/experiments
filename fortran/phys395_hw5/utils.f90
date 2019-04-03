@@ -131,35 +131,55 @@ contains
     ys_odd  = 0.5 * (ys - ys(size(ys, 1):1:-1))
   end subroutine
 
-  function k_minimums(k, xs, ys, is_even)
-    real :: xs(:), ys(:), k_minimums(k)
-    integer :: i, k, n, idx, idx_a, idx_b
+  function zero_crossings(k, ys) result(zcs)
+    !! Finds indexes of first k zero crossings
+    real :: ys(:)
+    logical :: sign_prev, sign_next
+    integer :: i, j, k, zcs(k)
+
+    zcs = -1
+    sign_prev = ys(1) >= 0
+    j = 1
+
+    do i = 2, size(ys, 1)
+      if (j > k) exit
+      sign_next = ys(i) >= 0
+      if (sign_prev .neqv. sign_next) then
+        sign_prev = sign_next
+        zcs(j) = i
+        j = j + 1
+      end if
+    end do
+  end function
+
+  function k_zeros(k, xs, ys, is_even)
+    real :: xs(:), ys(:), k_zeros(k)
+    integer :: i, k, n, idx, idx_a, idx_b, zcs(k)
     integer, parameter :: idx_pad = 1
-    integer, parameter :: step_rate = 2**4
-    integer, parameter :: steps = 8.0 * step_rate
-    integer, parameter :: bi_steps = 2 * steps - 1
-    real,    parameter :: dt = 1.0 / step_rate
     real,    parameter :: x_pad = 0.1
-    real :: ys_(nn, bi_steps)
-    real, dimension(bi_steps) :: psis_even, psis_odd
-    logical :: is_even, mask(size(ys, 1))
+    logical :: is_even
 
     n = size(ys, 1)
-    mask = .true.
+    zcs = zero_crossings(k, ys)
 
     do i = 1, k
-      idx = minloc(abs(ys), 1, mask)
-      idx_a = max(1, idx - idx_pad)
+      idx = zcs(i)
+      if (idx == -1) stop "Insufficient zero crossings"
+      idx_a = max(1, idx - idx_pad - 1)
       idx_b = min(n, idx + idx_pad)
-      mask(idx_a:idx_b) = .false.
-      k_minimums(i) = bisect(f, xs(idx_a) - x_pad, xs(idx_b) + x_pad, tol=1e-12)
+      k_zeros(i) = bisect(f, xs(idx_a) - x_pad, xs(idx_b) + x_pad, tol=1e-12)
     end do
 
   contains
 
     function f(x)
+      integer, parameter :: step_rate = 2**4
+      integer, parameter :: steps = 8.0 * step_rate
+      integer, parameter :: bi_steps = 2 * steps - 1
+      real,    parameter :: dt = 1.0 / step_rate
       real, intent(in) :: x
-      real :: f
+      real :: f, ys_(nn, bi_steps)
+      real, dimension(bi_steps) :: psis_even, psis_odd
 
       E = x
       call integrate_ode_bidirectional(steps, dt, ys_, y0=[0.0, 1.0, 1.0])
@@ -183,7 +203,6 @@ contains
     fa = f(a)
     fb = f(b)
 
-    ! print *, a, b
     if (fa*fb > 0.0) stop "Root not bracketed"
 
     ! bisect the interval
