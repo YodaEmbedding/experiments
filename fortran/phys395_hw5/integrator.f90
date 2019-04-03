@@ -11,7 +11,7 @@ module integrator
 
   real, parameter :: hbar2 = 1.0, m = 1.0, omega = 1.0
   real :: E = 1.5
-  procedure(pR2R), pointer :: V => V_harmonic
+  procedure(pR2R), pointer :: V => V_anharmonic
 
 contains
 

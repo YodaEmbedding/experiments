@@ -8,13 +8,16 @@ import numpy as np
 
 plt.style.use('dark_background')
 
-def read_csv(filename):
+def read_csv(filename, has_header=True):
     rows = []
     with open(filename, 'r') as f:
         reader = csv.reader(f, delimiter=',')
-        header = tuple(map(str.rstrip, next(reader)))
+        if has_header:
+            header = tuple(map(str.rstrip, next(reader)))
         for line in reader:
             rows.append(tuple(map(float, line)))
+        if not has_header:
+            header = ('',) * len(rows[0])
     return header, rows
 
 def read_gnuplot(filename):
@@ -26,7 +29,7 @@ def read_gnuplot(filename):
     return [''] * len(rows[0]), rows
 
 def plot_time_series(csv_filename, out_filename, ylim=None, title=None,
-                     nrows=1, case=''):
+                     ticks=None, nrows=1, case=''):
     styles = [
         {'color': '#00ffff', 'linewidth': 2},
         {'color': '#ff00ff', 'linewidth': 2},
@@ -61,8 +64,9 @@ def plot_time_series(csv_filename, out_filename, ylim=None, title=None,
     axes[-1].set_xlabel(header[0])
     for ax in axes:
         ax.legend(framealpha=0.9, loc='upper right')
-    if case == 'q2':
-        axes[-1].set_xticks(np.arange(0.5, 11.0, step=1.0))
+    if ticks is not None:
+        axes[-1].set_xlim((0.0, ticks[-1] + 0.5))
+        axes[-1].set_xticks(ticks)
     fig.savefig(out_filename, dpi=300)
 
 def plot_multiple(ax, x, it):
@@ -79,15 +83,24 @@ def main():
     parser.add_argument('outfile', action='store')
     parser.add_argument('--time-series', action='store_true', default=False)
     parser.add_argument('--q2', action='store_true', default=False)
+    parser.add_argument('--ticks', action='store', default=None)
     parser.add_argument('--nrows', action='store', type=int, default=1)
     parser.add_argument('--title', action='store', default='')
     args = parser.parse_args()
+
+    if args.ticks is not None:
+        args.ticks = [x
+            for xs in read_csv(args.ticks, has_header=False)[1]
+            for x in xs]
+        args.ticks = [round(x, 1) for x in args.ticks]
+        # print('Using ticks override: {}'.format(args.ticks))
 
     if args.time_series:
         plot_time_series(
             csv_filename=args.infile,
             out_filename=args.outfile,
             nrows=args.nrows,
+            ticks=args.ticks,
             title=args.title)
 
     if args.q2:
@@ -96,6 +109,7 @@ def main():
             out_filename=args.outfile,
             nrows=1,
             case='q2',
+            ticks=args.ticks,
             title=r'Energy eigenvalues')
 
 main()

@@ -13,6 +13,7 @@ program shoot
 
   call q1()
   call q2_find_eigenvalues()
+  print *
 
 contains
 
@@ -24,15 +25,15 @@ contains
     real, dimension(bi_steps) :: psis_even, psis_odd
 
     E = 4.20
+
     print *
     print "(a)", "Q1. Plot wavefunction"
     print "(a, f9.7)", "    dt:      ", dt
     print "(a, f9.7)", "    E:       ", E
     print "(a, f9.7)", "    psi(0):  ", y0(2)
     print "(a, f9.7)", "    dpsi(0): ", y0(3)
-    call integrate_ode_bidirectional(steps, dt, ys, y0)
-    print *
 
+    call integrate_ode_bidirectional(steps, dt, ys, y0)
     call separate_even_odd(ys(2, :), psis_even, psis_odd)
     results(1, :) = ys(1, :)
     results(2, :) = psis_even
@@ -53,57 +54,95 @@ contains
 
   subroutine q2_find_eigenvalues()
     integer, parameter :: steps = 8.0 * step_rate, bi_steps = 2 * steps - 1
-    integer, parameter :: iters = 201
-    real :: ys(nn, bi_steps), results(3, iters), lambdas(10)
-    real, dimension(bi_steps) :: psis_even, psis_odd
+    integer, parameter :: imax = 401
+    real :: results(3, imax + 10), lambda_results(3, 10), lambdas(10), mode(3)
     integer :: i
 
-    do i = 1, iters
-      E = 0.5 + 10.0 * (i - 1) / (iters - 1)
-      call integrate_ode_bidirectional(steps, dt, ys, y0=[0.0, 1.0, 1.0])
-      call separate_even_odd(ys(2, :), psis_even, psis_odd)
-      results(1, i) = E
-      results(2, i) = psis_even(bi_steps)
-      results(3, i) = psis_odd(bi_steps)
+    print *
+    print "(a)", "Q2. Determine energy eigenvalues"
+
+    do i = 1, imax
+      results(:, i) = psi_max_modes(20.0 * (i - 1) / (imax - 1))
     end do
 
-    print "(a)", "Q2. Energy eigenvalues"
+    is_even = .true.
+    lambdas(1:10:2) = k_zeros(5, psi_max, results(1, :imax), results(2, :imax))
+    is_even = .false.
+    lambdas(2:10:2) = k_zeros(5, psi_max, results(1, :imax), results(3, :imax))
+    call partial_sort(lambdas, k=10)
+
+    print "(a)", "    Energy eigenvalues:"
+    print "(f19.12)", lambdas(1:10)
+
+    do i = 1, 10
+      mode = psi_max_modes(lambdas(i))
+      mode(1 + minloc(abs(mode(2:3)), 1)) = 0.0  ! manually zero for aesthetics
+      lambda_results(:, i) = mode
+    end do
+
+    call insert_results(results, lambda_results)
+
+    call write_csv("results_q2_eigenvalues.csv", &
+      reshape(lambdas, [1, size(lambdas)]))
 
     call write_csv("results_q2.csv", results, &
       "$E$, &
       &$\log (1 + |\psi_+(\infty)|)$, &
       &$\log (1 + |\psi_-(\infty)|)$")
 
-    call execute_command_line("python plot.py --q2 results_q2.csv plot_q2.png")
-
-    ! TODO plot the various psi, psi^2 graphs for eigenvalues
-
-    ! lambdas = [(0.5 + i, i = 0, 9)]
-    is_even = .true.
-    lambdas(1:10:2) = k_zeros(5, boundary_value, results(1, :), results(2, :))
-    is_even = .false.
-    lambdas(2:10:2) = k_zeros(5, boundary_value, results(1, :), results(3, :))
-    call partial_sort(lambdas, k=10)
-    print "(f19.12)", lambdas(1:10)
+    call execute_command_line("python plot.py --q2 &
+      &--ticks results_q2_eigenvalues.csv &
+      &results_q2.csv &
+      &plot_q2.png")
 
     call plot_wavefunctions("q2", lambdas(1:10))
   end subroutine
 
-  function boundary_value(x) result(y)
+  function psi_max_modes(x)
+    !! Calculate psi at "infinity" for even and odd modes at given energy
     integer, parameter :: step_rate = 2**4
     integer, parameter :: steps = 8.0 * step_rate
     integer, parameter :: bi_steps = 2 * steps - 1
     real,    parameter :: dt = 1.0 / step_rate
     real, intent(in) :: x
-    real :: y, ys(nn, bi_steps)
-    real, dimension(bi_steps) :: psis_even, psis_odd
+    real :: ys(nn, bi_steps), psi_max_modes(3)
 
     E = x
     call integrate_ode_bidirectional(steps, dt, ys, y0=[0.0, 1.0, 1.0])
-    call separate_even_odd(ys(2, :), psis_even, psis_odd)
-    if (is_even)       y = psis_even(bi_steps)
-    if (.not. is_even) y = psis_odd(bi_steps)
+    psi_max_modes(1) = x
+    psi_max_modes(2) = 0.5 * (ys(2, bi_steps) + ys(2, 1))
+    psi_max_modes(3) = 0.5 * (ys(2, bi_steps) - ys(2, 1))
   end function
+
+  function psi_max(x)
+    !! Calculate psi at "infinity" for even or odd mode at given energy
+    !! Roots of this function correspond to energy eigenvalues,
+    !! since the wavefunction vanishes (for a particular even or odd mode)
+    real, intent(in) :: x
+    real :: psi_max, modes(3)
+
+    modes = psi_max_modes(x)
+    psi_max = merge(modes(2), modes(3), is_even)
+  end function
+
+  subroutine insert_results(results, lambda_results)
+    real :: results(:, :), lambda_results(:, :)
+    integer :: i, j, k
+
+    k = size(lambda_results, 2)
+    j = size(results, 2) - k
+
+    do i = size(results, 2), 1, -1
+      if (k < 1) exit
+      if ((results(1, j) > lambda_results(1, k))) then
+        results(:, i) = results(:, j)
+        j = j - 1
+      else
+        results(:, i) = lambda_results(:, k)
+        k = k - 1
+      end if
+    end do
+  end subroutine
 
 end program shoot
 
@@ -111,11 +150,4 @@ end program shoot
 ! Accuracy 1e-12 (what's error) similar to delta = matmul(H,psi) - lmbda*psi?
 ! Integration stop condition
 
-! Q2 TODO
-! Normalize
-
-! Q4 TODO
-
 ! TODO Anharmonic potential... might need hand-done brackets and other parameters
-
-! TODO Rename this program q1...

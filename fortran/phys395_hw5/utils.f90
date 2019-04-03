@@ -9,8 +9,8 @@ contains
     !! Output a csv file with plottable data
     integer, parameter :: ofh = 2
     real :: mat(:, :)
-    character(len=*) :: filename, header
-    character(len=*), optional :: num_fmt
+    character(len=*) :: filename
+    character(len=*), optional :: num_fmt, header
     character(:), allocatable :: num_fmt_, fmt_str
     integer :: i
 
@@ -24,7 +24,7 @@ contains
     fmt_str = fmt_str // ")"
 
     open(unit=ofh, file=filename, action="write", status="replace")
-    write(ofh, *) header
+    if (present(header)) write(ofh, *) header
     do i = 1, size(mat, 2)
       write(ofh, fmt_str) mat(:, i)
     end do
@@ -157,7 +157,7 @@ contains
     real :: xs(:), ys(:), k_zeros(k)
     integer :: i, k, n, idx, idx_a, idx_b, zcs(k)
     integer, parameter :: idx_pad = 1
-    real,    parameter :: x_pad = 0.1
+    real,    parameter :: x_pad = 0.001
 
     n = size(ys, 1)
     zcs = zero_crossings(k, ys)
@@ -177,7 +177,7 @@ contains
     real, intent(in) :: x_min, x_max, tol
     real :: a, b, c, fa, fb, fc
     real, parameter :: phi = 1.6180339887498948482045868343656381177203091798057
-    integer, parameter :: max_iter = 256
+    integer, parameter :: max_iter = 32
     integer :: i
 
     a = x_min
@@ -187,7 +187,6 @@ contains
 
     if (fa*fb > 0.0) stop "Root not bracketed"
 
-    ! bisect the interval
     do i = 1, max_iter
       c = (a+b)/2.0; fc = f(c)
       if (abs(fc) <= tol) exit
