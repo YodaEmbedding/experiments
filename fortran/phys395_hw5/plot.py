@@ -38,20 +38,10 @@ def plot_time_series(csv_filename, out_filename, ylim=None, title=None,
         {'color': '#8f008f', 'linewidth': 2},
         {'color': '#006f6f', 'linewidth': 2},
         {'color': '#6f006f', 'linewidth': 2},
-        # {'color': '#00ffff', 'linewidth': 2},
-        # {'color': '#ffff00', 'linewidth': 2},
-        # {'color': '#ff00ff', 'linewidth': 2},
-        # {'color': '#007fff', 'linewidth': 2},
-        # {'color': '#00ff7f', 'linewidth': 2},
-        # {'color': '#7f00ff', 'linewidth': 2},
-        # {'color': '#ff007f', 'linewidth': 2},
-        # {'color': '#7fff00', 'linewidth': 2},
-        # {'color': '#ff7f00', 'linewidth': 2},
-        # {'color': '#ffffff', 'linewidth': 2},
     ]
     header, rows = read_csv(csv_filename)
     series = list(map(np.array, zip(*rows)))
-    t, *_ = series
+    t = series[0]
 
     if case == 'q2':
         # series[1:] = [np.sign(s) * np.log10(np.abs(s) + 1) for s in series[1:]]
