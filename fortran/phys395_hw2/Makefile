@@ -3,19 +3,22 @@ CFLAGS=-Wall -O3 -fdefault-real-8 -fcheck=all
 LDFLAGS=-llapack
 PYTHON=python
 
-.PHONY: clean default run_phys395_hw2_curve_fitting
+.PHONY: clean default run
 
-default: run_phys395_hw2_curve_fitting
+default: run
 
 clean:
 	rm -rf *.mod *.o \
-		phys395_hw2_curve_fitting orthogonal_polynomials \
+		phys395_hw2_curve_fitting \
 		results_*.csv \
 		plot_*.png
 
-run_phys395_hw2_curve_fitting: phys395_hw2_curve_fitting
+run: phys395_hw2_curve_fitting data.dat
 	./phys395_hw2_curve_fitting
 	$(PYTHON) plot.py
+
+data.dat:
+	curl -L https://www.dropbox.com/s/s3cccki89u7whqx/phys395-data.dat -o data.dat
 
 phys395_hw2_curve_fitting: phys395_hw2_curve_fitting.o
 	$(CC) $(CFLAGS) $(LDFLAGS) phys395_hw2_curve_fitting.o -o phys395_hw2_curve_fitting

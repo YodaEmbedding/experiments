@@ -13,9 +13,12 @@ clean:
 		results*.csv \
 		plot*.svg
 
-run: phys395_hw3_optimization
+run: phys395_hw3_optimization data.dat
 	./$<
 	$(PYTHON) plot.py
+
+data.dat:
+	curl -L https://www.dropbox.com/s/s3cccki89u7whqx/phys395-data.dat -o data.dat
 
 phys395_hw3_optimization: q1_roots.o q3_minima.o q5_fit.o phys395_hw3_optimization.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
