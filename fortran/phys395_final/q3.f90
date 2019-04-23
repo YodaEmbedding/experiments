@@ -20,7 +20,7 @@ contains
     print "(a)", "3. Numerically integrate equations of motion"
     print "(a)", "   for potential V(x) = -V0 / (cosh(x/a))^2"
     print *
-    print "(a, f12.6)", "   E0 = ", E(y0)
+    print "(a, f18.12)", "   E0 = ", E(y0)
 
     call integrate_ode(iters, dt, ys, y0)
 

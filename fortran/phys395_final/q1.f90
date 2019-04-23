@@ -8,6 +8,7 @@ contains
 
   subroutine main()
     !! Find roots via Newton's method
+    print *
     print "(a)", "1. Roots of cos x - x/5 = 0"
     print "(f18.12)", newton(f1, df1, x0=-4.0, tol=1e-13)
     print "(f18.12)", newton(f1, df1, x0=-2.0, tol=1e-13)

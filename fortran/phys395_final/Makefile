@@ -12,15 +12,15 @@ clean:
 	rm -rf *.mod *.o \
 		q1 \
 		q2 \
-		shoot \
-		spectral \
+		q3 \
 		results/ \
 		plots/
 
-run: q1 q2
+run: q1 q2 q3
 	mkdir -p results plots
 	./q1
 	./q2
+	./q3
 
 q1: q1.o utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
@@ -32,6 +32,12 @@ q2: q2.o utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
 
 q2.o: q2.f90 utils.o
+	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
+
+q3: q3.o utils.o integrator.o
+	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
+
+q3.o: q3.f90 utils.o integrator.o
 	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
 
 shoot: shoot.o integrator.o utils.o

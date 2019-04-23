@@ -8,6 +8,7 @@ contains
 
   subroutine main()
     !! Find extrema
+    print *
     print "(a)", "2. Extrema of x^4 + 3x^3 - 4x^2 - 3x + 4"
     print "(f18.12)", golden(f2,   x_min=-4.0, x_max=-2.0, tol=1e-12)
     print "(f18.12)", golden(f2_n, x_min=-2.0, x_max= 0.0, tol=1e-12)
