@@ -23,8 +23,6 @@ run: q1 q2 q3 q5/spectral
 	./q2
 	./q3
 	./q5/spectral
-	cp q5/plots/* plots
-	cp q5/results/* results
 
 q1: q1.o utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
@@ -45,7 +43,7 @@ q3.o: q3.f90 utils.o integrator.o
 	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
 
 q5/spectral:
-	cd q5 && make && cd ..
+	cd q5 && make spectral && cd ..
 
 shoot: shoot.o integrator.o utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
