@@ -15,12 +15,16 @@ clean:
 		q3 \
 		results/ \
 		plots/
+	cd q5 && make clean && cd ..
 
-run: q1 q2 q3
+run: q1 q2 q3 q5/spectral
 	mkdir -p results plots
 	./q1
 	./q2
 	./q3
+	./q5/spectral
+	cp q5/plots/* plots
+	cp q5/results/* results
 
 q1: q1.o utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
@@ -39,6 +43,9 @@ q3: q3.o utils.o integrator.o
 
 q3.o: q3.f90 utils.o integrator.o
 	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
+
+q5/spectral:
+	cd q5 && make && cd ..
 
 shoot: shoot.o integrator.o utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
