@@ -11,19 +11,27 @@ default: run
 clean:
 	rm -rf *.mod *.o \
 		q1 \
+		q2 \
 		shoot \
 		spectral \
 		results/ \
 		plots/
 
-run: q1
+run: q1 q2
 	mkdir -p results plots
 	./q1
+	./q2
 
 q1: q1.o utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
 
 q1.o: q1.f90 utils.o
+	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
+
+q2: q2.o utils.o
+	$(FC) $(FFLAGS) $(LDFLAGS) $^ -o $@
+
+q2.o: q2.f90 utils.o
 	$(FC) $(FFLAGS) $(LDFLAGS) -c $< -o $@
 
 shoot: shoot.o integrator.o utils.o

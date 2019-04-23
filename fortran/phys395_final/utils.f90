@@ -40,6 +40,15 @@ contains
     close(ofh)
   end subroutine
 
+  function str(x, num_fmt)
+    real, intent(in) :: x
+    character(len=*) :: num_fmt
+    character(len=32) :: str
+
+    write (str, num_fmt) x
+    str = adjustl(str)
+  end function str
+
   function newton(f, df, x0, tol) result(x)
     !! Find root of f(x) via Newton's method
     procedure(pR2R) :: f, df
@@ -53,6 +62,33 @@ contains
       x = x - y / df(x)
       y = f(x)
     end do
+  end function
+
+  function golden(f, x_min, x_max, tol)
+    !! Find a minimum of f(x) within interval via golden section search
+    !! This implementation doubles the necessary calls to f; but it is simpler
+    procedure(pR2R) :: f
+    real, intent(in) :: x_min, x_max, tol
+    real :: golden, a, b, c, d
+    real, parameter :: phi = 1.6180339887498948482045868343656381177203091798057
+
+    a = x_min
+    b = x_max
+    c = b - (b - a) / phi
+    d = a + (b - a) / phi
+
+    do while (tol < abs(c - d))
+      if (f(c) < f(d)) then
+        b = d
+      else
+        a = c
+      end if
+
+      c = b - (b - a) / phi
+      d = a + (b - a) / phi
+    end do
+
+    golden = 0.5 * (b + a)
   end function
 
   ! subroutine plot_wavefunctions(suffix, lambdas)
@@ -264,14 +300,5 @@ contains
   !   e_ = eigenvalues(A)
   !   real_eigenvalues = e_(1, :)
   ! end function
-
-  function str(x, num_fmt)
-    real, intent(in) :: x
-    character(len=*) :: num_fmt
-    character(len=32) :: str
-
-    write (str, num_fmt) x
-    str = adjustl(str)
-  end function str
 
 end module
