@@ -46,7 +46,7 @@ contains
     !! Periods of oscillation
     integer, parameter :: iters = 50
     real, parameter :: dt = 1e-3
-    real :: x0, ys(2, iters), results(2, iters)
+    real :: x0, results(2, iters)
     integer :: i
 
     print *
@@ -56,14 +56,16 @@ contains
 
     do i = 1, iters
       x0 = 0.1 * i * a
-      results(1, i) = x0
+      results(1, i) = E([x0, 0.0])
       results(2, i) = find_period(100000, dt, y0=[x0, 0.0])
-      print "(a, f3.1, a, f4.1)", "   x0 = ", results(1, i), &
+      print "(a, f3.1, a, f16.12, a, f4.1)", &
+        "   x0 = ", x0, &
+        ",   E0 = ", results(1, i), &
         ",    t = ", results(2, i)
     end do
 
     call write_csv("results/q4.csv", results, &
-      header="Initial position, Period")
+      header="Initial Energy, Period")
 
     call execute_command_line("python plot.py --time-series &
       &--title 'Q4: $\frac{-V_0}{\cosh^2 (x-a)}$ period' &
