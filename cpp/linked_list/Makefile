@@ -1,10 +1,21 @@
-all: run
+CXX=g++
+CXXFLAGS=-O2
+CXXFLAGS+=-Wall -Wextra -pedantic
+LDFLAGS=
 
-run: clean main
-	./main
+.PHONY: clean default run
+
+default: run
 
 clean:
-	rm -f main
+	rm -rf *.o \
+		main
 
-main:
-	g++ main.cpp -o main
+run: main
+	./main
+
+main: main.o
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ -o $@
+
+main.o: main.cpp
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $< -o $@
