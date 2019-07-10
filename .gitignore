@@ -29,6 +29,10 @@ torch
 *.png
 *.wav
 
+# Data
+*.h5
+*.tflite
+
 # Editor
 .vscode/
 ctags
