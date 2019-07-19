@@ -44,6 +44,9 @@ def split_model(
     model2 = model_from_layers(model.layers[split_idx:])
     return model1, model2
 
+def get_layer_idx_by_name(model: keras.Model, name: str) -> int:
+    return next(i for i, layer in enumerate(model.layers) if layer.name == name)
+
 def main():
     model_name = 'mobilenet_v1_1.0_224'
 
@@ -69,7 +72,8 @@ def main():
         model_client = keras.models.load_model(f'{model_name}-client.h5')
         model_server = keras.models.load_model(f'{model_name}-server.h5')
     except OSError:
-        model_client, model_server = split_model(model, 44)
+        model_client, model_server = split_model(
+            model, get_layer_idx_by_name(model, 'conv_pw_12'))
         model_client.save(f'{model_name}-client.h5')
         model_server.save(f'{model_name}-server.h5')
 
