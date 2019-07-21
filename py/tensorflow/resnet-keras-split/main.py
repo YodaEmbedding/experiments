@@ -72,6 +72,9 @@ def main():
         model.load_weights(f'{model_name}.h5')
         model.save(f'{model_name}-full.h5')
 
+    # Force usage of tf.keras.Model, which appears to have Nodes linked correctly
+    model = keras.models.load_model(f'{model_name}-full.h5')
+
     # Make predictions
     predictions = model.predict(test_images)
     predictions = imagenet_utils.decode_predictions(predictions)
