@@ -1,5 +1,5 @@
 from pprint import pprint
-from typing import Tuple
+from typing import Dict, Tuple
 
 from classification_models.resnet import (
     preprocess_input, ResNet18, ResNet34, ResNet50, ResNet101, ResNet152)
@@ -10,9 +10,46 @@ from tensorflow import keras
 from tensorflow.python.keras.applications import imagenet_utils
 from tensorflow.python.keras.preprocessing import image
 from tensorflow.python.keras.utils import plot_model
+from tensorflow.python.keras.layers import Layer
+import tensorflow.python.keras.backend as K
 #pylint: enable-msg=E0611
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
+class EncoderLayer(Layer):
+    def __init__(self, clip_range, **kwargs):
+        self.clip_range = clip_range
+        super(EncoderLayer, self).__init__(**kwargs)
+
+    def call(self, x):
+        # x = K.log(x)
+        # x = K.clip(x, -4, 1)
+        # x = (x + 4) * (255 / 5)
+        scale = 255 / (self.clip_range[1] - self.clip_range[0])
+        x = (x - self.clip_range[0]) * scale
+        x = K.cast(x, 'uint8')
+        return x
+
+    def get_config(self):
+        config = {'clip_range': self.clip_range}
+        config.update(super(EncoderLayer, self).get_config())
+        return config
+
+class DecoderLayer(Layer):
+    def __init__(self, clip_range, **kwargs):
+        self.clip_range = clip_range
+        super(DecoderLayer, self).__init__(**kwargs)
+
+    def call(self, x):
+        scale = (self.clip_range[1] - self.clip_range[0]) / 255
+        x = K.cast(x, 'float32')
+        x = x * scale + self.clip_range[0]
+        return x
+
+    def get_config(self):
+        config = {'clip_range': self.clip_range}
+        config.update(super(DecoderLayer, self).get_config())
+        return config
 
 def create_model(model_name) -> keras.Model:
     shape = (224, 224, 3)
@@ -31,7 +68,7 @@ def single_input_image(filename):
     imgs = np.expand_dims(imgs, axis=0)
     return preprocess_input(imgs)
 
-def copy_graph(layer, layer_lut):
+def copy_graph(layer: Layer, layer_lut: Dict[Layer, Layer]) -> Layer:
     lookup = layer_lut.get(layer.name, None)
     if lookup is not None:
         return lookup
@@ -47,10 +84,19 @@ def copy_graph(layer, layer_lut):
     layer_lut[layer.name] = lookup
     return lookup
 
+# def model_from_layers(layer, top_layer) -> keras.Model:
+#     shape = top_layer.input_shape
+#     shape = shape[0][1:] if isinstance(shape, list) else shape[1:]
+#     input_layer = keras.Input(shape)
+#     outputs = copy_graph(layer, {top_layer.name: input_layer})
+#     return keras.Model(inputs=input_layer, outputs=outputs)
+
+def input_shape(layer: Layer) -> Tuple[int, ...]:
+    shape = layer.input_shape
+    return shape[0][1:] if isinstance(shape, list) else shape[1:]
+
 def model_from_layers(layer, top_layer) -> keras.Model:
-    shape = top_layer.input_shape
-    shape = shape[0][1:] if isinstance(shape, list) else shape[1:]
-    input_layer = keras.Input(shape)
+    input_layer = keras.Input(input_shape(top_layer))
     outputs = copy_graph(layer, {top_layer.name: input_layer})
     return keras.Model(inputs=input_layer, outputs=outputs)
 
@@ -58,10 +104,23 @@ def split_model(
     model: keras.Model,
     split_idx: int
 ) -> Tuple[keras.Model, keras.Model]:
+    clip_range = (-2, 2)
     layers = model.layers
+    first_layer = layers[0]
     split_layer = layers[split_idx]
-    model1 = model_from_layers(split_layer, layers[0])
-    model2 = model_from_layers(layers[-1], split_layer)
+
+    input_layer1 = keras.Input(input_shape(first_layer))
+    outputs1 = copy_graph(split_layer, {first_layer.name: input_layer1})
+    outputs1 = EncoderLayer(clip_range)(outputs1)
+    model1 = keras.Model(inputs=input_layer1, outputs=outputs1)
+    # model1 = model_from_layers(split_layer, layers[0])
+
+    input_layer2 = keras.Input(input_shape(split_layer), dtype='uint8')
+    top_layer2 = DecoderLayer(clip_range)(input_layer2)
+    outputs2 = copy_graph(layers[-1], {split_layer.name: top_layer2})
+    model2 = keras.Model(inputs=input_layer2, outputs=outputs2)
+    # model2 = model_from_layers(layers[-1], split_layer)
+
     return model1, model2
 
 def get_layer_idx_by_name(model: keras.Model, name: str) -> int:
@@ -71,8 +130,22 @@ def write_summary_to_file(model: keras.Model, filename: str):
     with open(filename, 'w') as f:
         model.summary(print_fn=lambda x: f.write(f'{x}\n'))
 
+def write_tflite_model(sess, model: keras.Model, filename: str):
+    converter = tf.lite.TFLiteConverter.from_session(
+        sess, model.inputs, model.outputs)
+    tflite_model = converter.convert()
+    with open(filename, 'wb') as f:
+        f.write(tflite_model)
+
+def convert_tflite_model(keras_model_filename, tflite_filename, **kwargs):
+    converter = tf.lite.TFLiteConverter.from_keras_model_file(
+        keras_model_filename, **kwargs)
+    tflite_model = converter.convert()
+    with open(tflite_filename, 'wb') as f:
+        f.write(tflite_model)
+
 def main():
-    model_name = 'resnet18'
+    model_name = 'resnet34'
     prefix = f'{model_name}/{model_name}'
     split_layer_name = {
         'resnet18':  'add_5',   # (14, 14, 256)
@@ -107,8 +180,12 @@ def main():
 
     # Load and save split model
     try:
-        model_client = keras.models.load_model(f'{prefix}-client.h5')
-        model_server = keras.models.load_model(f'{prefix}-server.h5')
+        model_client = keras.models.load_model(
+            f'{prefix}-client.h5',
+            custom_objects={'EncoderLayer': EncoderLayer})
+        model_server = keras.models.load_model(
+            f'{prefix}-server.h5',
+            custom_objects={'DecoderLayer': DecoderLayer})
     except OSError:
         model_client, model_server = split_model(
             model, get_layer_idx_by_name(model, split_layer_name))
@@ -128,19 +205,19 @@ def main():
     print('Same predictions with split model? '
           f'{np.all(predictions == prev_predictions)}')
 
-    # Save model as tflite model
-    converter = tf.lite.TFLiteConverter.from_keras_model_file(
-        f'{prefix}-full.h5')
-    tflite_model = converter.convert()
-    with open(f'{prefix}-full.tflite', 'wb') as f:
-        f.write(tflite_model)
+    # Save TFLite models
+    convert_tflite_model(
+        f'{prefix}-full.h5',
+        f'{prefix}-full.tflite')
 
-    # Save client model as tflite model
-    converter = tf.lite.TFLiteConverter.from_keras_model_file(
-        f'{prefix}-client.h5')
-    tflite_model = converter.convert()
-    with open(f'{prefix}-client.tflite', 'wb') as f:
-        f.write(tflite_model)
+    convert_tflite_model(
+        f'{prefix}-client.h5',
+        f'{prefix}-client.tflite',
+        custom_objects={'EncoderLayer': EncoderLayer})
+
+    # sess = K.get_session()
+    # write_tflite_model(sess, model, f'{prefix}-full.tflite')
+    # write_tflite_model(sess, model_client, f'{prefix}-client.tflite')
 
 if __name__ == "__main__":
     main()
