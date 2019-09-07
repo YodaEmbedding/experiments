@@ -1,5 +1,6 @@
 # Build
 .ipynb_checkpoints/
+META-INF/
 __pycache__/
 bin/
 build/
@@ -12,6 +13,7 @@ target/
 *.class
 *.exe
 *.hi
+*.jar
 *.log
 *.mod
 *.o
@@ -32,6 +34,8 @@ torch
 # Data
 *.h5
 *.tflite
+*.tgz
+*.tar.gz
 
 # Editor
 .vscode/
