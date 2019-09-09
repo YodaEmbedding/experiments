@@ -1,4 +1,5 @@
 # Build
+.gradle/
 .ipynb_checkpoints/
 META-INF/
 __pycache__/
