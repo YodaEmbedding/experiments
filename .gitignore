@@ -39,7 +39,9 @@ torch
 *.tar.gz
 
 # Editor
+.settings/
 .vscode/
+.project
 ctags
 tags
 
