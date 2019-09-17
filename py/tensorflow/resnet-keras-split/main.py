@@ -16,6 +16,16 @@ import tensorflow.python.keras.backend as K
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
+class InputFormatLayer(Layer):
+    """Cast input into correct format."""
+
+    def __init__(self, **kwargs):
+        super(InputFormatLayer, self).__init__(**kwargs)
+
+    def call(self, x):
+        x = K.cast(x, 'float32')
+        return x
+
 class EncoderLayer(Layer):
     """Client-side encoding."""
 
@@ -119,6 +129,7 @@ def split_model(
 ) -> Tuple[keras.Model, keras.Model]:
     """Split model by given layer index.
 
+    Attaches input formatting layer to beginning of client model.
     Attaches encoder layer to end of client model. Attaches decoder
     layer to beginning of server model.
     """
@@ -127,8 +138,9 @@ def split_model(
     first_layer = layers[0]
     split_layer = layers[split_idx]
 
-    input_layer1 = keras.Input(input_shape(first_layer))
-    outputs1 = copy_graph(split_layer, {first_layer.name: input_layer1})
+    input_layer1 = keras.Input(input_shape(first_layer), dtype='uint8')
+    top_layer1 = InputFormatLayer()(input_layer1)
+    outputs1 = copy_graph(split_layer, {first_layer.name: top_layer1})
     outputs1 = EncoderLayer(clip_range)(outputs1)
     model1 = keras.Model(inputs=input_layer1, outputs=outputs1)
     # model1 = model_from_layers(split_layer, layers[0])
@@ -148,12 +160,12 @@ def write_summary_to_file(model: keras.Model, filename: str):
     with open(filename, 'w') as f:
         model.summary(print_fn=lambda x: f.write(f'{x}\n'))
 
-def write_tflite_model(sess, model: keras.Model, filename: str):
-    converter = tf.lite.TFLiteConverter.from_session(
-        sess, model.inputs, model.outputs)
-    tflite_model = converter.convert()
-    with open(filename, 'wb') as f:
-        f.write(tflite_model)
+# def write_tflite_model(sess, model: keras.Model, filename: str):
+#     converter = tf.lite.TFLiteConverter.from_session(
+#         sess, model.inputs, model.outputs)
+#     tflite_model = converter.convert()
+#     with open(filename, 'wb') as f:
+#         f.write(tflite_model)
 
 def convert_tflite_model(keras_model_filename, tflite_filename, **kwargs):
     converter = tf.lite.TFLiteConverter.from_keras_model_file(
@@ -200,7 +212,9 @@ def main():
     try:
         model_client = keras.models.load_model(
             f'{prefix}-client.h5',
-            custom_objects={'EncoderLayer': EncoderLayer})
+            custom_objects={
+                'InputFormatLayer': InputFormatLayer,
+                'EncoderLayer': EncoderLayer})
         model_server = keras.models.load_model(
             f'{prefix}-server.h5',
             custom_objects={'DecoderLayer': DecoderLayer})
@@ -231,7 +245,9 @@ def main():
     convert_tflite_model(
         f'{prefix}-client.h5',
         f'{prefix}-client.tflite',
-        custom_objects={'EncoderLayer': EncoderLayer})
+        custom_objects={
+            'InputFormatLayer': InputFormatLayer,
+            'EncoderLayer': EncoderLayer})
 
     # sess = K.get_session()
     # write_tflite_model(sess, model, f'{prefix}-full.tflite')
