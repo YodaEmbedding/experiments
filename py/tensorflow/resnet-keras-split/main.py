@@ -17,6 +17,8 @@ import tensorflow.python.keras.backend as K
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 class EncoderLayer(Layer):
+    """Client-side encoding."""
+
     def __init__(self, clip_range, **kwargs):
         self.clip_range = clip_range
         super(EncoderLayer, self).__init__(**kwargs)
@@ -36,6 +38,8 @@ class EncoderLayer(Layer):
         return config
 
 class DecoderLayer(Layer):
+    """Server-side decoding."""
+
     def __init__(self, clip_range, **kwargs):
         self.clip_range = clip_range
         super(DecoderLayer, self).__init__(**kwargs)
@@ -52,6 +56,7 @@ class DecoderLayer(Layer):
         return config
 
 def create_model(model_name) -> keras.Model:
+    """Model factory."""
     shape = (224, 224, 3)
     d = {
         'resnet18':  lambda: ResNet18(input_shape=shape, weights='imagenet'),
@@ -63,12 +68,18 @@ def create_model(model_name) -> keras.Model:
     return d[model_name]()
 
 def single_input_image(filename):
+    """Load single image for testing."""
     img = image.load_img(filename, target_size=(224, 224))
     imgs = image.img_to_array(img)
     imgs = np.expand_dims(imgs, axis=0)
     return preprocess_input(imgs)
 
 def copy_graph(layer: Layer, layer_lut: Dict[Layer, Layer]) -> Layer:
+    """Recursively copy graph.
+
+    Starting from the given layer, recursively copy graph consisting of
+    all inbound layers until a layer node containing referencing a graph
+    is found within the lookup table."""
     lookup = layer_lut.get(layer.name, None)
     if lookup is not None:
         return lookup
@@ -92,10 +103,12 @@ def copy_graph(layer: Layer, layer_lut: Dict[Layer, Layer]) -> Layer:
 #     return keras.Model(inputs=input_layer, outputs=outputs)
 
 def input_shape(layer: Layer) -> Tuple[int, ...]:
+    """Determine layer input shape."""
     shape = layer.input_shape
     return shape[0][1:] if isinstance(shape, list) else shape[1:]
 
 def model_from_layers(layer, top_layer) -> keras.Model:
+    """Create model from subgraph between `layer` and `top_layer`."""
     input_layer = keras.Input(input_shape(top_layer))
     outputs = copy_graph(layer, {top_layer.name: input_layer})
     return keras.Model(inputs=input_layer, outputs=outputs)
@@ -104,6 +117,11 @@ def split_model(
     model: keras.Model,
     split_idx: int
 ) -> Tuple[keras.Model, keras.Model]:
+    """Split model by given layer index.
+
+    Attaches encoder layer to end of client model. Attaches decoder
+    layer to beginning of server model.
+    """
     clip_range = (-2, 2)
     layers = model.layers
     first_layer = layers[0]
