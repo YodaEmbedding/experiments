@@ -6,13 +6,18 @@ class Cell:
         """Allows us to call print() on a Cell!"""
         return '\n'.join(self.draw())
 
+    def _draw_wall(self, wall, s):
+        return s if wall in self.walls else ' ' * len(s)
+
     def draw(self, inner='   '):
         """Draw top, mid, and bottom parts of the cell."""
-        def draw_wall(wall, s):
-            return s if wall in self.walls else ' ' * len(s)
-        top = ' ' + draw_wall('N', '___') + ' '
-        mid = draw_wall('W', '|') + inner + draw_wall('E', '|')
-        bot = ' ' + draw_wall('S', '___') + ' '
+        n = self._draw_wall('N', '___')
+        w = self._draw_wall('W', '|')
+        e = self._draw_wall('E', '|')
+        s = self._draw_wall('S', '___')
+        top = ' ' + n + ' '
+        mid = w + inner + e
+        bot = w + s + e
         return top, mid, bot
 
     def can_move(self, direction):
