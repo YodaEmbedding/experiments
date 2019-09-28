@@ -1,5 +1,6 @@
 import asyncio
 
+
 async def handle_client(reader, writer):
     print("New client...")
 
@@ -15,6 +16,10 @@ async def handle_client(reader, writer):
     print("Closing client...")
     writer.close()
 
-loop = asyncio.get_event_loop()
-loop.create_task(asyncio.start_server(handle_client, 'localhost', 5678))
-loop.run_forever()
+
+async def main():
+    server = await asyncio.start_server(handle_client, "localhost", 5678)
+    await server.serve_forever()
+
+
+asyncio.run(main())

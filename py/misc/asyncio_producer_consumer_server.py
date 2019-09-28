@@ -5,10 +5,10 @@ async def produce(reader, queue: asyncio.Queue):
     while True:
         item = await reader.readline()
         if len(item) == 0:
-            await queue.put(None)
             break
         print(f"Produce: {item}")
         await queue.put(item)
+    await queue.put(None)
 
 
 async def consume(writer, queue: asyncio.Queue):
@@ -32,10 +32,9 @@ async def handle_client(reader, writer):
     await asyncio.wait(tasks)
 
 
-def main():
-    loop = asyncio.get_event_loop()
-    loop.create_task(asyncio.start_server(handle_client, "localhost", 5678))
-    loop.run_forever()
+async def main():
+    server = await asyncio.start_server(handle_client, "localhost", 5678)
+    await server.serve_forever()
 
 
-main()
+asyncio.run(main())
