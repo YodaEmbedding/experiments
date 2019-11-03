@@ -1,8 +1,0 @@
-.env
-
-*.JPEG
-*.h5
-*.jpg
-*.png
-*.tflite
-*.txt
