@@ -1,0 +1,14 @@
+BasedOnStyle: WebKit
+ColumnLimit: 80
+Language: Cpp
+
+AlignTrailingComments: true
+# AllowAllArgumentsOnNextLine: true
+AlignAfterOpenBracket: AlwaysBreak
+AllowAllParametersOfDeclarationOnNextLine: false
+# BinPackArguments: false
+# BinPackParameters: false
+BreakBeforeBraces: Attach
+
+
+# See also: https://github.com/git/git/blob/master/.clang-format
