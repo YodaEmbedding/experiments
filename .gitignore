@@ -1,8 +1,10 @@
 # Build
+.clangd/
 .gradle/
 .ipynb_checkpoints/
 META-INF/
 __pycache__/
+_build/
 bin/
 build/
 env/
@@ -28,7 +30,9 @@ optim
 torch
 
 # Resource
+*.avi
 *.jpg
+*.mp4
 *.png
 *.wav
 
@@ -40,6 +44,7 @@ torch
 
 # Editor
 .settings/
+.vim/
 .vscode/
 .project
 ctags
@@ -51,6 +56,7 @@ tags
 *.lock.json
 .#*
 Cargo.lock
+compile_commands.json
 
 # Specific
 api_key_gmaps.txt
