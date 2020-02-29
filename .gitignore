@@ -30,10 +30,14 @@ optim
 torch
 
 # Resource
+*.264
+*.265
 *.avi
 *.jpg
+*.mkv
 *.mp4
 *.png
+*.raw
 *.wav
 
 # Data
