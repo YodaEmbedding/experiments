@@ -10,14 +10,19 @@ def f(t):
 
 
 def make_animator(ax):
+    (line,) = ax.plot([], [])
+    ax.set_ylim(-1.1, 1.1)
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Amplitude")
+    ax.set_title("sin(t)")
+
     def animate(i):
         x, y = f(t=0.1 * i ** 1.5)
-        ax.clear()
-        ax.plot(x, y)
-        ax.set_ylim(-1.1, 1.1)
-        ax.set_xlabel("Time")
-        ax.set_ylabel("Amplitude")
-        ax.set_title("sin(t)")
+        line.set_data(x, y)
+        ax.relim()
+        ax.autoscale_view(True, True, True)
+        invalidated = [line]
+        return invalidated
 
     return animate
 
