@@ -1,11 +1,12 @@
 import subprocess
 from queue import Queue
 from threading import Thread
+from time import sleep
 import numpy as np
 
 WIDTH = 224
 HEIGHT = 224
-NUM_FRAMES = 256
+NUM_FRAMES = 32
 
 def make_frames(num_frames):
     x = np.arange(WIDTH, dtype=np.uint8)
@@ -19,9 +20,11 @@ def make_frames(num_frames):
 
 def encoder_write(writer):
     frames = make_frames(num_frames=NUM_FRAMES)
-    for frame in frames:
+    for i, frame in enumerate(frames):
+        print(f">>> Encoding {i + 1}")
         writer.write(frame.tobytes())
         writer.flush()
+        sleep(1.0)
     writer.close()
 
 def encoder_read(reader, queue):
@@ -32,7 +35,7 @@ def encoder_read(reader, queue):
             f.flush()
     queue.put(None)
 
-def decoder_write(writer, queue):
+def decoder_write(writer, queue: Queue):
     while chunk := queue.get():
         n = writer.write(chunk)
         writer.flush()
@@ -52,12 +55,49 @@ def decoder_read(reader):
             print(f"decoder_read frames_received={frames_received}")
             buffer = buffer[frame_len:]
 
-cmd = "ffmpeg -f rawvideo -pix_fmt rgb24 -s 224x224 -i pipe: -f h264 pipe:"
+cmd = (
+    "ffmpeg "
+    "-f rawvideo -pix_fmt rgb24 -s 224x224 "
+    # "-r 10 "
+    "-i pipe: "
+    "-f h264 "
+    "-tune zerolatency -intra -bf 0 "
+    # "-b:v 80k "
+    "pipe:"
+)
 encoder_process = subprocess.Popen(
     cmd.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE
 )
+# "--rc-lookahead 0"
 
-cmd = "ffmpeg -f h264 -i pipe: -f rawvideo -pix_fmt rgb24 -s 224x224 pipe:"
+# TODO I think the decoder is waiting for 0x0000001?
+# No. I think the decoder needs to fix some things like -threads 1, etc
+
+# https://web.archive.org/web/20150507012544/http://x264dev.multimedia.cx:80/archives/249
+# The total latency of x264, including encoder/decoder-side buffering, is:
+# B-frame latency (in frames) + Threading latency (in frames) + RC-lookahead
+# (in frames) + Sync-lookahead (in frames) + VBV buffer size (in seconds) +
+# Time to encode one frame (in milliseconds)
+# TODO lol include this in thesis?
+
+# https://news.ycombinator.com/item?id=16291021
+#  x264 –slice-max-size <A> –vbv-maxrate <B> –vbv-bufsize <C> –crf <D> –intra-refresh –tune zerolatency
+
+# -f mpegts + h264
+# cmd = "ffmpeg -probesize 32 -analyzeduration 0 -fflags nobuffer -fflags discardcorrupt -flags low_delay -f h264 -i pipe: -threads 1 -f rawvideo -pix_fmt rgb24 -s 224x224 pipe:"
+cmd = (
+    "ffmpeg -probesize 32 -analyzeduration 0 "
+    "-fflags nobuffer -fflags discardcorrupt "
+    "-flags low_delay "
+    "-f h264 "
+    "-i pipe: "
+    "-f rawvideo -pix_fmt rgb24 -s 224x224 "
+    "-threads 1 "
+    # "-thread_type 0 "
+    # "-thread_type slice "
+    "pipe:"
+)
+# cmd = "ffmpeg -f h264 -i pipe: -f rawvideo -pix_fmt rgb24 -s 224x224 pipe:"
 decoder_process = subprocess.Popen(
     cmd.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE
 )
