@@ -1,0 +1,67 @@
+\documentclass{article}
+
+\begin{document}
+
+\def\ifeqstr#1#2{%
+  \def\stra{#1}%
+  \def\strb{#2}%
+  \ifx\stra\strb%
+}
+
+\ifeqstr{foo}{foo}
+  foo == foo
+\else
+  foo != foo
+\fi
+
+\ifeqstr{foo}{bar}
+  foo == bar
+\else
+  foo != bar
+\fi
+
+\def\macro{inner text}
+\macro{}
+
+\def\stateenabled{enabled}
+\def\statedisabled{disabled}
+
+\def\enablestate{%
+  \let\state=\stateenabled%
+}
+\def\disablestate{%
+  \let\state=\statedisabled%
+}
+
+\def\checkstateenabled{
+  \ifx\state\stateenabled%
+    state is enabled%
+  \else%
+    state is not enabled%
+  \fi%
+}
+
+\disablestate
+\checkstateenabled
+
+\enablestate
+\checkstateenabled
+
+\newif\ifhot
+\def\checkhot{
+  \ifhot%
+    ouch! hot!%
+  \else%
+    cold... brrr...%
+  \fi%
+}
+
+\checkhot
+
+\hottrue
+\checkhot
+
+\hotfalse
+\checkhot
+
+\end{document}

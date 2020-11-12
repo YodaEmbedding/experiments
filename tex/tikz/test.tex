@@ -1,0 +1,57 @@
+\documentclass{standalone}
+
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+
+\usetikzlibrary{shapes,arrows}
+
+\begin{document}
+
+\tikzstyle{block} = [
+  rectangle,
+  draw,
+  fill=blue!20,
+  minimum height=4em,
+  rounded corners,
+  text centered,
+  text width=6.5em
+]
+
+\tikzstyle{terminal} = [
+  ellipse,
+  draw,
+  fill=blue!20,
+  minimum height=4em,
+  text centered,
+  text width=4.5em
+]
+
+\tikzstyle{line} = [draw, -latex]
+
+% TODOFIGURE can be improved (e.g. outer boxes, arrow thickness)
+\begin{tikzpicture}[node distance = 2.5cm, auto]
+  \node[terminal] (input) {Input signal};  % Should this really be a block?
+  \node[block, below of=input] (preprocess) {Preprocess};
+  \node[block, below of=preprocess] (inference_client) {Client inference};
+  \node[block, below of=inference_client] (postencoder) {Postencoder};
+  \node[block, below of=postencoder] (predecoder) {Predecoder};
+  \node[block, below of=predecoder] (inference_server) {Server inference};
+  \node[terminal, below of=inference_server] (output) {Output signal};
+
+  \path[line] (input) -- (preprocess);
+  \path[line] (preprocess) -- (inference_client);
+  \path[line] (inference_client) -- (postencoder);
+  \path[line] (postencoder) -- (predecoder);
+  \path[line] (predecoder) -- (inference_server);
+  \path[line] (inference_server) -- (output);
+\end{tikzpicture}
+
+% \begin{tikzpicture}
+%   \draw[gray, thick] (-1,2) -- (2,-4);
+%   \draw[gray, thick] (-1,-1) -- (2,2);
+%   \filldraw[black] (0,0) circle (2pt) node[anchor=west] {Intersection point};
+% \end{tikzpicture}
+
+\end{document}

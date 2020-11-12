@@ -1,0 +1,12 @@
+\documentclass{article}
+\usepackage{pdfpages}
+\usepackage{tikz}
+\usetikzlibrary{external}
+\tikzexternalize[optimize command away=\includepdf]
+
+\begin{document}
+\includepdf[pages=-]{test.pdf}
+\begin{tikzpicture}
+  \node at (0, 0) {Yay for TikZ};
+\end{tikzpicture}
+\end{document}
