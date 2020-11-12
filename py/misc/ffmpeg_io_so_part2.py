@@ -9,7 +9,7 @@ HEIGHT = 224
 NUM_FRAMES = 16
 
 def t(epoch=time()):
-    return int(time() - epoch)
+    return round(time() - epoch, 2)
 
 def make_frames(num_frames):
     x = np.arange(WIDTH, dtype=np.uint8)
@@ -28,7 +28,7 @@ def encoder_write(writer):
         writer.write(frame.tobytes())
         writer.flush()
         print(f"time={t()} frames={i + 1:<3} encoder_write")
-        sleep(2)
+        sleep(0.1)
     writer.close()
 
 def encoder_read(reader, queue):
@@ -69,9 +69,11 @@ cmd = (
     "ffmpeg "
     "-f rawvideo -pix_fmt rgb24 -s 224x224 "
     "-i pipe: "
+    "-vcodec libx264 "
+    "-f flv "
     # "-c:v libx264 "
     # "-x264-params aud=1 "
-    "-f h264 "
+    # "-f h264 "
     # "-f rtp "
     # "-f mpegts "
     # "-preset ultrafast "
@@ -95,7 +97,9 @@ cmd = (
     "ffmpeg "
     "-probesize 32 "
     "-flags low_delay "
-    "-f h264 "
+    # "-f h264 "
+    "-f flv "
+    "-vcodec h264 "
     # "-f mpegts "
     # "-f rtp "
     # "-i rtp://127.0.0.1:5678 "
