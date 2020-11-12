@@ -47,6 +47,11 @@ torch
 *.tgz
 *.tar.gz
 
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
 # Editor
 .settings/
 .vim/
