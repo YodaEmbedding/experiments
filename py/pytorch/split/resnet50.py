@@ -22,37 +22,43 @@ class SplittableResNet(ResNet):
         self._split_idx = split_idx
         self._is_client = is_client
         super().__init__(*args, **kwargs)
-
-    def _forward_impl(self, x: Tensor) -> Tensor:
-        layers = [
+        self._layers = [
             self.layer1,
             self.layer2,
             self.layer3,
             self.layer4,
         ]
 
-        if self._is_client:
-            x = self.conv1(x)
-            x = self.bn1(x)
-            x = self.relu(x)
-            x = self.maxpool(x)
-
-            for layer in layers[: self._split_idx]:
-                x = layer(x)
-
-            return x
-        else:
-            for layer in layers[self._split_idx :]:
-                x = layer(x)
-
-            x = self.avgpool(x)
-            x = torch.flatten(x, 1)
-            x = self.fc(x)
-
-            return x
-
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
+
+    def _forward_impl(self, x: Tensor) -> Tensor:
+        return (
+            self._forward_client(x)
+            if self._is_client
+            else self._forward_server(x)
+        )
+
+    def _forward_client(self, x: Tensor) -> Tensor:
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        for layer in self._layers[: self._split_idx]:
+            x = layer(x)
+
+        return x
+
+    def _forward_server(self, x: Tensor) -> Tensor:
+        for layer in self._layers[self._split_idx :]:
+            x = layer(x)
+
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.fc(x)
+
+        return x
 
 
 def _resnet(
@@ -79,7 +85,6 @@ def resnet50(
     return _resnet(
         "resnet50", Bottleneck, [3, 4, 6, 3], pretrained, progress, **kwargs
     )
-
 
 
 def main():
@@ -114,4 +119,5 @@ def main():
     print(decode_predictions(preds))
 
 
-main()
+if __name__ == "__main__":
+    main()
