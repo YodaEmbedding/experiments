@@ -13,7 +13,7 @@ def fix_title(title: str) -> str:
 def paper_to_filename(paper: dict) -> str:
     authors = paper["authors"]
     title_str = fix_title(paper["title"])
-    author_str = authors[0] if len(authors) == 0 else f"{authors[0]} et al."
+    author_str = authors[0] if len(authors) == 1 else f"{authors[0]} et al."
     filename = f"{author_str} - {title_str}"
     return filename
 
