@@ -53,9 +53,11 @@ torch
 *.sqlite3
 
 # Editor
+.ccls-cache/
 .settings/
 .vim/
 .vscode/
+.nvimlog
 .project
 ctags
 tags
@@ -64,6 +66,7 @@ tags
 **/*.rs.bk
 *.bak
 *.lock.json
+*.txt
 .#*
 Cargo.lock
 compile_commands.json
