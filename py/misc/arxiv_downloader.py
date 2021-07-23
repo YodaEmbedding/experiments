@@ -10,9 +10,9 @@ def fix_title(title: str) -> str:
     return " ".join(map(str.strip, title.split("\n")))
 
 
-def paper_to_filename(paper: dict) -> str:
-    authors = paper["authors"]
-    title_str = fix_title(paper["title"])
+def paper_to_filename(paper: arxiv.Result) -> str:
+    authors = paper.authors
+    title_str = fix_title(paper.title)
     author_str = authors[0] if len(authors) == 1 else f"{authors[0]} et al."
     filename = f"{author_str} - {title_str}"
     return filename
@@ -26,7 +26,7 @@ def parse_line(line: str):
 
 paper_ids = [parse_line(line.strip()) for line in sys.stdin.readlines()]
 paper_ids = [x for x in paper_ids if x is not None]
-papers = arxiv.query(id_list=paper_ids)
+papers = arxiv.Search(id_list=paper_ids).get()
 
 for paper, paper_id in zip(papers, paper_ids):
     basename = paper_to_filename(paper)
@@ -39,15 +39,14 @@ for paper, paper_id in zip(papers, paper_ids):
         print("[Download]")
         arxiv.download(paper, slugify=lambda _, basename=basename: basename)
     print(dst_filename)
-    print(f"url:     {paper['arxiv_url']}")
-    print(f"author:  {paper['author']}")
-    print(f"authors: {paper['authors']}")
-    print(f"title:   {paper['title']}\n")
+    print(f"url:     {paper.entry_id}")
+    print(f"authors: {list(map(str, paper.authors))}")
+    print(f"title:   {paper.title}\n")
     args = [
         "exiftool",
         dst_filename,
         "-overwrite_original",
-        f"-Author={'; '.join(paper['authors'])}",
-        f"-Title={fix_title(paper['title'])}",
+        f"-Author={'; '.join(map(str, paper.authors))}",
+        f"-Title={fix_title(paper.title)}",
     ]
     subprocess.run(args, capture_output=True, check=True)
