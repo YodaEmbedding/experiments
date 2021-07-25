@@ -15,7 +15,7 @@ def uniform_triangle(u, v):
 
 
 triangle = np.array([
-    [1, 4],
+    [1, 2],
     [3, 8],
     [7, 5],
 ])
@@ -26,6 +26,7 @@ it = uniform_triangle(
 )
 
 points = np.array(list(islice(it, 0, 1000)))
+points += triangle[0]
 
 fig, ax = plt.subplots()
 ax.scatter(points[:, 0], points[:, 1], s=1)
