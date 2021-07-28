@@ -1,0 +1,57 @@
+\documentclass[12pt]{extarticle}
+
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[
+  letterpaper, left=3.25in, right=1.25in, top=1.25in, bottom=1.25in,
+]{geometry}
+
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+\title{Research}
+\author{Mateen Ulhaq}
+\date{\today}
+
+\DeclareMathOperator{\cov}{cov}
+\DeclareMathOperator{\EV}{\mathbb{E}}
+\DeclareMathOperator{\mean}{mean}
+\DeclareMathOperator{\std}{std}
+
+\begin{document}
+
+\maketitle
+
+\begin{align*}
+  % {K_X}_{ij} =
+  \cov[X_i, X_j]
+    &= \EV[(X_i - \EV[X_i]) \cdot (X_j - \EV[X_j])] \\
+    &= \EV[B_i \cdot B_j] \\
+    &= \frac{1}{N} \sum_k {B_i^{(k)} \cdot B_j^{(k)}} \\[\baselineskip]
+  B_i
+    &= X_i - \EV[X_i] \\
+    &= X_i - \frac{1}{N} \sum_k X_i^{(k)}
+\end{align*}
+
+$X_i^{(k)}$ represents $i$th channel of $k$th sample tensor.
+
+\bigskip
+
+For "InstanceNorm" pre-normalization, we set:
+\[ X_i^{(k)} := \frac{X_i^{(k)} - \mean(X_i^{(k)})}{\std(X_i^{(k)})} \]
+
+\bigskip
+
+Decompose covariance matrix $K_X$ via:
+\[ K_X = U \Lambda U^T \]
+
+Then, compute the new channels:
+\[ X' = U^T X \]
+
+The covariance matrix $K_{X'}$ should be diagonal.
+
+\bigskip
+This process must be reversed for decoding.
+
+\end{document}
