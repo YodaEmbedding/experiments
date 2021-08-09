@@ -24,7 +24,19 @@ def parse_line(line: str):
     return m.group(1) if m is not None else None
 
 
-paper_ids = [parse_line(line.strip()) for line in sys.stdin.readlines()]
+def set_metadata(filename: str, title: str, author: str):
+    args = [
+        "exiftool",
+        filename,
+        "-overwrite_original",
+        f"-Author={author}",
+        f"-Title={title}",
+    ]
+    subprocess.run(args, capture_output=True, check=True)
+
+
+lines = sys.stdin.readlines()
+paper_ids = [parse_line(line.strip()) for line in lines]
 paper_ids = [x for x in paper_ids if x is not None]
 papers = arxiv.Search(id_list=paper_ids).get()
 
@@ -42,11 +54,8 @@ for paper, paper_id in zip(papers, paper_ids):
     print(f"url:     {paper.entry_id}")
     print(f"authors: {list(map(str, paper.authors))}")
     print(f"title:   {paper.title}\n")
-    args = [
-        "exiftool",
+    set_metadata(
         dst_filename,
-        "-overwrite_original",
-        f"-Author={'; '.join(map(str, paper.authors))}",
-        f"-Title={fix_title(paper.title)}",
-    ]
-    subprocess.run(args, capture_output=True, check=True)
+        title=fix_title(paper.title),
+        author="; ".join(map(str, paper.authors)),
+    )
