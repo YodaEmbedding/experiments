@@ -7,7 +7,9 @@ import arxiv
 
 
 def fix_title(title: str) -> str:
-    return " ".join(map(str.strip, title.split("\n")))
+    title = " ".join(map(str.strip, title.split("\n")))
+    title = title.replace(":", "_")
+    return title
 
 
 def paper_to_filename(paper: arxiv.Result) -> str:
