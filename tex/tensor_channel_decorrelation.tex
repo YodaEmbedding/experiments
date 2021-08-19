@@ -1,0 +1,71 @@
+\documentclass[12pt]{extarticle}
+
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[
+  letterpaper, left=2.25in, right=2.25in, top=1.25in, bottom=1.25in,
+]{geometry}
+
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+\title{Research}
+\author{Mateen Ulhaq}
+\date{\today}
+
+\DeclareMathOperator{\cov}{cov}
+\DeclareMathOperator{\EV}{\mathbb{E}}
+\DeclareMathOperator{\mean}{mean}
+\DeclareMathOperator{\std}{std}
+
+\begin{document}
+
+\maketitle
+
+Eigendecomposition of covariance matrix $K_{XX}$ is
+\[ K_{XX} = U \Lambda U^T. \]
+
+Decorrelated channels are then given by
+\[ X' = U^T X. \]
+
+% The covariance matrix $K_{X'X'}$ should be diagonal.
+
+\bigskip
+
+% \newcommand{\Xcen}{\tilde{X}}
+%
+% \begin{align*}
+%   {(K_{XX})}_{ij} =
+%   \cov[X_i, X_j]
+%     &= \EV[(X_i - \EV[X_i]) \cdot (X_j - \EV[X_j])] \\
+%     &= \EV[\Xcen_i \cdot \Xcen_j] \\
+%     &= \frac{1}{N} \sum_k {\Xcen_i^{(k)} \cdot \Xcen_j^{(k)}} \\[\baselineskip]
+%   \Xcen_i
+%     &= X_i - \EV[X_i] \\
+%     &= X_i - \frac{1}{N} \sum_k X_i^{(k)}
+% \end{align*}
+
+The covariance matrix is
+\begin{align*}
+  {(K_{XX})}_{ij}
+    &= \cov[X_i, X_j] \\
+    &= \EV[(X_i - \EV[X_i]) \cdot (X_j - \EV[X_j])] \\
+    &= \frac{1}{N} \sum_k {(X_i^{(k)} - \EV[X_i]) \cdot (X_j^{(k)} - \EV[X_j])},
+    % \\[\baselineskip]
+  % \text{where }
+\end{align*}
+where
+\begin{align*}
+  \EV[X_i]
+    &= \frac{1}{N} \sum_k X_i^{(k)},
+\end{align*}
+and $X_i^{(k)}$ represents $i$th channel of $k$th sample tensor.
+
+\bigskip
+
+For "InstanceNorm" pre-normalization, we set:
+\[ X_i^{(k)} := \frac{X_i^{(k)} - \mean(X_i^{(k)})}{\std(X_i^{(k)})} \]
+
+
+\end{document}
