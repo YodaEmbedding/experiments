@@ -1,4 +1,4 @@
-﻿namespace CrunchScript
+namespace CrunchScript
 {
 	public enum Operator
 	{

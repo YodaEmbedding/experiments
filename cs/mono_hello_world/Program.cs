@@ -1,4 +1,4 @@
-﻿/* See http://stackoverflow.com/documentation/c%23/15/getting-started-with-c-sharp-language/3710/creating-a-new-program-using-net-core#t=201611160828303537902
+/* See http://stackoverflow.com/documentation/c%23/15/getting-started-with-c-sharp-language/3710/creating-a-new-program-using-net-core#t=201611160828303537902
 
 	BUILD COMMANDS
 

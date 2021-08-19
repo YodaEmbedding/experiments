@@ -1,4 +1,4 @@
-﻿using CrunchScript;
+using CrunchScript;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
