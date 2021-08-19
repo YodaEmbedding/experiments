@@ -1,9 +1,9 @@
 # from bs4 import BeautifulSoup
-from urllib.request import urlopen
-from collections import namedtuple
-import re
 import math
+import re
 import time
+from collections import namedtuple
+from urllib.request import urlopen
 
 Point = namedtuple("Point", "latitude longitude")
 

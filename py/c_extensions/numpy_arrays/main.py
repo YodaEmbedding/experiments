@@ -1,6 +1,5 @@
-import numpy as np
-
 import lib
+import numpy as np
 
 x = np.arange(24, dtype=np.int64).reshape(2, 3, 4)
 # x = np.array(x, order="F")

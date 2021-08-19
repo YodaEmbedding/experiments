@@ -2,7 +2,6 @@ from itertools import groupby
 
 import numpy as np
 
-
 filename = "typing.txt"
 
 with open(filename) as f:

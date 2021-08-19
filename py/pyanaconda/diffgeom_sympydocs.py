@@ -1,7 +1,7 @@
 # http://docs.sympy.org/latest/modules/diffgeom.html
 
-from sympy import symbols, sin, cos, pi
-from sympy.diffgeom import Manifold, Patch, CoordSystem
+from sympy import cos, pi, sin, symbols
+from sympy.diffgeom import CoordSystem, Manifold, Patch
 from sympy.simplify import simplify
 
 r, theta = symbols("r, theta")

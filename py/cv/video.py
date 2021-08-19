@@ -1,5 +1,5 @@
-import numpy as np
 import cv2
+import numpy as np
 
 height = 500
 width = 700

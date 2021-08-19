@@ -3,7 +3,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import quaternion
-
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits import mplot3d
 

@@ -2,8 +2,8 @@ import sys
 import time
 import urllib.request
 from collections import namedtuple
-from xml.etree.ElementTree import parse
 from functools import reduce
+from xml.etree.ElementTree import parse
 
 
 def acquireData():

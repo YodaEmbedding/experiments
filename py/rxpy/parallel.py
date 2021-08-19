@@ -3,7 +3,7 @@ from threading import current_thread
 
 import rx
 from rx import operators as ops
-from rx.scheduler import ThreadPoolScheduler, CurrentThreadScheduler
+from rx.scheduler import CurrentThreadScheduler, ThreadPoolScheduler
 
 
 def print_thread(tag):

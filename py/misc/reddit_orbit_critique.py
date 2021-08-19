@@ -1,7 +1,8 @@
 # https://www.reddit.com/r/Python/comments/9oqlvl/i_made_this_with_python_so_proud/e7x50gu/
 
-import cairo
 import math
+
+import cairo
 
 
 class CelestialBody:

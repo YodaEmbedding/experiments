@@ -1,6 +1,6 @@
 import itertools
 from functools import reduce
-from typing import List, Callable
+from typing import Callable, List
 
 
 def generateSequence(seed, f, n):

@@ -1,6 +1,6 @@
+import argparse
 import os
 import re
-import argparse
 
 argsParser = argparse.ArgumentParser(description="pyRename")
 argsParser.add_argument(

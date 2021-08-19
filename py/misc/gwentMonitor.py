@@ -1,11 +1,12 @@
-import sys
 import re
+import sys
+
+import praw
 
 # import time
 # from selenium import webdriver
 # from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver import Chrome
-import praw
 
 # SKJ52AA282C08E5E93
 # SKJ50618268F230B08

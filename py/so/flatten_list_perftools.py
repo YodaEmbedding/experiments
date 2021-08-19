@@ -3,8 +3,9 @@
 
 import functools
 import itertools
-import numpy as np
 import operator
+
+import numpy as np
 import perfplot
 
 

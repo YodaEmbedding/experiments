@@ -4,6 +4,7 @@
 
 from os import listdir, rename
 from os.path import isfile
+
 import cv2
 import numpy as np
 

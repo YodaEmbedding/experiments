@@ -1,6 +1,6 @@
+import os
 import random
 import sys
-import os
 
 mydict = {
     "abc": 4,

@@ -1,6 +1,5 @@
+from IPython.display import Latex, display
 from sympy import *
-from IPython.display import display
-from IPython.display import Latex
 
 # init_session()
 # init_printing(use_latex=True)

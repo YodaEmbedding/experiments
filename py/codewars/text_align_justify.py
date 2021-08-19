@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # https://www.codewars.com/kata/text-align-justify
 
-from math import floor
 from itertools import chain
+from math import floor
 
 
 def justify(text, width):

@@ -2,6 +2,7 @@ import itertools
 from collections import deque
 from enum import IntFlag
 from random import randint
+
 import numpy as np
 
 Dir = IntFlag("Dir", ["N", "S", "W", "E"])

@@ -1,5 +1,5 @@
-from math import exp
 import random
+from math import exp
 
 epic_rate = 10
 legendary_rate = 20

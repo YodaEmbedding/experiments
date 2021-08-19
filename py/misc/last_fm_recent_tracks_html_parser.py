@@ -5,6 +5,7 @@ curl -L 'https://www.last.fm/user/USERNAME' | \
 """
 
 import sys
+
 from bs4 import BeautifulSoup
 
 

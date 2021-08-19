@@ -1,7 +1,7 @@
 # https://stackoverflow.com/questions/52827072/creating-a-list-of-sequences-such-that-every-distinct-pair-is-counted-a-number-o/52828286#52828286
 
-from pprint import pprint
 from collections import defaultdict
+from pprint import pprint
 
 
 def list_cycles(grammar, parent, length):

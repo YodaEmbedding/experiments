@@ -1,5 +1,5 @@
-from multiprocessing import Array, Process
 from ctypes import c_wchar
+from multiprocessing import Array, Process
 from time import sleep
 
 

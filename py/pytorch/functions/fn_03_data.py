@@ -5,10 +5,8 @@ from itertools import chain, islice, repeat
 import numpy as np
 import torch
 from torch import nn
-from torch.utils.data import Dataset, DataLoader
-
+from torch.utils.data import DataLoader, Dataset
 from utils import generate_samples
-
 
 # TODO
 # use_cuda = torch.cuda.is_available()

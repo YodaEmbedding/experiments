@@ -2,13 +2,14 @@
 # Plots:       https://imgur.com/a/fiw8Fgj
 # Inspiration: https://www.youtube.com/watch?v=ZmSyGCWo1OU
 
-from functools import reduce
-from heapq import heapify, heappushpop, _heapify_max, _heappushpop_max
-import matplotlib.pyplot as plt
-import numpy as np
 import operator
 import random
 import timeit
+from functools import reduce
+from heapq import _heapify_max, _heappushpop_max, heapify, heappushpop
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def f_simple(arr):

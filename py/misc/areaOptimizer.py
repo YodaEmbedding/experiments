@@ -1,8 +1,8 @@
 # http://math.stackexchange.com/questions/2037059/find-all-possible-integer-dimension-equiareas-inside-a-fixed-rectangle
 
 import itertools
-from typing import List
 from collections import namedtuple
+from typing import List
 
 Block = namedtuple("Block", "width height")
 Position = namedtuple("Position", "x y")

@@ -3,9 +3,9 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 from keras.applications import imagenet_utils
 from keras.preprocessing import image
+from tensorflow import keras
 
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 

@@ -1,7 +1,7 @@
 import json
 import re
+from collections import Counter, defaultdict
 from dataclasses import dataclass
-from collections import defaultdict, Counter
 from pprint import pprint
 from typing import Dict, List, Tuple
 

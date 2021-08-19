@@ -9,7 +9,6 @@ import ffmpeg
 import numpy as np
 from termcolor import colored
 
-
 WIDTH = 224
 HEIGHT = 224
 CHANNELS = 2

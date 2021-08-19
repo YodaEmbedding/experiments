@@ -1,7 +1,7 @@
 # https://stackoverflow.com/questions/52350774/fourier-transform-using-numpy/52351218#52351218
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.stats import norm
 
 

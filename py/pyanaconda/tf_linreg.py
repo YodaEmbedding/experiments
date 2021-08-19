@@ -1,9 +1,10 @@
 # https://blog.altoros.com/using-linear-regression-in-tensorflow.html
 
 import sys
+
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
 
 def normalize(array):

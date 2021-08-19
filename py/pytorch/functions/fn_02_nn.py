@@ -3,7 +3,6 @@ from itertools import islice
 
 import torch
 from torch import nn
-
 from utils import generate_samples
 
 torch.manual_seed(0)

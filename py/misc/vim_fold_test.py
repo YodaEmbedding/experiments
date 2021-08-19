@@ -6,8 +6,7 @@ from pprint import pprint
 from ast_ import AbsNode, AppNode, IdNode
 from lexer import tokenize
 from parser_ import parse
-from x import y, this_should_be_inside_the_import_fold
-from x import z
+from x import this_should_be_inside_the_import_fold, y, z
 
 if True:
     pass
@@ -43,7 +42,6 @@ def docstrings(root):
 
     multiline string"""
 
-    from x import y
     from x import y
 
     while isinstance(root, AppNode):

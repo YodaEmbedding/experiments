@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import os, sys
+import os
+import sys
 
 with open("txt_smile.txt") as f:
     lines = f.read().splitlines()

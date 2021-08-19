@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import socket
 import itertools
+import socket
 
 IP = "0.0.0.0"
 PORT = 5678

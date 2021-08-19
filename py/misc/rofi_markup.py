@@ -2,7 +2,6 @@ import argparse
 import re
 import sys
 
-
 replacements = [
     ("&", "&amp;"),
     ("<!--", "<!&#45;&#45;"),

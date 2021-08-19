@@ -2,8 +2,7 @@
 
 import numpy
 import scipy
-from sympy.diffgeom import Manifold, Patch, CoordSystem
-
+from sympy.diffgeom import CoordSystem, Manifold, Patch
 
 m = Manifold("my_manifold", 2)  # A 2D manifold called 'my_manifold'
 p = Patch("my_patch", m)  # A patch called 'my_patch'

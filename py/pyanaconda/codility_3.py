@@ -3,7 +3,7 @@
 # from collections import namedtuple
 # Vector = namedtuple('Vector', ['x', 'y'])
 
-from math import sqrt, atan2, cos, sin
+from math import atan2, cos, sin, sqrt
 
 
 class Vector:

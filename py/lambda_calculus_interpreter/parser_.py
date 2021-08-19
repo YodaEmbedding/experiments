@@ -1,5 +1,5 @@
 from ast_ import AbsNode, AppNode, IdNode
-from lexer import tokenize, Token
+from lexer import Token, tokenize
 
 # Grammar
 # term ::= app | LAMBDA ID DOT term
