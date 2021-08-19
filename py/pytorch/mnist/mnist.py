@@ -11,6 +11,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 
+
 class Net(nn.Module):
     def __init__(self):
         super().__init__()
@@ -33,6 +34,7 @@ class Net(nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
+
 class LabelledDataset(torch.utils.data.Dataset):
     def __init__(self, data, labels):
         self.data = data
@@ -45,21 +47,25 @@ class LabelledDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         return self.data[idx], self.labels[idx]
 
+
 def one_hot_encode(x, length):
     n = x.shape[0]
     arr = np.zeros((n, length), dtype=np.float32)
     arr[np.arange(n), x] = 1.0
     return arr
 
+
 def load(filename):
     df = pd.read_csv(filename)
-    data = (df.drop(labels=["label"], axis=1)
-        .values
-        .reshape(-1, 1, 28, 28)
-        .astype(dtype=np.float32)) / 255.0
+    data = (
+        df.drop(labels=["label"], axis=1)
+        .values.reshape(-1, 1, 28, 28)
+        .astype(dtype=np.float32)
+    ) / 255.0
     labels = df["label"]
     # labels = one_hot_encode(labels, 10)
     return data, labels
+
 
 def train(model, device, loader, optimizer):
     model.train()  # TODO what does this do? what does the following do?
@@ -76,18 +82,30 @@ def train(model, device, loader, optimizer):
 
     return total_loss / (batch_idx + 1)
 
+
 def main():
-    data, labels = load('train.csv')
+    data, labels = load("train.csv")
     dataset = LabelledDataset(data, labels)
     train_len = int(0.80 * len(dataset))
-    validation_len  = len(dataset) - train_len
-    train_dataset, validation_dataset = torch.utils.data.random_split(dataset,
-        [train_len, validation_len])
+    validation_len = len(dataset) - train_len
+    train_dataset, validation_dataset = torch.utils.data.random_split(
+        dataset, [train_len, validation_len]
+    )
 
-    train_loader = torch.utils.data.DataLoader(train_dataset,
-        batch_size=64, shuffle=True, num_workers=2, pin_memory=True)
-    validation_loader = torch.utils.data.DataLoader(validation_dataset,
-        batch_size=64, shuffle=True, num_workers=2, pin_memory=True)
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset,
+        batch_size=64,
+        shuffle=True,
+        num_workers=2,
+        pin_memory=True,
+    )
+    validation_loader = torch.utils.data.DataLoader(
+        validation_dataset,
+        batch_size=64,
+        shuffle=True,
+        num_workers=2,
+        pin_memory=True,
+    )
 
     device = torch.device("cuda")
     model = Net().to(device)
@@ -98,14 +116,15 @@ def main():
     threading.Thread(target=lambda q: q.append(input()), args=(queue,)).start()
 
     for epoch in itertools.count():
-        print(f'Epoch: {epoch}  ', end='')
+        print(f"Epoch: {epoch}  ", end="")
         loss = train(model, device, train_loader, optimizer)
-        print(f'Loss: {loss:.4f}')
+        print(f"Loss: {loss:.4f}")
 
         if len(queue) > 0:
             break
 
-    torch.save(model.state_dict(), 'checkpoint.pt')
+    torch.save(model.state_dict(), "checkpoint.pt")
+
 
 if __name__ == "__main__":
     main()

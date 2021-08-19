@@ -15,8 +15,7 @@ def top1_accuracy() -> float:
 
 
 if __name__ == "__main__":
-
-
+    pass
 
     # for i, (x, label) in enumerate(generate_samples(seed=0)):
     #     if i == 3000:

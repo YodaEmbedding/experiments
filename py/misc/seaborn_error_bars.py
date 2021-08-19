@@ -14,7 +14,7 @@ x = np.repeat(np.linspace(0, 10, 100), 16)
 err = np.random.normal(0.1, 1.0, x.size)
 truth = np.sin(x)
 signal = truth + err
-data = pd.DataFrame({ "x": x, "signal": signal, "truth": truth })
+data = pd.DataFrame({"x": x, "signal": signal, "truth": truth})
 
 print(np.mean(err))
 print(np.std(err))

@@ -1,13 +1,16 @@
 import re
 from collections import defaultdict
 
+
 def open_tag_as_str(tag):
-    m = re.match(r'^<(\w+)>$', tag)
+    m = re.match(r"^<(\w+)>$", tag)
     return None if m is None else m.group(1)
 
+
 def close_tag_as_str(tag):
-    m = re.match(r'^</(\w+)>$', tag)
+    m = re.match(r"^</(\w+)>$", tag)
     return None if m is None else m.group(1)
+
 
 def remove_adjacent_tags(tags):
     def closes(a, b):
@@ -25,6 +28,7 @@ def remove_adjacent_tags(tags):
             skip = True
         else:
             yield tags[i]
+
 
 # # Nevermind... this function does not meet up to OP's strange requirements
 # def remove_adjacent_tags(tags):
@@ -59,6 +63,6 @@ def remove_adjacent_tags(tags):
 #             yield tag
 #             ...
 
-boo = ['<a>', '<b>', '<c>', '</c>', '</b>', '</a>']
+boo = ["<a>", "<b>", "<c>", "</c>", "</b>", "</a>"]
 boo = list(remove_adjacent_tags(boo))
 print(boo)

@@ -1,7 +1,8 @@
 from lark import Lark
 
 # NOTE This doesn't properly handle right-assosciative expressions like "4^5^6"
-parser = Lark('''
+parser = Lark(
+    """
     ?sum: product
         | sum "+" product       -> add
         | sum "-" product       -> sub
@@ -21,8 +22,10 @@ parser = Lark('''
 
     %import common.NUMBER
     %import common.WS
-    %ignore WS''', start='sum')
+    %ignore WS""",
+    start="sum",
+)
 
-s = '4 * 2 ^ 3 + 4 ^ 1'
+s = "4 * 2 ^ 3 + 4 ^ 1"
 tree = parser.parse(s)
 print(tree.pretty())

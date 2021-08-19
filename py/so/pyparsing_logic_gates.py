@@ -1,20 +1,25 @@
 import json
 import pyparsing as pp
 
+
 def parse_id(s, locs, tokens):
-    opand, = tokens
+    (opand,) = tokens
     return int(opand)
+
 
 def parse_call(s, locs, tokens):
     type_, _dash, id_, args = tokens
     return {"type": type_, "id": id_, "i": list(args)}
 
+
 def parse_args(s, locs, tokens):
     return tokens[::2]
 
+
 def parse_root(s, locs, tokens):
-    root, = tokens
+    (root,) = tokens
     return root
+
 
 def make_parser():
     LPAR, RPAR = map(pp.Suppress, "()")
@@ -34,6 +39,7 @@ def make_parser():
     root.setParseAction(parse_root)
 
     return root
+
 
 def main():
     test = """[
@@ -63,5 +69,6 @@ def main():
     parser = make_parser()
     result = parser.parseString(test)[:]
     print(json.dumps(result, indent=4))
+
 
 main()

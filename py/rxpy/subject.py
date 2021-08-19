@@ -1,6 +1,7 @@
 import rx
 import rx.subject
 
+
 def test_subject(subject):
     disposable = subject.subscribe(print)
     subject.on_next("Hello, world!")

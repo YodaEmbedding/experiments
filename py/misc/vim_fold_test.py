@@ -6,9 +6,7 @@ from pprint import pprint
 from ast_ import AbsNode, AppNode, IdNode
 from lexer import tokenize
 from parser_ import parse
-from x import (
-    y,
-this_should_be_inside_the_import_fold)
+from x import y, this_should_be_inside_the_import_fold
 from x import z
 
 if True:
@@ -19,6 +17,7 @@ if True:
 if True:
     pass
 
+
 class Foo:
     def __init__(self):
         def foo():
@@ -27,6 +26,7 @@ class Foo:
         def foo():
             def bar():
                 pass
+
             pass
             pass
 
@@ -35,12 +35,13 @@ class Foo:
     def foo(self):
         pass
 
+
 # This should not be folded
 # This should not be folded
 def docstrings(root):
-    '''what
+    """what
 
-    multiline string'''
+    multiline string"""
 
     from x import y
     from x import y
@@ -49,14 +50,22 @@ def docstrings(root):
         if True:
             break
 
-    '''this shouldn't be collapsed'''
+    """this shouldn't be collapsed"""
 
     return root
+
 
 if __name__ == "__main__":
     __main()
 
-def test(): pass
-def test(): pass
+
+def test():
+    pass
+
+
+def test():
+    pass
+
+
 def test():
     pass

@@ -4,25 +4,25 @@ from sympy import symbols, sin, cos, pi
 from sympy.diffgeom import Manifold, Patch, CoordSystem
 from sympy.simplify import simplify
 
-r, theta = symbols('r, theta')
+r, theta = symbols("r, theta")
 
-m = Manifold('M', 2)
-patch = Patch('P', m)
+m = Manifold("M", 2)
+patch = Patch("P", m)
 
-rect = CoordSystem('rect', patch)
-polar = CoordSystem('polar', patch)
+rect = CoordSystem("rect", patch)
+polar = CoordSystem("polar", patch)
 
 print(rect in patch.coord_systems)
 
-polar.connect_to(rect, [r, theta], [r*cos(theta), r*sin(theta)])
+polar.connect_to(rect, [r, theta], [r * cos(theta), r * sin(theta)])
 
 print(polar.coord_tuple_transform_to(rect, [0, 2]))
-print(polar.coord_tuple_transform_to(rect, [2, pi/2]))
+print(polar.coord_tuple_transform_to(rect, [2, pi / 2]))
 print(rect.coord_tuple_transform_to(polar, [1, 1]).applyfunc(simplify))
 
 print(polar.jacobian(rect, [r, theta]))
 
-p = polar.point([1, 3*pi/4])
+p = polar.point([1, 3 * pi / 4])
 print(rect.point_to_coords(p))
 print(rect.coord_function(0)(p))
 print(rect.coord_function(1)(p))
@@ -41,9 +41,6 @@ print(dx(v_x))
 # ????
 
 # Skipped some stuff...
-
-
-
 
 
 # Tensor products

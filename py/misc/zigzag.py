@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def zigzag(h, w):
     zz = np.empty(h * w, dtype=np.int64)
     x, y = 0, 0
@@ -30,6 +31,7 @@ def zigzag(h, w):
                 state = 0
     return zz
 
+
 def main():
     h, w = 8, 8
     c = 3
@@ -39,5 +41,6 @@ def main():
     print(np.arange(h * w)[zz_inv].reshape(h, w))
     # print(np.broadcast_to(np.argsort(zz)[:, np.newaxis], (h * w, c))[zz])
     # print(np.arange(h * w)[zz_inv].reshape(h, w))
+
 
 main()

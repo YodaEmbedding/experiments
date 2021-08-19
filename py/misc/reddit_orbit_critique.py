@@ -3,6 +3,7 @@
 import cairo
 import math
 
+
 class CelestialBody:
     def __init__(self, radius, orbit_radius, orbit_center, fill):
         self.radius = radius
@@ -19,7 +20,8 @@ class CelestialBody:
 
         self.center = (
             self.orbit_center[0] + self.orbit_radius * math.cos(self.phase),
-            self.orbit_center[1] + self.orbit_radius * math.sin(self.phase))
+            self.orbit_center[1] + self.orbit_radius * math.sin(self.phase),
+        )
 
     def draw(self, context):
         context.set_source_rgb(1, 1, 1)
@@ -32,10 +34,12 @@ class CelestialBody:
     def bind_body(self, body):
         self.parent_body = body
 
+
 def clear_screen(context):
     context.set_source_rgb(0, 0, 0)
     context.rectangle(0, 0, 1000, 1000)
     context.fill()
+
 
 surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1000, 1000)
 context = cairo.Context(surface)
@@ -43,22 +47,23 @@ context = cairo.Context(surface)
 FRAME_COUNT = 100
 
 bodies = {
-    'blackhole': CelestialBody(125, 0,   (500, 500), False),
-    'planet':    CelestialBody(25,  300, (500, 500), True),
-    'moon':      CelestialBody(5,   50,  (750, 500), False) }
+    "blackhole": CelestialBody(125, 0, (500, 500), False),
+    "planet": CelestialBody(25, 300, (500, 500), True),
+    "moon": CelestialBody(5, 50, (750, 500), False),
+}
 
-bodies['planet'].bind_body(bodies['blackhole'])
-bodies['moon']  .bind_body(bodies['planet'])
+bodies["planet"].bind_body(bodies["blackhole"])
+bodies["moon"].bind_body(bodies["planet"])
 
 for i in range(FRAME_COUNT):
     clear_screen(context)
 
-    bodies['planet'].phase = i * 2 * math.pi / FRAME_COUNT
-    bodies['moon'].phase   = i * 4 * math.pi / FRAME_COUNT
+    bodies["planet"].phase = i * 2 * math.pi / FRAME_COUNT
+    bodies["moon"].phase = i * 4 * math.pi / FRAME_COUNT
 
     for _, body in bodies.items():
         body.update()
         body.draw(context)
 
     context.stroke()
-    surface.write_to_png(f'out/frame{i}.png')
+    surface.write_to_png(f"out/frame{i}.png")

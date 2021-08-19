@@ -10,6 +10,7 @@ from rx.scheduler import ThreadPoolScheduler
 def print_thread(tag):
     def inner(x):
         print(tag, x, current_thread().name)
+
     return inner
 
 

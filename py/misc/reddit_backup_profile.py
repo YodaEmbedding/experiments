@@ -1,11 +1,14 @@
 import json
 import praw
 
+
 def is_primitive(x):
     return x is None or any(isinstance(x, t) for t in [bool, str, int, float])
 
+
 def serialize_primitives(d):
     return {k: v for k, v in d.items() if is_primitive(v)}
+
 
 def main():
     USER = "muntoo"
@@ -23,5 +26,6 @@ def main():
     data = [serialize_primitives(x.__dict__) for x in submissions]
     with open("reddit_submissions.json", "w") as f:
         json.dump(data, f)
+
 
 main()

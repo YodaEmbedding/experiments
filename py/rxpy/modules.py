@@ -40,8 +40,10 @@ class Module:
         else:
             observable = rx.zip(*inputs)
         return observable
+
     # return observable.pipe(ops.map(), ops.publish())
     # result.connect
+
 
 # frames.subscribe(print)
 

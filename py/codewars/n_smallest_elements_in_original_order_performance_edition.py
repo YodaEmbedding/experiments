@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def performant_smallest(arr, n):
     if n == 0:
         return []

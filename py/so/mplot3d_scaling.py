@@ -4,14 +4,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 
+
 def set_axes_equal(ax):
-    '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
+    """Make axes of 3D plot have equal scale so that spheres appear as spheres,
     cubes as cubes, etc..  This is one possible solution to Matplotlib's
     ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
 
     Input
       ax: a matplotlib axis, e.g., as output from plt.gca().
-    '''
+    """
 
     x_limits = ax.get_xlim3d()
     y_limits = ax.get_ylim3d()
@@ -32,36 +33,26 @@ def set_axes_equal(ax):
     ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
+
 origin = np.array([[0, 0, 0]])
 
-square = np.array([
-    [1,  1,  1],
-    [1, -1,  1],
-    [1, -1, -1],
-    [1,  1, -1],
-    [1,  1,  1]])
+square = np.array([[1, 1, 1], [1, -1, 1], [1, -1, -1], [1, 1, -1], [1, 1, 1]])
 
 r = 1.41421356237309
-rotated = np.array([
-    [1,  0,  r],
-    [1, -r,  0],
-    [1,  0, -r],
-    [1,  r,  0],
-    [1,  0,  r]])
+rotated = np.array([[1, 0, r], [1, -r, 0], [1, 0, -r], [1, r, 0], [1, 0, r]])
 
 fig = plt.figure()
-ax = plt.axes(projection='3d')
-ax.set_aspect('equal')  # NOTE important!
-ax.view_init(elev=0., azim=0.)
+ax = plt.axes(projection="3d")
+ax.set_aspect("equal")  # NOTE important!
+ax.view_init(elev=0.0, azim=0.0)
 
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.set_zlabel('z')
+ax.set_xlabel("x")
+ax.set_ylabel("y")
+ax.set_zlabel("z")
 
-ax.scatter3D(*tuple(origin.T),  color="red")
-ax.plot3D(   *tuple(square.T),  color='purple')
-ax.plot3D(   *tuple(rotated.T), color='blue')
+ax.scatter3D(*tuple(origin.T), color="red")
+ax.plot3D(*tuple(square.T), color="purple")
+ax.plot3D(*tuple(rotated.T), color="blue")
 set_axes_equal(ax)  # NOTE important!
 
 plt.show()
-

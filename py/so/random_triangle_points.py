@@ -14,11 +14,13 @@ def uniform_triangle(u, v):
         yield p
 
 
-triangle = np.array([
-    [1, 2],
-    [3, 8],
-    [7, 5],
-])
+triangle = np.array(
+    [
+        [1, 2],
+        [3, 8],
+        [7, 5],
+    ]
+)
 
 it = uniform_triangle(
     triangle[1] - triangle[0],

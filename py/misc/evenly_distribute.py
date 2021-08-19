@@ -8,11 +8,14 @@ from functools import reduce
 from itertools import chain, count, islice
 
 import numpy as np
+
 # from sympy import factorint
 # from toolz import identity
 
+
 def distribute_identity(arr):
     return np.array(arr)
+
 
 def distribute_random(arr, attempts=16):
     arr = np.array(arr)
@@ -26,6 +29,7 @@ def distribute_random(arr, attempts=16):
             best_loss = curr_loss
     return best
 
+
 def distribute_random_anneal(arr):
     n = len(arr)
     temperature = 1.0
@@ -36,7 +40,7 @@ def distribute_random_anneal(arr):
     while shuffle_size > 1:
         arr_prev = arr.copy()
         offset = random.randint(0, n - shuffle_size)
-        np.random.shuffle(arr[offset:offset+shuffle_size])
+        np.random.shuffle(arr[offset : offset + shuffle_size])
         curr_loss = _distribute_loss(arr)
         if curr_loss < best_loss:
             best = arr.copy()
@@ -46,6 +50,7 @@ def distribute_random_anneal(arr):
         temperature *= 0.999
         shuffle_size = int(temperature * n)
     return best
+
 
 def distribute_compress(arr):
     n = len(arr)
@@ -70,10 +75,12 @@ def distribute_compress(arr):
 
     return np.array(compressed)
 
+
 # TODO
 def distribute_repulsion(arr):
     arr = distribute_random(arr)
     return arr
+
 
 def distribute_prime_mod(arr):
     n = len(arr)
@@ -86,6 +93,7 @@ def distribute_prime_mod(arr):
     indexes = (np.arange(n) * prime) % n
     assert n == len(set(indexes))
     return arr[indexes]
+
 
 def distribute_old(arr, stride=None):
     def _new_calendar_order(length, stride):
@@ -104,47 +112,57 @@ def distribute_old(arr, stride=None):
     assert n == len(set(indexes))
     return arr[indexes]
 
-def distribute(arr, method='identity'):
+
+def distribute(arr, method="identity"):
     return distribute.methods[method](arr)
 
+
 distribute.methods = {
-    'identity': distribute_identity,
-    'random': distribute_random,
-    'compress': distribute_compress,
-    'random_anneal': distribute_random_anneal,
+    "identity": distribute_identity,
+    "random": distribute_random,
+    "compress": distribute_compress,
+    "random_anneal": distribute_random_anneal,
     # 'repulsion': distribute_repulsion,
-    'prime_mod': distribute_prime_mod,
-    'old': distribute_old,
-    }
+    "prime_mod": distribute_prime_mod,
+    "old": distribute_old,
+}
+
 
 def _is_prime(n):
     return all(n % x for x in range(3, int(math.sqrt(n)) + 1, 2))
+
+
 _primes_it = (x for x in chain([2], count(3, 2)) if _is_prime(x))
 _primes = list(islice(_primes_it, 0, 128))
+
 
 def _prime_factors(n):
     # return set(factorint(n).keys())
     return set(x for x in _primes if n % x == 0)
 
+
 def _unique(arr):
     sort_indexes = np.argsort(arr)
     arr = np.asarray(arr)[sort_indexes]
-    vals, first_indexes, inverse, counts = np.unique(arr,
-        return_index=True, return_inverse=True, return_counts=True)
+    vals, first_indexes, inverse, counts = np.unique(
+        arr, return_index=True, return_inverse=True, return_counts=True
+    )
     indexes = np.split(sort_indexes, first_indexes[1:])
     for x in indexes:
         x.sort()
     return vals, indexes, inverse, counts
+
 
 def _get_distances(arr):
     arr = np.asarray(arr)
     dists = np.empty((*arr.shape, 2), dtype=np.int64)
     stats = _get_stats(arr)
     for dists, idxs in stats.values():
-         dists[idxs[1:], 0] = dists[:-1]
-         dists[idxs[0],  0] = dists[-1]
-         dists[idxs,     1] = dists
+        dists[idxs[1:], 0] = dists[:-1]
+        dists[idxs[0], 0] = dists[-1]
+        dists[idxs, 1] = dists
     return dists
+
 
 def _get_stats(arr):
     arr = np.asarray(arr)
@@ -157,19 +175,21 @@ def _get_stats(arr):
         stats[val] = dists, idxs
     return stats
 
+
 def _distributivity(arr):
     arr = np.asarray(arr)
-    loss     = _distribute_loss(arr)
+    loss = _distribute_loss(arr)
     baseline = _distribute_loss(np.sort(arr))
     x = baseline - loss
-    return x / baseline if baseline > 0 else 1.
+    return x / baseline if baseline > 0 else 1.0
+
 
 def _distribute_loss(arr, debug=False):
     def _loss(dists):
         avg = n / dists.shape[-1]
         d = dists - avg
         d = d[d < 0]
-        return np.sum(d**2)
+        return np.sum(d ** 2)
 
     arr = np.asarray(arr)
     n = arr.shape[-1]
@@ -177,28 +197,38 @@ def _distribute_loss(arr, debug=False):
     costs = {k: _loss(d) for k, (d, i) in stats.items()}
 
     if debug:
-        print('\n'.join('{:>3}: {:.3f}'.format(k, v) for k, v in costs.items()))
+        print(
+            "\n".join("{:>3}: {:.3f}".format(k, v) for k, v in costs.items())
+        )
 
     return sum(v for k, v in costs.items()) / n if n != 0 else 0
+
 
 def _test_case_from_counts(counts):
     lists = ([i] * c for i, c in enumerate(counts))
     return np.array(reduce(operator.iadd, lists))
 
-test_cases = list(map(_test_case_from_counts, [
-    (5, 1),
-    (4, 2),
-    (3, 3),
-    (3, 2, 1),
-    (3, 2, 2),
-    (3, 2, 2, 1),
-    (3, 2, 2, 1, 1),
-    (4, 4, 2, 2),
-    (5, 4, 2, 2),
-    (8, 4),
-    (8, 4, 2),
-    (80, 40),
-    (80, 40, 20) ]))
+
+test_cases = list(
+    map(
+        _test_case_from_counts,
+        [
+            (5, 1),
+            (4, 2),
+            (3, 3),
+            (3, 2, 1),
+            (3, 2, 2),
+            (3, 2, 2, 1),
+            (3, 2, 2, 1, 1),
+            (4, 4, 2, 2),
+            (5, 4, 2, 2),
+            (8, 4),
+            (8, 4, 2),
+            (80, 40),
+            (80, 40, 20),
+        ],
+    )
+)
 
 for arr in test_cases:
     for method in distribute.methods:
@@ -207,17 +237,19 @@ for arr in test_cases:
             arr_dist = distribute(arr, method=method)
             dt = time.time() - t0
         except Exception as e:
-            print(f'{method: <16} exception occurred')
+            print(f"{method: <16} exception occurred")
             print(e)
-            print('')
+            print("")
         else:
             cost = _distribute_loss(arr_dist)
             dstrb = _distributivity(arr_dist)
             print(arr_dist)
-            print(f'{method: <16} loss: {int(cost):<6} dstrb: {f"{dstrb:.3f}":<8} time: {dt:.6f}')
-            print('')
-    print('--------')
-    print('')
+            print(
+                f'{method: <16} loss: {int(cost):<6} dstrb: {f"{dstrb:.3f}":<8} time: {dt:.6f}'
+            )
+            print("")
+    print("--------")
+    print("")
 
 # try random solutions?
 # or anneal the random solutions, minimizing cost by looking at subpartitions?

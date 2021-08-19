@@ -28,8 +28,7 @@ def ffmpeg_encoder_process(in_filename, out_filename, width, height):
             s=f"{width}x{height}",
             framerate=10,
             #
-        )
-        .output(
+        ).output(
             out_filename,
             format="h264",
             # format="yuv4mpegpipe", # TODO errr this doesn't compress h264...

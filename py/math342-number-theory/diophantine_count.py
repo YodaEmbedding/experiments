@@ -22,13 +22,14 @@ def diophantine_count(a, n):
         if j == 0:
             return int(m == 0)
         else:
-            return sum([p(a[1:], m - k * a[0], j - 1)
-                        for k in range(1 + m // a[0])])
+            return sum(
+                [p(a[1:], m - k * a[0], j - 1) for k in range(1 + m // a[0])]
+            )
 
     return p(a, n, len(a))
+
 
 print(diophantine_count([25], 100))
 print(diophantine_count([25, 10], 100))
 print(diophantine_count([25, 10, 5], 100))
 print(diophantine_count([25, 10, 5, 1], 100))
-

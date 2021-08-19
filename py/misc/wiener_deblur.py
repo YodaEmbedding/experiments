@@ -17,17 +17,19 @@ plt.imshow(img)
 
 # %%
 
+
 def gaussian_kernel(size, sigma, normalised=False):
-    '''
+    """
     Generates a n x n matrix with a centered gaussian
     of standard deviation std centered on it. If normalised,
     its volume equals 1.
-    '''
+    """
     gaussian1D = signal.gaussian(size, sigma)
     gaussian2D = np.outer(gaussian1D, gaussian1D)
     if normalised:
-        gaussian2D /= (2*np.pi*(sigma**2))
+        gaussian2D /= 2 * np.pi * (sigma ** 2)
     return gaussian2D
+
 
 # %%
 
@@ -41,5 +43,5 @@ size = int(sigma * 3)
 psf = gaussian_kernel(size=size, sigma=sigma)
 
 # result = restoration.wiener(img, psf, 1100)
-result, _ = restoration.unsupervised_wiener(img / 255., psf)
+result, _ = restoration.unsupervised_wiener(img / 255.0, psf)
 plt.imshow(result)

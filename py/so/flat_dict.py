@@ -3,8 +3,8 @@
 # https://stackoverflow.com/questions/50287479/sort-nested-dictionary-across-multiple-keys#50288131
 
 df = {
-    ("A",): {"a": {"a1": 0.5, "a2": 0.2, "a3":1.0}},
-    #("B",): {"b1": 0.8, "b2": 0.4}
+    ("A",): {"a": {"a1": 0.5, "a2": 0.2, "a3": 1.0}},
+    # ("B",): {"b1": 0.8, "b2": 0.4}
 }
 
 # def flatten(d):
@@ -14,7 +14,7 @@ df = {
 #     return [([k, k_], v_) for k, v in d.items() for k_, v_ in v.items()]
 
 
-#def flatten(d):
+# def flatten(d):
 #    def flat(k, v):
 #    #return flatten(v) if isinstance(v, dict) else [(k, v)]
 #    if isinstance(v, dict):
@@ -24,7 +24,7 @@ df = {
 #    return flatten(v) if isinstance(v, dict) else [(k, v)]
 #    #def _join(
 
-#    flat(v) for k, v in 
+#    flat(v) for k, v in
 
 # def f(v):
 #     if !isinstance(v, dict):
@@ -32,8 +32,8 @@ df = {
 
 #     [(*acc, k_, f(v_)) for k_, v_ in v.items]
 
-#     k_, v_ = f(acc, 
-    #return 
+#     k_, v_ = f(acc,
+# return
 
 # for k, v in d.items():
 #     if isinstance(v, dict):
@@ -50,7 +50,7 @@ df = {
 # print(f(df))
 
 # print([flatten(v) for k, v in df.items()])
-#print(flatten(df[("A",)]))
+# print(flatten(df[("A",)]))
 
 # def flatten(d):
 #     print(d)
@@ -94,8 +94,10 @@ def flatten_dict(d_in, d_out, parent_key):
             d_out[parent_key + (k,)] = v
 
 
-df = {("A",): {"a": {"a1": 0.5, "a2": 0.2, "a3":1.0}},
-    ("B",): {"b1": 0.8, "b2": 0.4}}
+df = {
+    ("A",): {"a": {"a1": 0.5, "a2": 0.2, "a3": 1.0}},
+    ("B",): {"b1": 0.8, "b2": 0.4},
+}
 
 d_out = {}
 
@@ -106,4 +108,3 @@ print(d_out)
 for key, value in sorted(d_out.items(), key=lambda x: x[1]):
     print(key)
     print(value)
-

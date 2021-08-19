@@ -9,7 +9,8 @@ class CyclicIterable:
     def __next__(self):
         yield from self.__iter__()
 
-cycle = CyclicIterable(['a', 'b', 'c', 'd'])
+
+cycle = CyclicIterable(["a", "b", "c", "d"])
 for i, x in zip(range(5), cycle):
     print(x)
 

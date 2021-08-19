@@ -8,8 +8,10 @@ WIDTH = 224
 HEIGHT = 224
 NUM_FRAMES = 16
 
+
 def t(epoch=time()):
     return round(time() - epoch, 2)
+
 
 def make_frames(num_frames):
     x = np.arange(WIDTH, dtype=np.uint8)
@@ -21,6 +23,7 @@ def make_frames(num_frames):
     x *= scale
     return x
 
+
 def encoder_write(writer):
     """Feeds encoder frames to encode"""
     frames = make_frames(num_frames=NUM_FRAMES)
@@ -30,6 +33,7 @@ def encoder_write(writer):
         print(f"time={t()} frames={i + 1:<3} encoder_write")
         sleep(0.1)
     writer.close()
+
 
 def encoder_read(reader, queue):
     """Puts chunks of encoded bytes into queue"""
@@ -41,6 +45,7 @@ def encoder_read(reader, queue):
             print(f"time={t()} chunk={len(chunk):<4} encoder_read")
     queue.put(None)
 
+
 def decoder_write(writer, queue):
     """Feeds decoder bytes to decode"""
     while chunk := queue.get():
@@ -48,6 +53,7 @@ def decoder_write(writer, queue):
         writer.flush()
         print(f"time={t()} chunk={len(chunk):<4} decoder_write")
     writer.close()
+
 
 def decoder_read(reader):
     """Retrieves decoded frames"""
@@ -60,10 +66,11 @@ def decoder_read(reader):
         while len(buffer) >= frame_len:
             frame = np.frombuffer(buffer[:frame_len], dtype=np.uint8)
             frame = frame.reshape(HEIGHT, WIDTH, 3)
-            psnr = 10 * np.log10(255**2 / np.mean((frame - targets[i])**2))
+            psnr = 10 * np.log10(255 ** 2 / np.mean((frame - targets[i]) ** 2))
             buffer = buffer[frame_len:]
             i += 1
             print(f"time={t()} frames={i:<3} decoder_read  psnr={psnr:.1f}")
+
 
 cmd = (
     "ffmpeg "
@@ -115,10 +122,22 @@ decoder_process = subprocess.Popen(
 queue = Queue()
 
 threads = [
-    Thread(target=encoder_write, args=(encoder_process.stdin,),),
-    Thread(target=encoder_read, args=(encoder_process.stdout, queue),),
-    Thread(target=decoder_write, args=(decoder_process.stdin, queue),),
-    Thread(target=decoder_read, args=(decoder_process.stdout,),),
+    Thread(
+        target=encoder_write,
+        args=(encoder_process.stdin,),
+    ),
+    Thread(
+        target=encoder_read,
+        args=(encoder_process.stdout, queue),
+    ),
+    Thread(
+        target=decoder_write,
+        args=(decoder_process.stdin, queue),
+    ),
+    Thread(
+        target=decoder_read,
+        args=(decoder_process.stdout,),
+    ),
 ]
 
 for thread in threads:

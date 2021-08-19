@@ -1,12 +1,14 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class AppNode:
     lhs: object
     rhs: object
 
     def __str__(self):
-        return f'{self.lhs} {self.rhs}'
+        return f"{self.lhs} {self.rhs}"
+
 
 @dataclass
 class AbsNode:
@@ -14,7 +16,8 @@ class AbsNode:
     body: object
 
     def __str__(self):
-        return f'(λ{self.name}.{self.body})'
+        return f"(λ{self.name}.{self.body})"
+
 
 @dataclass
 class IdNode:

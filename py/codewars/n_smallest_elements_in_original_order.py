@@ -4,6 +4,7 @@
 import heapq
 import operator
 
+
 def first_n_smallest(arr, n):
     pairs = zip(arr, range(0, len(arr)))
     h = heapq.nsmallest(n, pairs)

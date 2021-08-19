@@ -22,5 +22,3 @@ shuffled_words = [words[i] for i in idx]
 shuffled_words = [k for k, g in groupby(shuffled_words)]
 
 print(" ".join(shuffled_words))
-
-

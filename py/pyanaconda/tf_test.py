@@ -7,4 +7,3 @@ W = 1
 b = 1
 
 tf.nn.softmax(tf.matmul(X, W) + b)
-

@@ -38,10 +38,12 @@ core = {
     ],
 }
 
+
 @dataclass
 class Config:
     added: List[Entry]
     default: List[Entry]
+
 
 def deserialize_config(text: str) -> Config:
     lines = text.splitlines()
@@ -127,5 +129,6 @@ def main():
     # print("\n".join(best))
 
     # core[mimetype]
+
 
 main()

@@ -23,7 +23,7 @@ def sum_pairs(arr, k):
     try:
         while x <= y:
             sum_ = x + y
-            if   sum_ < k:
+            if sum_ < k:
                 x = next(it)
             elif sum_ > k:
                 y = next(it_rev)
@@ -36,6 +36,7 @@ def sum_pairs(arr, k):
 
     return pairs
 
+
 # Attempt 2
 def sum_pairs(arr, k):
     midpoint = k // 2
@@ -45,6 +46,7 @@ def sum_pairs(arr, k):
     if k % 2 == 0 and arr.count(midpoint) > 1:
         pairs.append((midpoint, midpoint))
     return pairs
+
 
 # Attempt 3
 # def sum_pairs(arr, k):
@@ -56,5 +58,5 @@ def sum_pairs(arr, k):
 #         if inverses[x] in arr_set and x <= midpoint]
 
 print(sum_pairs([1, 3, 2, 5, 46, 6, 7, 4, 3, 3], 5))
-print(sum_pairs([1, 3, 2, 5, 46, 6, 7, 4]      , 6))
+print(sum_pairs([1, 3, 2, 5, 46, 6, 7, 4], 6))
 print(sum_pairs([1, 3, 2, 5, 46, 6, 7, 4, 3, 3], 6))

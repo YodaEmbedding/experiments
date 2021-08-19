@@ -1,7 +1,3 @@
 from setuptools import setup
 
-setup(
-	scripts = [
-		'gwentMonitor.py'
-	]
-)
+setup(scripts=["gwentMonitor.py"])

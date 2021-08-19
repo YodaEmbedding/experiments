@@ -12,5 +12,6 @@ def fib(n):
         return 1
     return fib(n - 1) + fib(n - 2)
 
+
 print(fib(32))
-print(f'Number of calls to fib() required: {calls}')
+print(f"Number of calls to fib() required: {calls}")

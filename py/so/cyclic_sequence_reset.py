@@ -2,10 +2,12 @@
 
 import itertools
 
+
 def snake(low, high):
-    return itertools.cycle(itertools.chain(
-        range(low, high + 1),
-        range(high, low - 1, -1)))
+    return itertools.cycle(
+        itertools.chain(range(low, high + 1), range(high, low - 1, -1))
+    )
+
 
 def shy(seq_func, iterable):
     prev = None
@@ -14,9 +16,11 @@ def shy(seq_func, iterable):
             it = seq_func()
         yield next(it)
 
+
 def shy_snake(low, high, iterable):
     """d-d-doesss s-s-sssenpai noticesss me?"""
     return shy(lambda: snake(low, high), iterable)
+
 
 def shy_snake(low, high, iterable):
     """d-d-doesss s-s-sssenpai noticesss me?"""
@@ -27,8 +31,8 @@ def shy_snake(low, high, iterable):
             snake_it = snake(low, high)
         yield next(snake_it)
 
+
 dirs = [1, 1, 1, 1, 2, 2, 2]
 print(dirs)
 print(list(itertools.islice(snake(1, 3), 7)))
 print(list(shy_snake(1, 3, dirs)))
-

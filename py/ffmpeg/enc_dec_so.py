@@ -8,6 +8,7 @@ WIDTH = 224
 HEIGHT = 224
 NUM_FRAMES = 32
 
+
 def make_frames(num_frames):
     x = np.arange(WIDTH, dtype=np.uint8)
     x = np.broadcast_to(x, (num_frames, HEIGHT, WIDTH))
@@ -18,6 +19,7 @@ def make_frames(num_frames):
     x *= scale
     return x
 
+
 def encoder_write(writer):
     frames = make_frames(num_frames=NUM_FRAMES)
     for i, frame in enumerate(frames):
@@ -27,6 +29,7 @@ def encoder_write(writer):
         sleep(1.0)
     writer.close()
 
+
 def encoder_read(reader, queue):
     with open("out.264", "wb") as f:
         while chunk := reader.read1():
@@ -35,12 +38,14 @@ def encoder_read(reader, queue):
             f.flush()
     queue.put(None)
 
+
 def decoder_write(writer, queue: Queue):
     while chunk := queue.get():
         n = writer.write(chunk)
         writer.flush()
         print(f">>> Decoder written {n} bytes")
     writer.close()
+
 
 def decoder_read(reader):
     buffer = b""
@@ -54,6 +59,7 @@ def decoder_read(reader):
             frames_received += 1
             print(f"decoder_read frames_received={frames_received}")
             buffer = buffer[frame_len:]
+
 
 cmd = (
     "ffmpeg "
@@ -105,10 +111,22 @@ decoder_process = subprocess.Popen(
 queue = Queue()
 
 threads = [
-    Thread(target=encoder_write, args=(encoder_process.stdin,),),
-    Thread(target=encoder_read, args=(encoder_process.stdout, queue),),
-    Thread(target=decoder_write, args=(decoder_process.stdin, queue),),
-    Thread(target=decoder_read, args=(decoder_process.stdout,),),
+    Thread(
+        target=encoder_write,
+        args=(encoder_process.stdin,),
+    ),
+    Thread(
+        target=encoder_read,
+        args=(encoder_process.stdout, queue),
+    ),
+    Thread(
+        target=decoder_write,
+        args=(decoder_process.stdin, queue),
+    ),
+    Thread(
+        target=decoder_read,
+        args=(decoder_process.stdout,),
+    ),
 ]
 
 for thread in threads:
