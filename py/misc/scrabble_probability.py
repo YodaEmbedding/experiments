@@ -1,7 +1,7 @@
 import argparse
 import itertools
 from collections import Counter
-from math import prod
+from math import comb, prod
 from pathlib import Path
 from typing import cast
 
@@ -51,14 +51,10 @@ def replacements(xs, bs):
 
 
 def draw_probability(draw):
-    def letter_numerator(letter, count):
-        freq = TILE_FREQUENCY[letter]
-        return prod(range(freq - count, freq))
-
     counts = Counter(draw)
-    numerators = (letter_numerator(x, c) for x, c in counts.items())
-    denominators = range(NUM_TILES - len(draw), NUM_TILES)
-    return prod(numerators) / prod(denominators)
+    num = prod(comb(TILE_FREQUENCY[x], c) for x, c in counts.items())
+    den = comb(NUM_TILES, len(draw))
+    return num / den
 
 
 def word_probability(word):
