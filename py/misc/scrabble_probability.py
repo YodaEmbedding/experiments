@@ -118,10 +118,16 @@ def main():
         df = process_wordlist(args.filename)
         df.to_csv(path.parents[0] / f"{path.stem}.csv", index=False)
 
-    # Bingos sorted by probability.
+    # Further preprocessing.
     df = df.loc[df["length"] == args.length]
-    df = df.sort_values("prob", ascending=False)
+    df["word"] = df["word"].apply(lambda x: x.upper())
+    df["alphagram"] = df["word"].apply(lambda x: "".join(sorted(x)))
+    df = df.sort_values(
+        ["prob", "alphagram", "word"], ascending=[False, True, True]
+    )
     df = df.reset_index(drop=True)
+
+    # Words sorted by probability given a rack size of same length as word.
     df["word"].to_csv(
         path.parents[0] / f"{path.stem}_words_{args.length}.txt",
         index=False,
@@ -129,8 +135,6 @@ def main():
     )
 
     # Anki flashcards with alphagram / word answer pairs.
-    df["word"] = df["word"].apply(lambda x: x.upper())
-    df["alphagram"] = df["word"].apply(lambda x: "".join(sorted(x)))
     df = df.rename(columns={"word": "anagrams"})
     df = df.groupby(["alphagram"], as_index=False, sort=False).agg(
         {"anagrams": list, "prob": "mean", "length": "first"}
