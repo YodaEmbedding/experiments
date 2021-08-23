@@ -109,21 +109,23 @@ def create_parser():
 
 def main():
     args = create_parser().parse_args()
-    path = Path(args.filename)
+    path = Path(args.filename).resolve()
 
     if path.suffix == ".csv":
         df = pd.read_csv(args.filename, keep_default_na=False)
         df = cast(pd.DataFrame, df)
     else:
         df = process_wordlist(args.filename)
-        df.to_csv(f"{path.stem}.csv", index=False)
+        df.to_csv(path.parents[0] / f"{path.stem}.csv", index=False)
 
     # Bingos sorted by probability.
     df = df.loc[df["length"] == args.length]
     df = df.sort_values("prob", ascending=False)
     df = df.reset_index(drop=True)
     df["word"].to_csv(
-        f"{path.stem}_words_{args.length}.txt", index=False, header=False
+        path.parents[0] / f"{path.stem}_words_{args.length}.txt",
+        index=False,
+        header=False,
     )
 
     # Anki flashcards with alphagram / word answer pairs.
@@ -140,8 +142,11 @@ def main():
     df = df[
         ["alphagram", "anagrams", "length", "rank", "prob", "num_anagrams"]
     ]
-    filename = f"{path.stem}_words_{args.length}_flashcards.csv"
-    df.to_csv(filename, index=False, header=False)
+    df.to_csv(
+        path.parents[0] / f"{path.stem}_words_{args.length}_flashcards.csv",
+        index=False,
+        header=False,
+    )
 
 
 main()
