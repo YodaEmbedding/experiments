@@ -16,7 +16,8 @@ def paper_to_filename(paper: arxiv.Result) -> str:
     authors = paper.authors
     title_str = fix_title(paper.title)
     author_str = authors[0] if len(authors) == 1 else f"{authors[0]} et al."
-    filename = f"{author_str} - {title_str}.pdf"
+    date_str = paper.published.strftime("%y%m")
+    filename = f"{date_str} {author_str} - {title_str}.pdf"
     return filename
 
 
@@ -45,7 +46,9 @@ papers = arxiv.Search(id_list=paper_ids).results()
 for paper, paper_id in zip(papers, paper_ids):
     src_filename = f"{paper_id}.pdf"
     dst_filename = paper_to_filename(paper)
-    if os.path.exists(src_filename):
+    if os.path.exists(dst_filename):
+        print(f"[TargetExists] {dst_filename}")
+    elif os.path.exists(src_filename):
         print(f"[Rename] {src_filename}")
         os.rename(src_filename, dst_filename)
     else:
