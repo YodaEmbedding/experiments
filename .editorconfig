@@ -2,18 +2,23 @@ root = true
 
 [*]
 end_of_line = lf
-indent_size = 4
 indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 max_line_length = 80
 
+[{*.cpp,*.java,*.jl,*.rs}]
+indent_size = 4
+indent_style = space
+
 [{*.py}]
+indent_size = 4
+indent_style = space
 max_line_length = 79
+
+[{*.clj,*.f,*.f90,*.hs,*.js,*.jsx,*.kt,*.lisp,*.lua,*.scala,*.sh,*.tex,*.ts}]
+indent_size = 2
+indent_style = space
 
 [{Makefile,*.mk}]
 indent_style = tab
-
-[{*.clj,*.f,*.f90,*.hs,*.lisp,*.lua,*.sh,*.tex}]
-indent_size = 2
-indent_style = space
