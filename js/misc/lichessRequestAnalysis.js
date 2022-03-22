@@ -2,24 +2,22 @@ const ANALYZE_WAIT = 300 * 1000;
 const DAILY_LIMIT_WAIT = 12 * 3600 * 1000;
 const RATE_LIMIT = 5 * 1000;
 
-const delay = ms => new Promise(res => setTimeout(res, ms));
+const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
-const requestAnalysis = gameId => fetch(
-  `https://lichess.org/${gameId}/request-analysis`, {
+const requestAnalysis = (gameId) =>
+  fetch(`https://lichess.org/${gameId}/request-analysis`, {
     cache: "no-cache",
     credentials: "same-origin", // required for safari < 12
     headers: {
       "X-Requested-With": "XMLHttpRequest", // so lila knows it"s XHR
     },
     method: "post",
-  }
-);
+  });
 
-const parseGameIdFromUrl = url => (
-  url.match(/^https?:\/\/lichess.org\/([a-zA-Z0-9]{8})\/?.*$/)[1]
-);
+const parseGameIdFromUrl = (url) =>
+  url.match(/^https?:\/\/lichess.org\/([a-zA-Z0-9]{8})\/?.*$/)[1];
 
-const tryAnalyseGameId = async gameId => {
+const tryAnalyseGameId = async (gameId) => {
   console.log(`Requesting analysis for https://lichess.org/${gameId} ...`);
   const response = await requestAnalysis(gameId);
   const text = await response.text();
@@ -49,7 +47,7 @@ const tryAnalyseGameId = async gameId => {
   return "success";
 };
 
-const requestAnalysisForUrls = async gameUrls => {
+const requestAnalysisForUrls = async (gameUrls) => {
   for (let i = 0; i < gameUrls.length; i++) {
     const gameUrl = gameUrls[i];
     const gameId = parseGameIdFromUrl(gameUrl);
@@ -59,7 +57,7 @@ const requestAnalysisForUrls = async gameUrls => {
       result = await tryAnalyseGameId(gameId);
     }
   }
-}
+};
 
 const main = async () => {
   const gameUrls = [
