@@ -9,7 +9,7 @@ const requestAnalysis = (gameId) =>
     cache: "no-cache",
     credentials: "same-origin", // required for safari < 12
     headers: {
-      "X-Requested-With": "XMLHttpRequest", // so lila knows it"s XHR
+      "X-Requested-With": "XMLHttpRequest", // so lila knows it's XHR
     },
     method: "post",
   });
@@ -71,4 +71,4 @@ const main = async () => {
   await requestAnalysisForUrls(gameUrls);
 };
 
-await main();
+main();
