@@ -18,7 +18,7 @@ class Vector:
         return Vector(self.x - other.x, self.y - other.y)
 
     def length(self):
-        return sqrt(self.x ** 2 + self.y ** 2)
+        return sqrt(self.x**2 + self.y**2)
 
     def angle(self):
         return atan2(self.y, self.x)

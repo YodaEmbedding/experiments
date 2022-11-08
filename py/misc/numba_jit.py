@@ -8,7 +8,7 @@ np.set_printoptions(precision=5)
 
 
 def f(xs):
-    return sum(x ** 2 for x in xs)
+    return sum(x**2 for x in xs)
 
 
 # @nb.jit(nopython=True)
@@ -18,7 +18,7 @@ def f_jit(xs):
     # return sum([x**2 for x in xs])
     total = 0
     for x in xs:
-        total += x ** 2
+        total += x**2
     return total
 
 

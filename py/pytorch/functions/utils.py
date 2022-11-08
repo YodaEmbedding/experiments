@@ -12,7 +12,7 @@ def generate_samples(
     ys = [
         0.5 * np.ones_like(t),
         t,
-        t ** 2,  #
+        t**2,  #
     ]
 
     while True:

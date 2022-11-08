@@ -23,7 +23,7 @@ def paper_to_filename(paper: arxiv.Result) -> str:
 
 def parse_line(line: str):
     id_pattern = r"(\d{4}\.\d{4,6}(v\d+)?)"
-    m = re.match(fr".*{id_pattern}(\.pdf)?$", line)
+    m = re.match(rf".*{id_pattern}(\.pdf)?$", line)
     return m.group(1) if m is not None else None
 
 

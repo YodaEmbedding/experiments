@@ -29,7 +29,7 @@ class PolynomialDataset(Dataset):
         self.samples = [
             0.5 * np.ones_like(t),
             t,
-            t ** 2,  #
+            t**2,  #
         ]
         self.labels = [0, 1, 2]
         identity = lambda x: x

@@ -4,11 +4,13 @@ from dataclasses import dataclass
 from random import shuffle
 from typing import Any
 
+
 @dataclass
 class NodeJS:
     value: Any | None = None
     left: NodeJS | None = None
     right: NodeJS | None = None
+
 
 class TreeJS:
     def __init__(self):
@@ -38,6 +40,7 @@ class TreeJS:
 
     def __repr__(self) -> str:
         return "\n".join(_serialize(self._root, ""))
+
 
 def _serialize(node: NodeJS | None, prefix: str):
     if node is None:

@@ -45,7 +45,7 @@ if __name__ == "__main__":
         pred_label = pred.detach().argmax()
 
         # Compute loss
-        weight_sum = (w1 ** 2).sum() + (w2 ** 2).sum()
+        weight_sum = (w1**2).sum() + (w2**2).sum()
         weight_loss = 0.01 * weight_sum
         accuracy_loss = loss_fn(pred, label.reshape(-1))
         loss = accuracy_loss + weight_loss

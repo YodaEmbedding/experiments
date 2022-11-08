@@ -43,7 +43,7 @@ perfplot.show(
         numpy_flat,
         numpy_concatenate,
     ],
-    n_range=[2 ** k for k in range(16)],
+    n_range=[2**k for k in range(16)],
     logx=True,
     logy=True,
     xlabel="num lists",

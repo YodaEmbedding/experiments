@@ -189,7 +189,7 @@ def _distribute_loss(arr, debug=False):
         avg = n / dists.shape[-1]
         d = dists - avg
         d = d[d < 0]
-        return np.sum(d ** 2)
+        return np.sum(d**2)
 
     arr = np.asarray(arr)
     n = arr.shape[-1]

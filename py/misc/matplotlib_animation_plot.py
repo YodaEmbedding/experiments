@@ -17,7 +17,7 @@ def make_animator(ax):
     ax.set_title("sin(t)")
 
     def animate(i):
-        x, y = f(t=0.1 * i ** 1.5)
+        x, y = f(t=0.1 * i**1.5)
         line.set_data(x, y)
         ax.relim()
         ax.autoscale_view(True, True, True)

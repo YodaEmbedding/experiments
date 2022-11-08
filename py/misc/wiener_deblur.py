@@ -27,7 +27,7 @@ def gaussian_kernel(size, sigma, normalised=False):
     gaussian1D = signal.gaussian(size, sigma)
     gaussian2D = np.outer(gaussian1D, gaussian1D)
     if normalised:
-        gaussian2D /= 2 * np.pi * (sigma ** 2)
+        gaussian2D /= 2 * np.pi * (sigma**2)
     return gaussian2D
 
 

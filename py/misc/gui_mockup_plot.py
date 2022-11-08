@@ -7,7 +7,7 @@ n = 80
 t = np.linspace(0.0, 7.0, n)
 s = np.clip(100 * np.sin(t + 0.1), -1, 1)
 g = np.random.normal(0.0, 1.0, n)
-y1 = s + 0.3 * g + 0.04 * g ** 4
+y1 = s + 0.3 * g + 0.04 * g**4
 y2 = (s + 0.02 * g + np.random.normal(0.0, 0.05, n)) * 2.0 - 0.5
 
 fig, ax = plt.subplots()

@@ -8,7 +8,7 @@ import re
 def differentiate(equation, point):
     p = poly(equation)
     p = [(c * n, n - 1) if n > 0 else (0, 0) for c, n in p]
-    return sum(c * point ** n for c, n in p)
+    return sum(c * point**n for c, n in p)
 
 
 def poly(equation):

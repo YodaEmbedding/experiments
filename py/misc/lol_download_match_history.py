@@ -65,17 +65,17 @@ def get_api_response(url):
 def get_matchlist(
     *, encrypted_account_id=None, server=None, api_version=None, api_key=None
 ):
-    base = fr"https://{server}.api.riotgames.com/lol/match/{api_version}"
-    query = fr"api_key={api_key}"
-    url = fr"{base}/matchlists/by-account/{encrypted_account_id}?{query}"
+    base = rf"https://{server}.api.riotgames.com/lol/match/{api_version}"
+    query = rf"api_key={api_key}"
+    url = rf"{base}/matchlists/by-account/{encrypted_account_id}?{query}"
     return get_api_response(url)
 
 
 @cache("cache/matches")
 def get_match(*, match_id=None, server=None, api_version=None, api_key=None):
-    query = fr"api_key={api_key}"
-    base = fr"https://{server}.api.riotgames.com/lol/match/{api_version}"
-    url = fr"{base}/matches/{match_id}?{query}"
+    query = rf"api_key={api_key}"
+    base = rf"https://{server}.api.riotgames.com/lol/match/{api_version}"
+    url = rf"{base}/matches/{match_id}?{query}"
     return get_api_response(url)
 
 
@@ -83,9 +83,9 @@ def get_match(*, match_id=None, server=None, api_version=None, api_key=None):
 def get_summoner(
     *, summoner_name=None, server=None, api_version=None, api_key=None
 ):
-    base = fr"https://{server}.api.riotgames.com/lol/summoner/{api_version}"
-    query = fr"api_key={api_key}"
-    url = fr"{base}/summoners/by-name/{summoner_name}?{query}"
+    base = rf"https://{server}.api.riotgames.com/lol/summoner/{api_version}"
+    query = rf"api_key={api_key}"
+    url = rf"{base}/summoners/by-name/{summoner_name}?{query}"
     return get_api_response(url)
 
 

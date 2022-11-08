@@ -67,7 +67,7 @@ def decoder_read(reader):
         while len(buffer) >= frame_len:
             frame = np.frombuffer(buffer[:frame_len], dtype=np.uint8)
             frame = frame.reshape(HEIGHT, WIDTH, 3)
-            psnr = 10 * np.log10(255 ** 2 / np.mean((frame - targets[i]) ** 2))
+            psnr = 10 * np.log10(255**2 / np.mean((frame - targets[i]) ** 2))
             buffer = buffer[frame_len:]
             i += 1
             print(f"time={t()} frames={i:<3} decoder_read  psnr={psnr:.1f}")
