@@ -1,9 +1,12 @@
+import csv
 import os
 import re
 import subprocess
 import sys
 
 import arxiv
+
+LOG_FILE = os.path.expanduser("~/Dropbox/books/papers/arxiv_papers.tsv")
 
 
 def fix_title(title: str) -> str:
@@ -54,12 +57,16 @@ for paper, paper_id in zip(papers, paper_ids):
     else:
         print("[Download]")
         paper.download_pdf(filename=dst_filename)
+    author_str = "; ".join(str(x) for x in paper.authors)
     print(f"file:    {dst_filename}")
     print(f"url:     {paper.entry_id}")
-    print(f"authors: {[str(x) for x in paper.authors]}")
+    print(f"authors: {author_str}")
     print(f"title:   {paper.title}\n")
+    with open(LOG_FILE, "a") as f:
+        writer = csv.writer(f, delimiter="\t")
+        writer.writerow([paper_id, paper.entry_id, author_str, paper.title])
     set_metadata(
         dst_filename,
         title=fix_title(paper.title),
-        author="; ".join(str(x) for x in paper.authors),
+        author=author_str,
     )
