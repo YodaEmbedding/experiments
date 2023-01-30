@@ -11,7 +11,7 @@ LOG_FILE = os.path.expanduser("~/Dropbox/books/papers/arxiv_papers.tsv")
 
 def fix_title(title: str) -> str:
     title = " ".join(str.strip(x) for x in title.split("\n"))
-    title = title.replace(":", "_")
+    title = title.replace(":", "_").replace("?", "_")
     return title
 
 
