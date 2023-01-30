@@ -67,6 +67,6 @@ for paper, paper_id in zip(papers, paper_ids):
         writer.writerow([paper_id, paper.entry_id, author_str, paper.title])
     set_metadata(
         dst_filename,
-        title=fix_title(paper.title),
+        title=paper.title,
         author=author_str,
     )
