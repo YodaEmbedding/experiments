@@ -14,18 +14,15 @@ def fix_title(title: str) -> str:
 
 
 def paper_to_filename(paper: arxiv.Result) -> str:
-    authors = paper.authors
-    title_str = fix_title(paper.title)
-    author_str = authors[0] if len(authors) == 1 else f"{authors[0]} et al."
     date_str = paper.published.strftime("%y%m")
-    filename = f"{date_str} {author_str} - {title_str}.pdf"
-    return filename
+    author_str = str(paper.authors[0]) + " et al." * (len(paper.authors) > 1)
+    title_str = fix_title(paper.title)
+    return f"{date_str} {author_str} - {title_str}.pdf"
 
 
 def parse_line(line: str):
-    id_pattern = r"(\d{4}\.\d{4,6}(v\d+)?)"
-    m = re.match(rf".*{id_pattern}(\.pdf)?$", line)
-    return m.group(1) if m is not None else None
+    m = re.match(r".*(?P<paper_id>\d{4}\.\d{4,6}(v\d+)?)(\.pdf)?$", line)
+    return m.group("paper_id") if m is not None else None
 
 
 def set_metadata(filename: str, title: str, author: str):
