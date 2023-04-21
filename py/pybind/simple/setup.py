@@ -2,12 +2,14 @@ from distutils.core import setup
 
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 
+SRC_DIR = "src"
+
 ext_modules = [
     Pybind11Extension(
         name="example",
         sources=[
-            "funcs.cpp",
-            "example.cpp",
+            f"{SRC_DIR}/funcs.cpp",
+            f"{SRC_DIR}/example.cpp",
         ],
         extra_compile_args=["-std=c++11"],
     ),
