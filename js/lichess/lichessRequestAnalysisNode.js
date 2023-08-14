@@ -6,8 +6,9 @@ const readline = require("readline");
 const secrets = require("./secrets");
 
 
-const ANALYZE_WAIT = 120 * 1000;
-const DAILY_LIMIT_WAIT = 6 * 3600 * 1000;
+// const ANALYZE_WAIT = 3600 * 1000;  // 120 * 1000;
+const ANALYZE_WAIT = 3000 * 1000;  // 120 * 1000;
+const DAILY_LIMIT_WAIT = 1 * 3600 * 1000;
 const RATE_LIMIT = 5 * 1000;
 
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
