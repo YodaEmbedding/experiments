@@ -16,7 +16,7 @@ class Tensor:
         self.data = np.asanyarray(data)
         self.grad = None
         self.creator = None
-        self.parents = None
+        self.parents = ()
         self.ctx = None
 
     def __repr__(self):
@@ -30,9 +30,15 @@ class Tensor:
         grad_fn_repr = self.creator.__name__ if self.creator else None
         return f"Tensor({data_repr}, grad_fn={grad_fn_repr})"
 
-    def backward(self, _prefix=""):
+    def backward(self):
         # print(f"{_prefix}> {self}  {self.grad}")
 
+        for tensor in self._backwards_tensors(self):
+            tensor._backward_visit()
+
+        # parent._backward_visit(_prefix=_prefix + "    ")
+
+    def _backward_visit(self, _prefix=""):
         if self.creator is None:
             # print(f"{_prefix}< {self}  {self.grad}")
             return
@@ -68,9 +74,24 @@ class Tensor:
                     f"{_prefix}  _.grad += {grad_tensor.data} = {parent.grad.data}\n"
                 )
 
-            parent.backward(_prefix + "    ")
-
         # print(f"{_prefix}< {self}  {self.grad}")
+
+    @staticmethod
+    def _backwards_tensors(tensor: Tensor):
+        """Reversed topological sort for reverse-mode autodiff."""
+        visited = set()
+        tensors = []
+
+        def dfs(tensor: Tensor):
+            if tensor in visited:
+                return
+            visited.add(tensor)
+            for parent in tensor.parents:
+                dfs(parent)
+            tensors.append(tensor)
+
+        dfs(tensor)
+        return reversed(tensors)
 
     def _run_forward_op(self, creator: Type[Function], *args: Tensor) -> Tensor:
         args = [arg if isinstance(arg, Tensor) else Tensor(arg) for arg in args]
