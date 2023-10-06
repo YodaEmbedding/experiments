@@ -40,11 +40,11 @@ class Tensor:
         for parent, grad_tensor in zip(self.parents, grad_tensors):
             if grad_tensor is None:
                 continue
-            parent.grad = grad_tensor  # TODO?
-            # grad_tensor.is_data = False
+            if parent.grad is None:
+                parent.grad = grad_tensor
+            else:
+                parent.grad.data += grad_tensor.data
             parent.backward()
-
-        # TODO += for grads?
 
     def _run_forward_op(self, creator: Type[Function], *args: Tensor) -> Tensor:
         # Ummm only other is_data=True ?? what about self????
