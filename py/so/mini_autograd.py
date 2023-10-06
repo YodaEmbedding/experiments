@@ -49,13 +49,13 @@ class Tensor:
             if grad_tensor is None:
                 continue
             if parent.grad is None:
-                parent.grad = grad_tensor
-                print(f"{parent}.grad := {grad_tensor}")
+                parent.grad = Tensor(grad_tensor.data.copy())
+                # print(f"{parent}.grad := {grad_tensor}")
             else:
-                print(
-                    f"{parent}.grad is {parent.grad}\n"
-                    f"{parent}.grad += {grad_tensor}"
-                )
+                # print(
+                #     f"{parent}.grad is {parent.grad}\n"
+                #     f"{parent}.grad += {grad_tensor}"
+                # )
                 parent.grad.data += grad_tensor.data
             parent.backward()
 
