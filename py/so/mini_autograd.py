@@ -4,7 +4,6 @@ from typing import Tuple, Type
 
 import numpy as np
 
-# TODO this GradTensor thing is a hack... Maybe a mode...
 # TODO grad_fn?
 
 
@@ -14,112 +13,102 @@ class Tensor:
     parents: Tuple[Tensor, ...]
     creator: Type[Function]
     ctx: Context
+    is_data: bool
 
-    def __init__(self, data):
+    def __init__(self, data, is_data=False):
         self.data = np.asanyarray(data)
         self.grad = None
         self.creator = None
         self.parents = None
         self.ctx = None
+        self.is_data = is_data
 
     def __repr__(self):
         assert isinstance(self.data, np.ndarray)
         return f"Tensor({self.data}, dtype={self.data.dtype})"
 
     def backward(self):
+        print(f"Backward {self} with {self.creator}")
         if self.creator is None:
             return
 
         if self.grad is None:
-            self.grad = Tensor(1)
+            self.grad = Tensor(1, is_data=True)
 
-        grad_tensors = self.creator.backward(self.ctx, GradTensor(self.grad))
+        grad_tensors = self.creator.backward(self.ctx, self.grad)
 
         for parent, grad_tensor in zip(self.parents, grad_tensors):
             if grad_tensor is None:
                 continue
-            parent.grad = grad_tensor.tensor
+            parent.grad = grad_tensor  # TODO?
+            # grad_tensor.is_data = False
             parent.backward()
 
+        # TODO += for grads?
+
     def _run_forward_op(self, creator: Type[Function], *args: Tensor) -> Tensor:
+        # Ummm only other is_data=True ?? what about self????
+        # , is_data=True)
+
+        # TODO wrong parent...
+
+        args = [arg if isinstance(arg, Tensor) else Tensor(arg) for arg in args]
+        args = [self, *args]
+        parents = args
+        args = [Tensor(tensor.data, is_data=True) for tensor in args]
         print(f"Running {creator.__name__} on {args}")
-        args = (self, *args)
-        compute_args = [GradTensor(tensor) for tensor in args]
         ctx = Context()
-        tensor = creator.forward(ctx, *compute_args)
-        assert isinstance(tensor, GradTensor)
-        tensor = tensor.tensor
+        tensor = creator.forward(ctx, *args)
         tensor.creator = creator
-        tensor.parents = args
+        tensor.parents = parents
         tensor.ctx = ctx
+        tensor.is_data = False
         return tensor
 
-    def __add__(self, other: Tensor) -> Tensor:
+    def __add__(self, other):
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+        if self.is_data:
+            return Tensor(self.data + other.data, is_data=True)
         return self._run_forward_op(Add, other)
 
-    def __sub__(self, other: Tensor) -> Tensor:
+    def __sub__(self, other):
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+        if self.is_data:
+            return Tensor(self.data - other.data, is_data=True)
         return self._run_forward_op(Sub, other)
 
-    def __mul__(self, other: Tensor) -> Tensor:
+    def __mul__(self, other):
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+        if self.is_data:
+            return Tensor(self.data * other.data, is_data=True)
         return self._run_forward_op(Mul, other)
 
-    def __pow__(self, const: int) -> Tensor:
-        return self._run_forward_op(PowConst, Tensor(const))
-
-    def sin(self) -> Tensor:
-        return self._run_forward_op(Sin)
-
-    def cos(self) -> Tensor:
-        raise NotImplementedError
-
-    def dot(self, other: Tensor) -> Tensor:
-        return self._run_forward_op(Dot, other)
-
-
-class GradTensor(Tensor):
-    def __init__(self, tensor: Tensor):
-        self.tensor = tensor
-        # super().__init__(tensor.data)
-
-    def __repr__(self):
-        return f"GradTensor({self.tensor})"
-
-    @property
-    def data(self):
-        return self.tensor.data
-
-    @property
-    def grad(self):
-        return self.tensor.grad
-
-    def __add__(self, other: GradTensor):
+    def __pow__(self, other):
         if not isinstance(other, Tensor):
-            other = GradTensor(Tensor(other))
-        return GradTensor(Tensor(self.data + other.data))
-
-    def __sub__(self, other: GradTensor):
-        if not isinstance(other, Tensor):
-            other = GradTensor(Tensor(other))
-        return GradTensor(Tensor(self.data - other.data))
-
-    def __mul__(self, other: GradTensor):
-        if not isinstance(other, Tensor):
-            other = GradTensor(Tensor(other))
-        return GradTensor(Tensor(self.data * other.data))
-
-    def __pow__(self, other: GradTensor):
-        if not isinstance(other, Tensor):
-            other = GradTensor(Tensor(other))
-        return GradTensor(Tensor(self.data**other.data))
+            other = Tensor(other)
+        if self.is_data:
+            return Tensor(self.data**other.data, is_data=True)
+        return self._run_forward_op(PowConst, other)
 
     def sin(self):
-        return GradTensor(Tensor(np.sin(self.data)))
+        if self.is_data:
+            return Tensor(np.sin(self.data), is_data=True)
+        return self._run_forward_op(Sin)
 
     def cos(self):
-        return GradTensor(Tensor(np.cos(self.data)))
+        if self.is_data:
+            return Tensor(np.cos(self.data), is_data=True)
+        return self._run_forward_op(Cos)
 
-    def dot(self, other: GradTensor):
-        return GradTensor(Tensor(self.data.dot(other.data)))
+    def dot(self, other):
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+        if self.is_data:
+            return Tensor(self.data.dot(other.data), is_data=True)
+        return self._run_forward_op(Dot, other)
 
 
 class Context:
@@ -206,6 +195,18 @@ class Sin(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
         (x,) = ctx.saved_tensors
         return (grad_output * x.cos(),)
+
+
+class Cos(Function):
+    @staticmethod
+    def forward(ctx: Context, x: Tensor) -> Tensor:
+        ctx.save_for_backward(x)
+        return x.cos()
+
+    @staticmethod
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+        (x,) = ctx.saved_tensors
+        return (grad_output * -x.sin(),)
 
 
 def print_tensors(a, b, c, d, e):
