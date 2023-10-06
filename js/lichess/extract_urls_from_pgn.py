@@ -20,7 +20,7 @@ def parse_pgn(lines):
             game[match.group("key")] = match.group("value")
             continue
 
-        match = re.match(r"^(\d+\.)|0-1|1-0|1/2-1/2", line)
+        match = re.match(r"^\s*((\d+\.)|0-1|1-0|1/2-1/2)", line)
 
         if match:
             if "Moves" not in game:
