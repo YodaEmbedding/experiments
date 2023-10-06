@@ -21,27 +21,56 @@ class Tensor:
 
     def __repr__(self):
         assert isinstance(self.data, np.ndarray)
-        data_repr = repr(self.data).removeprefix("array(").removesuffix(")")
+        data_repr = (
+            repr(self.data)
+            .removeprefix("array(")
+            .removesuffix(")")
+            .removesuffix(", dtype=float32")
+        )
         grad_fn_repr = self.creator.__name__ if self.creator else None
         return f"Tensor({data_repr}, grad_fn={grad_fn_repr})"
 
-    def backward(self):
+    def backward(self, _prefix=""):
+        # print(f"{_prefix}> {self}  {self.grad}")
+
         if self.creator is None:
+            # print(f"{_prefix}< {self}  {self.grad}")
             return
 
         if self.grad is None:
             self.grad = Tensor(1)
 
+        if _prefix == "":
+            print(f"* {self}\n" f"  _.grad == None\n" f"  _.grad = {self.grad.data}\n")
+            _prefix = "    "
+
         grad_tensors = self.creator.backward(self.ctx, self.grad)
+        print(f"{_prefix[:-2]}grad = {self.grad.data}")
+        print(f"{_prefix[:-2]}grad_tensors = {grad_tensors}\n")
 
         for parent, grad_tensor in zip(self.parents, grad_tensors):
             if grad_tensor is None:
                 continue
             if parent.grad is None:
+                old_grad = None
                 parent.grad = Tensor(grad_tensor.data.copy())
+                print(
+                    f"{_prefix}* {parent}\n"
+                    f"{_prefix}  _.grad == {old_grad}\n"
+                    f"{_prefix}  _.grad = {parent.grad.data}\n"
+                )
             else:
+                old_grad = parent.grad.data.copy()
                 parent.grad.data += grad_tensor.data
-            parent.backward()
+                print(
+                    f"{_prefix}* {parent}\n"
+                    f"{_prefix}  _.grad == {old_grad}\n"
+                    f"{_prefix}  _.grad += {grad_tensor.data} = {parent.grad.data}\n"
+                )
+
+            parent.backward(_prefix + "    ")
+
+        # print(f"{_prefix}< {self}  {self.grad}")
 
     def _run_forward_op(self, creator: Type[Function], *args: Tensor) -> Tensor:
         args = [arg if isinstance(arg, Tensor) else Tensor(arg) for arg in args]
@@ -186,7 +215,7 @@ def print_tensors(*args):
     names = "abcdefghijklmnopqrstuvwxyz"[: len(args)]
 
     for name, tensor in zip(names, args):
-        print(f"{name} = {tensor}")
+        # print(f"{name} = {tensor}")
 
         import torch
 
@@ -200,20 +229,29 @@ def print_tensors(*args):
         print(f"{name}.grad = {tensor.grad}")
 
 
+# def func(a, b, c):
+#     d = a + b
+#     # e = d**2
+#     e = d
+#     f = e  # + a
+#     g = f * 2
+#     g = f + f  # Doesn't work.
+#     # g = f
+#     h = c.dot(g)
+#     return a, b, c, d, e, f, g, h
+
+
 def func(a, b, c):
-    d = a + b
-    e = d**2
-    f = e  # + a
-    g = f * 2
-    g = f + f  # Doesn't work.
-    h = c.dot(g)
-    return a, b, c, d, e, f, g, h
+    d = a * b
+    e = d + d  # Doesn't work.
+    f = c.dot(e)
+    return a, b, c, d, e, f
 
 
 def main():
-    a = Tensor(np.array([0, 1, 2, 3], dtype=np.float32))
-    b = Tensor(np.array([0, 0, 1, 2], dtype=np.float32))
-    c = Tensor(np.array([1, 2, 3, 4], dtype=np.float32))
+    a = Tensor(np.array([2], dtype=np.float32))
+    b = Tensor(np.array([5], dtype=np.float32))
+    c = Tensor(np.array([11], dtype=np.float32))
     args = func(a, b, c)
     print_tensors(*args)
 
