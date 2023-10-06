@@ -4,8 +4,6 @@ from typing import Tuple, Type
 
 import numpy as np
 
-# TODO grad_fn?
-
 
 class Tensor:
     data: np.ndarray
@@ -23,31 +21,47 @@ class Tensor:
 
     def __repr__(self):
         assert isinstance(self.data, np.ndarray)
-        return f"Tensor({self.data}, dtype={self.data.dtype})"
+        data_repr = repr(self.data).removeprefix("array(").removesuffix(")")
+        grad_fn_repr = self.creator.__name__ if self.creator else None
+        return f"Tensor({data_repr}, grad_fn={grad_fn_repr})"
 
     def backward(self):
-        print(f"Backward {self} with {self.creator}")
         if self.creator is None:
             return
 
         if self.grad is None:
             self.grad = Tensor(1)
 
+        print(f"\nRunning backward for {self}")
+
         grad_tensors = self.creator.backward(self.ctx, self.grad)
+
+        # Bypass double backward.
+        # grad_tensors = [
+        #     Tensor(data)
+        #     for data in self.creator.backward(
+        #         Context(saved_tensors=[x.data for x in self.ctx.saved_tensors]),
+        #         self.grad.data,
+        #     )
+        # ]
 
         for parent, grad_tensor in zip(self.parents, grad_tensors):
             if grad_tensor is None:
                 continue
             if parent.grad is None:
                 parent.grad = grad_tensor
+                print(f"{parent}.grad := {grad_tensor}")
             else:
+                print(
+                    f"{parent}.grad is {parent.grad}\n"
+                    f"{parent}.grad += {grad_tensor}"
+                )
                 parent.grad.data += grad_tensor.data
             parent.backward()
 
     def _run_forward_op(self, creator: Type[Function], *args: Tensor) -> Tensor:
         args = [arg if isinstance(arg, Tensor) else Tensor(arg) for arg in args]
         parents = [self, *args]
-        print(f"Running {creator.__name__} on {parents}")
         ctx = Context()
         tensor = creator.forward(ctx, *parents)
         tensor.creator = creator
@@ -78,11 +92,18 @@ class Tensor:
 
 
 class Context:
-    def __init__(self):
-        self.saved_tensors = None
+    def __init__(self, saved_tensors=()):
+        self.saved_tensors = saved_tensors
 
     def save_for_backward(self, *args):
         self.saved_tensors = args
+
+
+def on_data(func):
+    def wrapper(*args):
+        return func(*[arg.data if isinstance(arg, Tensor) else arg for arg in args])
+
+    return wrapper
 
 
 class Function:
@@ -124,6 +145,7 @@ class Mul(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
         x, y = ctx.saved_tensors
+        # return grad_output * y, grad_output * x
         return grad_output * y, grad_output * x
 
 
@@ -169,55 +191,56 @@ class Cos(Function):
         ctx.save_for_backward(x)
         return Tensor(np.cos(x.data))
 
+    @on_data
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
         (x,) = ctx.saved_tensors
         return (grad_output * -x.sin(),)
 
 
-def print_tensors(a, b, c, d, e):
-    names = "abcde"
+def print_tensors(*args):
+    names = "abcdefghijklmnopqrstuvwxyz"[: len(args)]
 
-    print(", ".join(f"{name}" for name in names))
-    for tensor in (a, b, c, d, e):
-        print(tensor)
+    for name, tensor in zip(names, args):
+        print(f"{name} = {tensor}")
 
-    print("e.backward()")
-    e.backward()
+        import torch
 
-    print(", ".join(f"{name}.grad" for name in names))
-    for tensor in (a, b, c, d, e):
-        print(tensor.grad)
+        if isinstance(tensor, torch.Tensor):
+            tensor.retain_grad()
+
+    print("----------------")
+    args[-1].backward()
+
+    for name, tensor in zip(names, args):
+        print(f"{name}.grad = {tensor.grad}")
+
+
+def func(a, b, c):
+    d = a + b
+    e = d**2
+    # f = e * a
+    f = a * e
+    g = c.dot(f)
+    return a, b, c, d, e, f, g
 
 
 def main():
-    z = Tensor(np.array([1, 2, 3, 4]))
-    a = Tensor(np.array([0, 1, 2, 3]))
-    b = Tensor(np.array([0, 0, 1, 2]))
-    c = a + b
-    d = c**2
-    # e = d + d + a
-    e = d.dot(z)
-    # e = e.sin()
+    a = Tensor(np.array([0, 1, 2, 3], dtype=np.float32))
+    b = Tensor(np.array([0, 0, 1, 2], dtype=np.float32))
+    c = Tensor(np.array([1, 2, 3, 4], dtype=np.float32))
+    args = func(a, b, c)
+    print_tensors(*args)
 
-    print_tensors(a, b, c, d, e)
     print("================")
 
     import torch
 
-    z = torch.tensor([1, 2, 3, 4], dtype=torch.float32, requires_grad=True)
     a = torch.tensor([0, 1, 2, 3], dtype=torch.float32, requires_grad=True)
     b = torch.tensor([0, 0, 1, 2], dtype=torch.float32, requires_grad=True)
-    c = a + b
-    d = c**2
-    e = c.dot(z)
-    # e = e.sin()
-
-    c.retain_grad()
-    d.retain_grad()
-    e.retain_grad()
-
-    print_tensors(a, b, c, d, e)
+    c = torch.tensor([1, 2, 3, 4], dtype=torch.float32, requires_grad=True)
+    args = func(a, b, c)
+    print_tensors(*args)
 
 
 if __name__ == "__main__":
