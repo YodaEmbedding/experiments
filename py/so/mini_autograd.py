@@ -243,9 +243,11 @@ def print_tensors(*args):
 
 def func(a, b, c):
     d = a * b
-    e = d + d  # Doesn't work.
-    f = c.dot(e)
-    return a, b, c, d, e, f
+    e = d + d  # Combinatorial explosion... we should only calculate d.grad once.
+    f = e + e
+    g = f + f
+    h = c.dot(g)
+    return a, b, c, d, e, f, g, h
 
 
 def main():
