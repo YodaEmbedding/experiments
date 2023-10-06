@@ -8,8 +8,8 @@ import numpy as np
 class Tensor:
     data: np.ndarray
     grad: Tensor
-    parents: Tuple[Tensor, ...]
     creator: Type[Function]
+    parents: Tuple[Tensor, ...]
     ctx: Context
 
     def __init__(self, data):
@@ -31,28 +31,20 @@ class Tensor:
         return f"Tensor({data_repr}, grad_fn={grad_fn_repr})"
 
     def backward(self):
-        # print(f"{_prefix}> {self}  {self.grad}")
-
         for tensor in self._backwards_tensors(self):
             tensor._backward_visit()
 
-        # parent._backward_visit(_prefix=_prefix + "    ")
-
-    def _backward_visit(self, _prefix=""):
+    def _backward_visit(self):
         if self.creator is None:
-            # print(f"{_prefix}< {self}  {self.grad}")
             return
 
         if self.grad is None:
             self.grad = Tensor(1)
 
-        if _prefix == "":
-            print(f"* {self}\n" f"  _.grad == None\n" f"  _.grad = {self.grad.data}\n")
-            _prefix = "    "
+        print(f"* {self}\n" f"  _.grad == None\n" f"  _.grad = {self.grad.data}\n")
+        _prefix = "    "
 
         grad_tensors = self.creator.backward(self.ctx, self.grad)
-        print(f"{_prefix[:-2]}grad = {self.grad.data}")
-        print(f"{_prefix[:-2]}grad_tensors = {grad_tensors}\n")
 
         for parent, grad_tensor in zip(self.parents, grad_tensors):
             if grad_tensor is None:
@@ -73,8 +65,6 @@ class Tensor:
                     f"{_prefix}  _.grad == {old_grad}\n"
                     f"{_prefix}  _.grad += {grad_tensor.data} = {parent.grad.data}\n"
                 )
-
-        # print(f"{_prefix}< {self}  {self.grad}")
 
     @staticmethod
     def _backwards_tensors(tensor: Tensor):
@@ -102,6 +92,9 @@ class Tensor:
         tensor.parents = parents
         tensor.ctx = ctx
         return tensor
+
+    def __neg__(self):
+        return self._run_forward_op(Neg)
 
     def __add__(self, other):
         return self._run_forward_op(Add, other)
@@ -133,13 +126,6 @@ class Context:
         self.saved_tensors = args
 
 
-def on_data(func):
-    def wrapper(*args):
-        return func(*[arg.data if isinstance(arg, Tensor) else arg for arg in args])
-
-    return wrapper
-
-
 class Function:
     @staticmethod
     def forward(ctx: Context, *args: Tensor) -> Tensor:
@@ -148,6 +134,16 @@ class Function:
     @staticmethod
     def backward(ctx: Context, *args: Tensor) -> Tuple[Tensor, ...]:
         raise NotImplementedError
+
+
+class Neg(Function):
+    @staticmethod
+    def forward(ctx: Context, x: Tensor) -> Tensor:
+        return Tensor(-x.data)
+
+    @staticmethod
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+        return (-grad_output,)
 
 
 class Add(Function):
@@ -179,7 +175,6 @@ class Mul(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
         x, y = ctx.saved_tensors
-        # return grad_output * y, grad_output * x
         return grad_output * y, grad_output * x
 
 
@@ -225,7 +220,6 @@ class Cos(Function):
         ctx.save_for_backward(x)
         return Tensor(np.cos(x.data))
 
-    @on_data
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
         (x,) = ctx.saved_tensors
@@ -250,21 +244,9 @@ def print_tensors(*args):
         print(f"{name}.grad = {tensor.grad}")
 
 
-# def func(a, b, c):
-#     d = a + b
-#     # e = d**2
-#     e = d
-#     f = e  # + a
-#     g = f * 2
-#     g = f + f  # Doesn't work.
-#     # g = f
-#     h = c.dot(g)
-#     return a, b, c, d, e, f, g, h
-
-
 def func(a, b, c):
     d = a * b
-    e = d + d  # Combinatorial explosion... we should only calculate d.grad once.
+    e = d + d * c - d * a**4 + (c**3 - 84).sin()
     f = e + e
     g = f + f
     h = c.dot(g)
