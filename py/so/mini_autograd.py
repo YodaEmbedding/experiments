@@ -13,15 +13,13 @@ class Tensor:
     parents: Tuple[Tensor, ...]
     creator: Type[Function]
     ctx: Context
-    is_data: bool
 
-    def __init__(self, data, is_data=False):
+    def __init__(self, data):
         self.data = np.asanyarray(data)
         self.grad = None
         self.creator = None
         self.parents = None
         self.ctx = None
-        self.is_data = is_data
 
     def __repr__(self):
         assert isinstance(self.data, np.ndarray)
@@ -33,7 +31,7 @@ class Tensor:
             return
 
         if self.grad is None:
-            self.grad = Tensor(1, is_data=True)
+            self.grad = Tensor(1)
 
         grad_tensors = self.creator.backward(self.ctx, self.grad)
 
@@ -48,61 +46,34 @@ class Tensor:
 
     def _run_forward_op(self, creator: Type[Function], *args: Tensor) -> Tensor:
         args = [arg if isinstance(arg, Tensor) else Tensor(arg) for arg in args]
-        args = [self, *args]
-        parents = args
-        args = [Tensor(tensor.data, is_data=True) for tensor in args]
-        print(f"Running {creator.__name__} on {args}")
+        parents = [self, *args]
+        print(f"Running {creator.__name__} on {parents}")
         ctx = Context()
-        tensor = creator.forward(ctx, *args)
+        tensor = creator.forward(ctx, *parents)
         tensor.creator = creator
         tensor.parents = parents
         tensor.ctx = ctx
-        tensor.is_data = False
         return tensor
 
     def __add__(self, other):
-        if not isinstance(other, Tensor):
-            other = Tensor(other)
-        if self.is_data:
-            return Tensor(self.data + other.data, is_data=True)
         return self._run_forward_op(Add, other)
 
     def __sub__(self, other):
-        if not isinstance(other, Tensor):
-            other = Tensor(other)
-        if self.is_data:
-            return Tensor(self.data - other.data, is_data=True)
         return self._run_forward_op(Sub, other)
 
     def __mul__(self, other):
-        if not isinstance(other, Tensor):
-            other = Tensor(other)
-        if self.is_data:
-            return Tensor(self.data * other.data, is_data=True)
         return self._run_forward_op(Mul, other)
 
     def __pow__(self, other):
-        if not isinstance(other, Tensor):
-            other = Tensor(other)
-        if self.is_data:
-            return Tensor(self.data**other.data, is_data=True)
         return self._run_forward_op(PowConst, other)
 
     def sin(self):
-        if self.is_data:
-            return Tensor(np.sin(self.data), is_data=True)
         return self._run_forward_op(Sin)
 
     def cos(self):
-        if self.is_data:
-            return Tensor(np.cos(self.data), is_data=True)
         return self._run_forward_op(Cos)
 
     def dot(self, other):
-        if not isinstance(other, Tensor):
-            other = Tensor(other)
-        if self.is_data:
-            return Tensor(self.data.dot(other.data), is_data=True)
         return self._run_forward_op(Dot, other)
 
 
@@ -127,7 +98,7 @@ class Function:
 class Add(Function):
     @staticmethod
     def forward(ctx: Context, x: Tensor, y: Tensor) -> Tensor:
-        return x + y
+        return Tensor(x.data + y.data)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
@@ -137,7 +108,7 @@ class Add(Function):
 class Sub(Function):
     @staticmethod
     def forward(ctx: Context, x: Tensor, y: Tensor) -> Tensor:
-        return x - y
+        return Tensor(x.data - y.data)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
@@ -148,7 +119,7 @@ class Mul(Function):
     @staticmethod
     def forward(ctx: Context, x: Tensor, y: Tensor) -> Tensor:
         ctx.save_for_backward(x, y)
-        return x * y
+        return Tensor(x.data * y.data)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
@@ -158,9 +129,9 @@ class Mul(Function):
 
 class PowConst(Function):
     @staticmethod
-    def forward(ctx: Context, x: Tensor, const: int) -> Tensor:
+    def forward(ctx: Context, x: Tensor, const: Tensor) -> Tensor:
         ctx.save_for_backward(x, const)
-        return x**const
+        return Tensor(x.data**const.data)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
@@ -172,7 +143,7 @@ class Dot(Function):
     @staticmethod
     def forward(ctx: Context, x: Tensor, y: Tensor) -> Tensor:
         ctx.save_for_backward(x, y)
-        return x.dot(y)
+        return Tensor(x.data.dot(y.data))
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
@@ -184,7 +155,7 @@ class Sin(Function):
     @staticmethod
     def forward(ctx: Context, x: Tensor) -> Tensor:
         ctx.save_for_backward(x)
-        return x.sin()
+        return Tensor(np.sin(x.data))
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
@@ -196,7 +167,7 @@ class Cos(Function):
     @staticmethod
     def forward(ctx: Context, x: Tensor) -> Tensor:
         ctx.save_for_backward(x)
-        return x.cos()
+        return Tensor(np.cos(x.data))
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
