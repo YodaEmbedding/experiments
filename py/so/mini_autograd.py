@@ -47,11 +47,6 @@ class Tensor:
             parent.backward()
 
     def _run_forward_op(self, creator: Type[Function], *args: Tensor) -> Tensor:
-        # Ummm only other is_data=True ?? what about self????
-        # , is_data=True)
-
-        # TODO wrong parent...
-
         args = [arg if isinstance(arg, Tensor) else Tensor(arg) for arg in args]
         args = [self, *args]
         parents = args
@@ -226,8 +221,8 @@ def print_tensors(a, b, c, d, e):
 
 def main():
     z = Tensor(np.array([1, 2, 3, 4]))
-    a = Tensor(np.array([0, 1, 4, 1]))
-    b = Tensor(np.array([0, 3, 4, 9]))
+    a = Tensor(np.array([0, 1, 2, 3]))
+    b = Tensor(np.array([0, 0, 1, 2]))
     c = a + b
     d = c**2
     # e = d + d + a
@@ -240,8 +235,8 @@ def main():
     import torch
 
     z = torch.tensor([1, 2, 3, 4], dtype=torch.float32, requires_grad=True)
-    a = torch.tensor([0, 1, 4, 1], dtype=torch.float32, requires_grad=True)
-    b = torch.tensor([0, 3, 4, 9], dtype=torch.float32, requires_grad=True)
+    a = torch.tensor([0, 1, 2, 3], dtype=torch.float32, requires_grad=True)
+    b = torch.tensor([0, 0, 1, 2], dtype=torch.float32, requires_grad=True)
     c = a + b
     d = c**2
     e = c.dot(z)
@@ -256,7 +251,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-# Track inputs and outputs of functions
-#
