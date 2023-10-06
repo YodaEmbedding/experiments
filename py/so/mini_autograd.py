@@ -32,30 +32,14 @@ class Tensor:
         if self.grad is None:
             self.grad = Tensor(1)
 
-        print(f"\nRunning backward for {self}")
-
         grad_tensors = self.creator.backward(self.ctx, self.grad)
-
-        # Bypass double backward.
-        # grad_tensors = [
-        #     Tensor(data)
-        #     for data in self.creator.backward(
-        #         Context(saved_tensors=[x.data for x in self.ctx.saved_tensors]),
-        #         self.grad.data,
-        #     )
-        # ]
 
         for parent, grad_tensor in zip(self.parents, grad_tensors):
             if grad_tensor is None:
                 continue
             if parent.grad is None:
                 parent.grad = Tensor(grad_tensor.data.copy())
-                # print(f"{parent}.grad := {grad_tensor}")
             else:
-                # print(
-                #     f"{parent}.grad is {parent.grad}\n"
-                #     f"{parent}.grad += {grad_tensor}"
-                # )
                 parent.grad.data += grad_tensor.data
             parent.backward()
 
@@ -219,10 +203,11 @@ def print_tensors(*args):
 def func(a, b, c):
     d = a + b
     e = d**2
-    # f = e * a
-    f = a * e
-    g = c.dot(f)
-    return a, b, c, d, e, f, g
+    f = e  # + a
+    g = f * 2
+    g = f + f  # Doesn't work.
+    h = c.dot(g)
+    return a, b, c, d, e, f, g, h
 
 
 def main():
@@ -236,9 +221,9 @@ def main():
 
     import torch
 
-    a = torch.tensor([0, 1, 2, 3], dtype=torch.float32, requires_grad=True)
-    b = torch.tensor([0, 0, 1, 2], dtype=torch.float32, requires_grad=True)
-    c = torch.tensor([1, 2, 3, 4], dtype=torch.float32, requires_grad=True)
+    a = torch.tensor(a.data, dtype=torch.float32, requires_grad=True)
+    b = torch.tensor(b.data, dtype=torch.float32, requires_grad=True)
+    c = torch.tensor(c.data, dtype=torch.float32, requires_grad=True)
     args = func(a, b, c)
     print_tensors(*args)
 
