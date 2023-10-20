@@ -41,7 +41,7 @@ class Tensor:
         if self.grad is None:
             self.grad = Tensor(1)
 
-        print(f"* {self}\n" f"  _.grad == None\n" f"  _.grad = {self.grad.data}\n")
+        print(f"* {self}\n  _.grad == None\n  _.grad = {self.grad.data}\n")
         _prefix = "    "
 
         grad_tensors = self.creator.backward(self.ctx, self.grad)
