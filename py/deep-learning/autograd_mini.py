@@ -83,7 +83,7 @@ class Tensor:
         dfs(tensor)
         return reversed(tensors)
 
-    def _run_forward_op(self, creator: Type[Function], *args: Tensor) -> Tensor:
+    def _run_forward_op(self, creator: Type[Function], *args) -> Tensor:
         args = [arg if isinstance(arg, Tensor) else Tensor(arg) for arg in args]
         parents = [self, *args]
         ctx = Context()
@@ -260,7 +260,7 @@ def main():
     args = func(a, b, c)
     print_tensors(*args)
 
-    print("================")
+    print("\n================\n")
 
     import torch
 
