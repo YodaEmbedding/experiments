@@ -1,0 +1,47 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[demo]{graphicx}
+\usepackage{fancyref}
+\usepackage{subcaption}
+
+\newenvironment{subsubfigure}[2][]{%
+  \begin{subfigure}[#1]{#2}%
+    \stepcounter{subsubfigure}%
+    \renewcommand{\thesubfigure}{\alph{subfigure}.\roman{subsubfigure}}%
+}{%
+    \addtocounter{subfigure}{-1}%
+  \end{subfigure}%
+}
+
+\begin{document}
+
+\begin{figure}
+  \begin{subfigure}{0.5\textwidth}
+    \centering
+    \includegraphics[width=.95\textwidth]{wu8_wedges}
+    \caption{With wedges.}
+    \label{fig:wedges}
+  \end{subfigure}%
+  \begin{subfigure}{0.5\textwidth}
+    \newcounter{subsubfigure}
+    \setcounter{subsubfigure}{0}
+    \begin{subsubfigure}{\textwidth}
+      \centering
+      \includegraphics[width=.95\textwidth]{wu8_flat1}
+      \caption{}
+      \label{fig:flat1}
+    \end{subsubfigure}
+    \begin{subsubfigure}{\textwidth}
+      \centering
+      \includegraphics[width=.95\textwidth]{wu8_flat2}
+      \caption{}
+      \label{fig:flat2}
+    \end{subsubfigure}
+    \caption{Without wedges}
+    \label{fig:flat}
+  \end{subfigure}
+  \caption{Interactions between the railcar and the man's feet.}
+  \label{fig:interactions}
+\end{figure}
+
+\end{document}
