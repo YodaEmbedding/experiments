@@ -1,0 +1,27 @@
+\documentclass{article}
+\usepackage{biblatex}
+
+\renewcommand*{\mkbibcompletename}[1]{%
+  \ifitemannotation{jointfirst}
+    {\underline{#1}*}%   e.g., J͟o͟h͟n͟_D͟o͟e͟* (if jointfirst)
+    {#1}%                e.g., John Doe  (otherwise)
+}
+
+\begin{filecontents}{\jobname.bib}
+@article{Doe2018,
+  author    = {Doe, John and Bloggs, Joe and Supervisor, Nice},
+  author+an = {1=jointfirst;2=jointfirst},
+  title     = {The next big breakthrough in science},
+  journal   = {Journal of Pure Awesomeness},
+  volume    = {17},
+  date      = {2018-06},
+  pages     = {507--514},
+}
+\end{filecontents}
+
+\addbibresource{\jobname.bib}
+
+\begin{document}
+Blah blah \dots as seen in the research article published~\cite{Doe2018}.
+\printbibliography
+\end{document}
