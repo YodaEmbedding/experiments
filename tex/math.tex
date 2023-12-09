@@ -1,14 +1,20 @@
 \documentclass[12pt]{extarticle}
 
-\usepackage[english]{babel}
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}             % ensure USenglish hyphenation
+\usepackage[T1]{fontenc}                % copyable accent characters (e.g. ö)
+% \usepackage[utf8]{inputenc}             % included by default since 2018
+% \usepackage{textcomp}                   % included by default since 2020
+
 \usepackage[
-  letterpaper, left=3.25in, right=1.25in, top=1.25in, bottom=1.25in,
+  % letterpaper, left=3.25in, right=1.25in, top=1.25in, bottom=1.25in,
+  letterpaper, left=2.00in, right=1.25in, top=1.25in, bottom=1.25in,
 ]{geometry}
 
 \usepackage{amssymb}
 \usepackage{mathtools}
+
+\usepackage{csquotes}
+\MakeOuterQuote{"}
 
 \title{Research}
 \author{Mateen Ulhaq}
@@ -24,5 +30,57 @@
 \textrm{loss}_\textrm{distortion} \]
 
 \[ \textrm{loss}_\textrm{rate} = \sum_i \log(p_i) \]
+
+\noindent
+\hrulefill
+
+\noindent
+Let $X$ be a normalized input point cloud, and $\hat{X}$ be its reconstruction.
+
+\noindent
+\hrulefill
+
+\noindent
+Point-to-point "D1-PSNR" is defined as:
+\[
+  \operatorname{D1-PSNR}(X, \hat{X})
+  = -10 \log_{10} \left(
+    \frac{1}{|X|} \sum_{x \in X} \min_{\hat{x} \in \hat{X}} \lVert \hat{x} - x \rVert_2^2
+  \right)
+\]
+%
+Potential problems:
+\begin{itemize}
+  \item Does not \emph{penalize} invalid points in $\hat{X}$.
+    e.g. $\operatorname{D1-PSNR}(X, \mathbb{R}^3) = \infty$, insinuating that reconstructing the entire space is a valid solution.
+    % (e.g. Let the reconstructed cloud consist of every possible point in 3D space, $\hat{X} = \mathbb{R}^3$. Then, this metric insinuates that we have a perfect reconstruction.)
+  \item Does not \emph{reward} preservation of local "density". (e.g., A single point in the reconstruction is sufficient to represent many points in the original point cloud.)
+  % \item Does not care about faces.
+\end{itemize}
+
+\noindent
+\hrulefill
+
+\[
+  \operatorname{ChamferDistance}(X, \hat{X})
+  = \sum_{x \in X} \min_{\hat{x} \in \hat{X}} \lVert \hat{x} - x \rVert_2^2
+  + \sum_{\hat{x} \in \hat{X}} \min_{x \in X} \lVert \hat{x} - x \rVert_2^2
+\]
+
+Far less problematic than D1-PSNR, but it would be nice if the penalization of invalid points and rewarding of density were tunable to reward visually better point clouds. Random (also problematic) first attempt:
+%
+\[
+  \operatorname{ChamferNew}(X, \hat{X})
+  = \left(
+  \sum_{x \in X} \min_{\hat{x} \in \hat{X}} (\lVert \hat{x} - x \rVert_2^2)^{p_1}
+  \right)^{1/p_1}
+  + \left(
+    \sum_{\hat{x} \in \hat{X}} \min_{x \in X} (\lVert \hat{x} - x \rVert_2^2)^{p_2}
+  \right)^{1/p_2}
+\]
+%
+where $p_1, p_2 \in [1, 8)$, or something like that.
+
+\hrulefill
 
 \end{document}
