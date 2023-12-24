@@ -20,6 +20,8 @@
 \author{Mateen Ulhaq}
 \date{\today}
 
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator{\EV}{\mathbb{E}}
 
 \begin{document}
@@ -56,6 +58,33 @@ Potential problems:
     % (e.g. Let the reconstructed cloud consist of every possible point in 3D space, $\hat{X} = \mathbb{R}^3$. Then, this metric insinuates that we have a perfect reconstruction.)
   \item Does not \emph{reward} preservation of local "density". (e.g., A single point in the reconstruction is sufficient to represent many points in the original point cloud.)
   % \item Does not care about faces.
+\end{itemize}
+
+\noindent
+\hrulefill
+
+% NOTE: Not a very clear definition... especially since "normal" is unusually defined. But using indexes technically imposes a (pseudo)-ordering.
+% Original paper does this, though.
+% https://www.merl.com/publications/docs/TR2017-113.pdf
+
+\noindent
+Point-to-plane "D2-PSNR" is defined as:
+\[
+  \operatorname{D2-PSNR}(X, \hat{X})
+  = -10 \log_{10} \left(
+    \frac{1}{|X|} \sum_{x \in X} \left(\operatorname{NN}(\hat{X}, x) \cdot \hat{n}({\operatorname{NN}(\hat{X}, x)})\right)^2
+    % NOTE: Why is this squared? Ah, it's because the normal is a unit vector.
+  \right)
+\]
+where
+$\hat{n}(\hat{x})$ is the surface normal vector of $\hat{x}$, and the nearest neighbor is
+\[
+  \operatorname{NN}(\hat{X}, x) = \argmin_{\hat{x} \in \hat{X}} \lVert \hat{x} - x \rVert_2^2.
+\]
+%
+Potential problems:
+\begin{itemize}
+  \item Similar to D1-PSNR.
 \end{itemize}
 
 \noindent
