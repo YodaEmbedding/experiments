@@ -18,12 +18,14 @@ for f in *; do
   fi
 
   # WARNING: The output order of the entries doesn't seem to depend on the specified order of the stream keys.
-  info="$(ffprobe -v quiet -select_streams v:0 -show_entries stream=codec_name,duration,bit_rate -of default=noprint_wrappers=1:nokey=1 "$f")"
+  info="$(ffprobe -v quiet -select_streams v:0 -show_entries stream=codec_name,width,height,duration,bit_rate -of default=noprint_wrappers=1:nokey=1 "$f")"
 
   codec_name="$(echo "$info" | cut -d$'\n' -f1)"
-  duration="$(echo "$info" | cut -d$'\n' -f2)"
-  bit_rate="$(echo "$info" | cut -d$'\n' -f3)"
+  width="$(echo "$info" | cut -d$'\n' -f2)"
+  height="$(echo "$info" | cut -d$'\n' -f3)"
+  duration="$(echo "$info" | cut -d$'\n' -f4)"
+  bit_rate="$(echo "$info" | cut -d$'\n' -f5)"
 
-  printf '%5s %12s %12s %s\n' "$codec_name" "$bit_rate" "$duration" "$f"
+  printf '%5s %12s %4sx%4s %12s %s\n' "$codec_name" "$bit_rate" "$width" "$height" "$duration" "$f"
 done
 
