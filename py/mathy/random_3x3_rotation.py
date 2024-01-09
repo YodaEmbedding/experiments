@@ -61,11 +61,12 @@ def qr_half(num_samples=1):
 
 
 def qr_full(num_samples=1):
-    # Rotate some matrices by 180 degrees around the z-axis for a full sphere.
-    s = np.random.randint(0, 2, size=(num_samples, 1, 1))
-    rot_z = np.array([[[-1, 0, 0], [0, -1, 0], [0, 0, 1]]])
-    rot_z_maybe = s * rot_z + (1 - s) * np.eye(3)
-    return rot_z_maybe @ qr_half(num_samples)
+    sign = 2 * np.random.randint(2, size=num_samples) - 1
+    z = np.random.randn(num_samples, 3, 3)
+    q, r = np.linalg.qr(z)
+    q[:, :, 0] *= sign[..., None]
+    q[:, :, 1] *= np.linalg.det(q)[..., None]
+    return q
 
 
 # https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula#Matrix_notation
