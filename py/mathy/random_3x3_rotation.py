@@ -2,21 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-# https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices/1602779#1602779
-def qr_half(num_samples=1):
-    z = np.random.randn(num_samples, 3, 3)
-    q, r = np.linalg.qr(z)
-    return q
-
-
-def qr_full(num_samples=1):
-    # Rotate some matrices by 180 degrees around the z-axis for a full sphere.
-    s = np.random.randint(0, 2, size=(num_samples, 1, 1))
-    rot_z = np.array([[[-1, 0, 0], [0, -1, 0], [0, 0, 1]]])
-    rot_z_maybe = s * rot_z + (1 - s) * np.eye(3)
-    return rot_z_maybe @ qr_half(num_samples)
-
-
 # https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices/4394036#4394036
 # https://math.stackexchange.com/questions/44689/how-to-find-a-random-axis-or-unit-vector-in-3d/44701#44701
 def randn_axis(num_samples=1):
@@ -42,6 +27,21 @@ def nbubis(num_samples=1):
     ]
     axis_vector = np.stack(axis_vector, axis=1).reshape(-1, 1, 3)
     return rot3x3_from_axis_angle(axis_vector, psi)
+
+
+# https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices/1602779#1602779
+def qr_half(num_samples=1):
+    z = np.random.randn(num_samples, 3, 3)
+    q, r = np.linalg.qr(z)
+    return q
+
+
+def qr_full(num_samples=1):
+    # Rotate some matrices by 180 degrees around the z-axis for a full sphere.
+    s = np.random.randint(0, 2, size=(num_samples, 1, 1))
+    rot_z = np.array([[[-1, 0, 0], [0, -1, 0], [0, 0, 1]]])
+    rot_z_maybe = s * rot_z + (1 - s) * np.eye(3)
+    return rot_z_maybe @ qr_half(num_samples)
 
 
 # https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula#Matrix_notation
@@ -77,10 +77,10 @@ def plot_scatter(pointses, filename, kwargses):
 
 
 METHODS = {
-    "qr_half": qr_half,
-    "qr_full": qr_full,
     "randn_axis": randn_axis,
     "nbubis": nbubis,
+    "qr_half": qr_half,
+    "qr_full": qr_full,
 }
 
 
