@@ -4,29 +4,53 @@ import numpy as np
 
 # https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices/4394036#4394036
 # https://math.stackexchange.com/questions/44689/how-to-find-a-random-axis-or-unit-vector-in-3d/44701#44701
-def randn_axis(num_samples=1):
+def randn_axis(num_samples=1, corrected=True):
+    u = np.random.uniform(0, 1, size=num_samples)
     z = np.random.randn(num_samples, 1, 3)
     z = z / np.linalg.norm(z, axis=-1, keepdims=True)
-    angle = np.random.uniform(0, 2 * np.pi, size=num_samples)
-    return rot3x3_from_axis_angle(z, angle)
+
+    if corrected:
+        t = np.linspace(0, np.pi, 1024)
+        cdf_psi = (t - np.sin(t)) / np.pi
+        psi = np.interp(u, cdf_psi, t, left=0, right=np.pi)
+    else:
+        psi = 2 * np.pi * u
+
+    return rot3x3_from_axis_angle(z, psi)
+
+
+def randn_axis_incorrect(num_samples=1):
+    return randn_axis(num_samples, corrected=False)
 
 
 # https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices/442423#442423
 # https://math.stackexchange.com/questions/44689/how-to-find-a-random-axis-or-unit-vector-in-3d/44691#44691
-def nbubis(num_samples=1):
+def nbubis(num_samples=1, corrected=True):
     u1 = np.random.uniform(0, 1, size=num_samples)
     u2 = np.random.uniform(0, 1, size=num_samples)
     u3 = np.random.uniform(0, 1, size=num_samples)
+
     theta = np.arccos(2 * u1 - 1)
     phi = 2 * np.pi * u2
-    psi = 2 * np.pi * u3
     axis_vector = [
         np.sin(theta) * np.cos(phi),
         np.sin(theta) * np.sin(phi),
         np.cos(theta),
     ]
     axis_vector = np.stack(axis_vector, axis=1).reshape(-1, 1, 3)
+
+    if corrected:
+        t = np.linspace(0, np.pi, 1024)
+        cdf_psi = (t - np.sin(t)) / np.pi
+        psi = np.interp(u3, cdf_psi, t, left=0, right=np.pi)
+    else:
+        psi = 2 * np.pi * u3
+
     return rot3x3_from_axis_angle(axis_vector, psi)
+
+
+def nbubis_incorrect(num_samples=1):
+    return nbubis(num_samples, corrected=False)
 
 
 # https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices/1602779#1602779
@@ -78,7 +102,9 @@ def plot_scatter(pointses, filename, kwargses):
 
 METHODS = {
     "randn_axis": randn_axis,
+    "randn_axis_incorrect": randn_axis_incorrect,
     "nbubis": nbubis,
+    "nbubis_incorrect": nbubis_incorrect,
     "qr_half": qr_half,
     "qr_full": qr_full,
 }
