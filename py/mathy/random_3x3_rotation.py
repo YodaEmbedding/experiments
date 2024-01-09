@@ -2,6 +2,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+# https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices/1288873#1288873
+# https://math.stackexchange.com/questions/44689/how-to-find-a-random-axis-or-unit-vector-in-3d/44701#44701
+def randn_orthobasis(num_samples=1):
+    z = np.random.randn(num_samples, 3, 3)
+    z = z / np.linalg.norm(z, axis=-1, keepdims=True)
+    z[:, 0] = np.cross(z[:, 1], z[:, 2], axis=-1)
+    z[:, 0] = z[:, 0] / np.linalg.norm(z[:, 0], axis=-1, keepdims=True)
+    z[:, 1] = np.cross(z[:, 2], z[:, 0], axis=-1)
+    z[:, 1] = z[:, 1] / np.linalg.norm(z[:, 1], axis=-1, keepdims=True)
+    return z
+
+
 # https://math.stackexchange.com/questions/442418/random-generation-of-rotation-matrices/4394036#4394036
 # https://math.stackexchange.com/questions/44689/how-to-find-a-random-axis-or-unit-vector-in-3d/44701#44701
 def randn_axis(num_samples=1, corrected=True):
@@ -102,6 +114,7 @@ def plot_scatter(pointses, filename, kwargses):
 
 
 METHODS = {
+    "randn_orthobasis": randn_orthobasis,
     "randn_axis": randn_axis,
     "randn_axis_incorrect": randn_axis_incorrect,
     "nbubis": nbubis,
