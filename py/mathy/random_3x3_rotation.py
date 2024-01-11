@@ -72,13 +72,14 @@ def qr_half(num_samples=1):
     return q
 
 
+# https://github.com/alecjacobson/gptoolbox/blob/master/matrix/rand_rotation.m
 def qr_full(num_samples=1):
-    sign = 2 * np.random.randint(2, size=num_samples) - 1
     z = np.random.randn(num_samples, 3, 3)
     q, r = np.linalg.qr(z)
-    q[:, :, 0] *= sign[..., None]
-    q[:, :, 1] *= np.linalg.det(q)[..., None]
-    return q
+    rot = q
+    rot *= np.sign(np.diagonal(r, axis1=-2, axis2=-1))[..., None, :]
+    rot[:, 0, :] *= np.linalg.det(rot)[..., None]
+    return rot
 
 
 # https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula#Matrix_notation
