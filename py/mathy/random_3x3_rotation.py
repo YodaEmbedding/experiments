@@ -76,8 +76,9 @@ def qr_half(num_samples=1):
 def qr_full(num_samples=1):
     z = np.random.randn(num_samples, 3, 3)
     q, r = np.linalg.qr(z)
+    sign = 2 * (np.diagonal(r, axis1=-2, axis2=-1) >= 0) - 1
     rot = q
-    rot *= np.sign(np.diagonal(r, axis1=-2, axis2=-1))[..., None, :]
+    rot *= sign[..., None, :]
     rot[:, 0, :] *= np.linalg.det(rot)[..., None]
     return rot
 
