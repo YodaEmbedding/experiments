@@ -30,6 +30,24 @@ SELECTOR_CONFIGS = {
         "research": None,
         "degree": None,
     },
+    "microsoft": {
+        "location": ".css-530.ms-Stack-inner > p",
+        "job_title": ".SearchJobDetailsCard > h1:nth-child(2)",
+        "yoe": None,
+        "p": None,
+        "interest": None,
+        "salary": None,
+        "tech": None,
+        "minimum_qualifications": ".WzU5fAyjS4KUVs1QJGcQ > div:nth-child(1) > div:nth-child(2) > ul:nth-child(2)",
+        "preferred_qualifications": ".WzU5fAyjS4KUVs1QJGcQ > div:nth-child(1) > div:nth-child(2) > ul:nth-child(4)",
+        "responsibilities": "div.MKwm2_A5wy0mMoh9vTuX:nth-child(3) > div:nth-child(1) > div:nth-child(2) > ul:nth-child(1)",
+        "description": [
+            ".WzU5fAyjS4KUVs1QJGcQ > div:nth-child(1) > div:nth-child(2) > p:nth-child(5)",
+            "div.MKwm2_A5wy0mMoh9vTuX:nth-child(1) > div:nth-child(1) > div:nth-child(2)",
+        ],
+        "research": None,
+        "degree": None,
+    },
 }
 
 
@@ -88,8 +106,8 @@ def extract_degree(s):
 
 
 def postprocess_result(result, config_key):
+    result = result.copy()
     if config_key == "google":
-        result = result.copy()
         result["description"] = result["description"].removeprefix("About the job")
         result["location"] = result["location"].removeprefix("place")
         if result["location_more"]:
@@ -118,9 +136,12 @@ def run_scraper(url):
         if not selector:
             result[key] = None
             continue
-        elements = soup.select(selector)
-        assert len(elements) <= 1
-        value = elements[0].text if elements else None
+        if not isinstance(selector, list):
+            selector = [selector]
+        elements = [x for s in selector for x in soup.select(s)]
+        # assert len(elements) <= 1
+        # value = elements[0].text if elements else None
+        value = "\n".join(x.text for x in elements)
         result[key] = value
 
     result = postprocess_result(result, config_key)
