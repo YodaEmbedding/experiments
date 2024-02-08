@@ -1,3 +1,4 @@
+import re
 import sys
 import time
 from pprint import pprint
@@ -17,16 +18,73 @@ SELECTOR_CONFIGS = {
         "location": "span.vo5qdf",
         "location_more": "b",
         "job_title": "h2.p1N2lc",
+        "yoe": None,
+        "p": None,
+        "interest": None,
+        "salary": None,
+        "tech": None,
         "minimum_qualifications": ".KwJkGe ul:nth-of-type(1)",
         "preferred_qualifications": ".KwJkGe ul:nth-of-type(2)",
         "responsibilities": ".BDNOWe ul",
         "description": "div.aG5W3",
+        "research": None,
+        "degree": None,
     },
 }
 
 
 def skip_blanklines(s):
     return "\n".join(x for x in s.splitlines() if x.strip())
+
+
+# NOTE: Not yet implemented.
+# def extract_yoe(s):
+#     s = s.lower()
+#     pattern = r"\d+\D* year"
+#     matches = re.findall(pattern, s)
+#     return ", ".join(matches)
+
+
+def extract_tech(result):
+    s = "\n".join(
+        [
+            result["minimum_qualifications"],
+            result["preferred_qualifications"],
+            result["responsibilities"],
+            result["description"],
+        ]
+    ).lower()
+    # fmt: off
+    keywords = [
+        " c,", "c++", "python", "java",
+        "pytorch", "tensorflow", "keras", "scikit-learn", "pandas", "sql", "spark", "hadoop",
+        "aws", "azure", "gcp", "docker", "kubernetes",
+        "git", "linux", "unix", "bash", "shell",
+        "javascript", "typescript", "react", "angular", "vue", "node.js", "express", "flask", "django", "html", "css", "sass", "bootstrap", "tailwind", "webpack", "babel", "eslint", "prettier", "jest", "mocha", "chai", "cypress", "selenium", "webdriver", "appium",
+        "jenkins", "circleci", "travis",
+        "cuda", "llvm", "llm",
+        # "research",
+        "publication",
+    ]
+    # fmt: on
+    tech = [x for x in keywords if x in s]
+    return ", ".join(tech)
+
+
+def extract_salary(s):
+    s = s.lower()
+    pattern = r"\$?((\d{3})[, ]?\d{3}.*\$?(\d{3}),?\d{3})"
+    match = re.search(pattern, s)
+    if not match:
+        return None
+    return f"{match.group(2)}-{match.group(3)}"
+
+
+def extract_degree(s):
+    s = s.lower()
+    keywords = ["bachelor", "master", "phd"]
+    found = [x for x in keywords if x in s]
+    return " ".join(found)
 
 
 def postprocess_result(result, config_key):
@@ -38,6 +96,13 @@ def postprocess_result(result, config_key):
             result["location"] = result["location_more"]
         del result["location_more"]
         result = {k: skip_blanklines(v.strip()) if v else v for k, v in result.items()}
+    # result["yoe"] = extract_yoe(result["description"])
+    result["salary"] = extract_salary(result["description"])
+    result["tech"] = extract_tech(result)
+    result["research"] = any(
+        x in result["tech"] for x in ["pytorch", "tensorflow", "publication"]
+    )
+    result["degree"] = extract_degree(result["minimum_qualifications"])
     return result
 
 
@@ -50,6 +115,9 @@ def run_scraper(url):
     result = {"url": url}
 
     for key, selector in config.items():
+        if not selector:
+            result[key] = None
+            continue
         elements = soup.select(selector)
         assert len(elements) <= 1
         value = elements[0].text if elements else None
