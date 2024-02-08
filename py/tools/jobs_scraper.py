@@ -6,6 +6,10 @@ from pprint import pprint
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 RATE_LIMIT = 1
 
@@ -128,8 +132,26 @@ def run_scraper(url):
     config_key = next(key for key in SELECTOR_CONFIGS if key in url)
     config = SELECTOR_CONFIGS[config_key]
 
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
+    # Simple method to get HTML:
+    # response = requests.get(url).text
+
+    # More complex method to get HTML (for JS-rendered pages):
+    options = webdriver.ChromeOptions()
+    # options.add_argument("--headless")
+    driver = webdriver.Chrome(options=options)
+    driver.get(url)
+
+    timeout = 10
+    element_present = EC.presence_of_element_located(
+        (By.CSS_SELECTOR, ".css-530.ms-Stack-inner > p")
+    )
+    WebDriverWait(driver, timeout).until(element_present)
+
+    html = driver.page_source
+
+    # print(html, file=sys.stderr)
+    soup = BeautifulSoup(html, "html.parser")
+
     result = {"url": url}
 
     for key, selector in config.items():
