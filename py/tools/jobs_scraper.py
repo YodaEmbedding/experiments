@@ -179,7 +179,7 @@ def main():
             continue
         items.append(run_scraper(url))
         time.sleep(RATE_LIMIT)
-    pd.DataFrame(items).to_csv(sys.stdout, index=False)
+    pd.DataFrame(items).to_csv(sys.stdout, sep="\t", index=False)
 
 
 if __name__ == "__main__":
