@@ -79,12 +79,18 @@ def extract_tech(result):
     # fmt: off
     keywords = [
         " c,", "c++", "python", "java",
-        "pytorch", "tensorflow", "keras", "scikit-learn", "pandas", "sql", "spark", "hadoop",
+        "pytorch", "tensorflow", "keras", "numpy", "scikit-learn", "pandas", "sql", "spark", "hadoop",
         "aws", "azure", "gcp", "docker", "kubernetes",
         "git", "linux", "unix", "bash", "shell",
-        "javascript", "typescript", "react", "angular", "vue", "node.js", "express", "flask", "django", "html", "css", "sass", "bootstrap", "tailwind", "webpack", "babel", "eslint", "prettier", "jest", "mocha", "chai", "cypress", "selenium", "webdriver", "appium",
+        "javascript", "typescript", "react", "angular", "vue", "node.js", "express", "flask", "django", "html", "css", "sass", "bootstrap", "tailwind", "webpack", "babel",
+        "react", "svelte", "vue", "nextjs", "blazor", "htmx",
+        "selenium", "webdriver", "appium",
         "jenkins", "circleci", "travis",
+        "docker", "kubernetes",
         "cuda", "llvm", "llm",
+        "visual studio code",
+        "maia", "accelerator", "deepspeed", "automl",
+        "open source",
         # "research",
         "publication",
     ]
