@@ -198,7 +198,7 @@ def run_scraper(url):
         elements = [x for s in selector for x in soup.select(s)]
         # assert len(elements) <= 1
         # value = elements[0].text if elements else None
-        value = "\n".join(x.text for x in elements)
+        value = "\n\n".join(x.text.strip() for x in elements)
         result[key] = value
 
     result = postprocess_result(result, config_key)
