@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-RATE_LIMIT = 1
+RATE_LIMIT = 0.1
 
 SELECTOR_CONFIGS = {
     # NOTE: To scrape saved URLs from the sidebar:
@@ -51,6 +51,15 @@ SELECTOR_CONFIGS = {
         ],
         "research": None,
         "degree": None,
+    },
+}
+
+OTHER_CONFIGS = {
+    "google": {
+        "use_selenium": False,
+    },
+    "microsoft": {
+        "use_selenium": True,
     },
 }
 
@@ -138,22 +147,24 @@ def run_scraper(url):
     config_key = next(key for key in SELECTOR_CONFIGS if key in url)
     config = SELECTOR_CONFIGS[config_key]
 
-    # Simple method to get HTML:
-    # response = requests.get(url).text
+    if OTHER_CONFIGS[config_key]["use_selenium"]:
+        # More complex method to get HTML (for JS-rendered pages):
+        options = webdriver.ChromeOptions()
+        # options.add_argument("--headless")
+        driver = webdriver.Chrome(options=options)
+        driver.get(url)
 
-    # More complex method to get HTML (for JS-rendered pages):
-    options = webdriver.ChromeOptions()
-    # options.add_argument("--headless")
-    driver = webdriver.Chrome(options=options)
-    driver.get(url)
+        timeout = 10
+        element_present = EC.presence_of_element_located(
+            (By.CSS_SELECTOR, SELECTOR_CONFIGS[config_key]["location"])
+            # Checks if the element containing location is... located. :)
+        )
+        WebDriverWait(driver, timeout).until(element_present)
 
-    timeout = 10
-    element_present = EC.presence_of_element_located(
-        (By.CSS_SELECTOR, ".css-530.ms-Stack-inner > p")
-    )
-    WebDriverWait(driver, timeout).until(element_present)
-
-    html = driver.page_source
+        html = driver.page_source
+    else:
+        # Simple method to get HTML:
+        html = requests.get(url).text
 
     # print(html, file=sys.stderr)
     soup = BeautifulSoup(html, "html.parser")
