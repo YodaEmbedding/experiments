@@ -168,7 +168,7 @@ def extract_tech(result):
 
 def extract_salary(s):
     s = s.lower()
-    pattern = r"\$?((\d{3})[, ]?\d{3}.*\$?(\d{3}),?\d{3})"
+    pattern = r"\$?((\d{3})[, ]?\d{3}.{0,16}\$?(\d{3}),?\d{3})"
     match = re.search(pattern, s)
     if not match:
         return None
