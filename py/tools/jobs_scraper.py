@@ -128,6 +128,7 @@ def extract_tech(result):
     keywords = [
         "c", "python", "java",
         "pytorch", "tensorflow", "keras", "jax", "onnx",
+        "go", "rust", "swift", "kotlin", "dart", "r", "julia",
         "numpy", "pandas", "sql", "spark", "hadoop",
         "aws", "azure", "gcp", "docker", "kubernetes",
         "git", "linux", "unix", "bash", "shell",
@@ -146,6 +147,7 @@ def extract_tech(result):
         "maia", "accelerator", "deepspeed", "automl",
         "autograd", "autodiff",
         "http", "grpc", "rest", "protobuf",
+        "compression", "hevc", "vvc",
         "github",
         # "research",
         "publication",
@@ -158,6 +160,7 @@ def extract_tech(result):
         "node.js",
         "automatic differentiation",
         "visual studio code",
+        "h.264", "h.265", "av1",
     ]
     # fmt: on
     words = set(x[0] for x in re.findall(r"\b([\w-]+(\.[\w-]+)?)\b", s))
