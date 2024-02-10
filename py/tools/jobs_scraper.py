@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-RATE_LIMIT = 0.1
+RATE_LIMIT = 1
 
 SELECTOR_CONFIGS = {
     "apple": {
@@ -70,7 +70,7 @@ SELECTOR_CONFIGS = {
         "research": None,
         "degree": None,
     },
-    "nvidia": {
+    "workday": {  # nvidia, etc
         "location": ".css-cygeeu",
         "job_title": ".css-7papts",
         "yoe": None,
@@ -97,7 +97,7 @@ OTHER_CONFIGS = {
     "microsoft": {
         "use_selenium": True,
     },
-    "nvidia": {
+    "workday": {
         "use_selenium": True,
     },
 }
@@ -191,9 +191,11 @@ def postprocess_result(result, config_key):
             result["location"] = result["location_more"]
         del result["location_more"]
         result = {k: skip_blanklines(v.strip()) if v else v for k, v in result.items()}
+    if config_key == "workday":
+        result["location"] = result["location"].removeprefix("locations")
     # result["yoe"] = extract_yoe(result["description"])
-    if "new college grad" in result["job_title"].lower():
-        result["yoe"] = 0
+    if "new college grad" in result["job_title"].lower():  # (NVIDIA)
+        result["yoe"] = "new"
     result["salary"] = extract_salary(result["description"])
     result["tech"] = extract_tech(result)
     result["research"] = any(
