@@ -14,6 +14,26 @@ from selenium.webdriver.support.ui import WebDriverWait
 RATE_LIMIT = 0.1
 
 SELECTOR_CONFIGS = {
+    "apple": {
+        "location": "#job-location-name",
+        "job_title": "#jdPostingTitle",
+        "yoe": None,
+        "p": None,
+        "interest": None,
+        "salary": None,
+        "tech": None,
+        "minimum_qualifications": "#jd-key-qualifications",
+        "preferred_qualifications": "#jd-additional-requirements",
+        "responsibilities": "#jd-description",
+        "description": [
+            "#jd-job-summary",
+            # "#jd-description",
+            "#jd-posting-supplement-footer-0",
+        ],
+        "research": None,
+        "degree": "#jd-education-experience",
+        # "team": "#job-team-name",
+    },
     "google": {
         # NOTE: To scrape saved URLs from the sidebar:
         # console.log([...document.getElementsByClassName("Si6A0c Qai30b")].map(x => x.href.replace("/saved/", "/results/")).join("\n"))
@@ -68,6 +88,9 @@ SELECTOR_CONFIGS = {
 }
 
 OTHER_CONFIGS = {
+    "apple": {
+        "use_selenium": False,
+    },
     "google": {
         "use_selenium": False,
     },
