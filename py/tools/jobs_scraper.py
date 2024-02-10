@@ -103,24 +103,43 @@ def extract_tech(result):
     ).lower()
     # fmt: off
     keywords = [
-        " c,", "c++", "python", "java",
-        "pytorch", "tensorflow", "keras", "numpy", "scikit-learn", "pandas", "sql", "spark", "hadoop",
+        "c", "python", "java",
+        "pytorch", "tensorflow", "keras", "jax", "onnx",
+        "numpy", "pandas", "sql", "spark", "hadoop",
         "aws", "azure", "gcp", "docker", "kubernetes",
         "git", "linux", "unix", "bash", "shell",
-        "javascript", "typescript", "react", "angular", "vue", "node.js", "express", "flask", "django", "html", "css", "sass", "bootstrap", "tailwind", "webpack", "babel",
-        "react", "svelte", "vue", "nextjs", "blazor", "htmx",
+        "javascript", "typescript", "react", "angular", "vue", "nodejs", "flask", "django", "html", "css", "sass", "bootstrap", "tailwind", "webpack", "babel",
+        "react", "svelte", "vue", "nextjs", "blazor", "htmx",  # "express",
         "selenium", "webdriver", "appium",
-        "jenkins", "circleci", "travis",
+        "jenkins", "circleci", "travis", "devops",
+        "agile", "scrum", "kanban",
         "docker", "kubernetes",
-        "cuda", "llvm", "llm",
-        "visual studio code",
+        "llm",
+        "llvm", "mlir",
+        "cuda", "opencl",
+        "openmp", "mpi", "triton", "tensorrt", "cudnn", "nccl",
+        "opencv", "dlib", "tesseract", "ffmpeg", "gstreamer",
+        "opengl", "vulkan", "directx", "webgl",
         "maia", "accelerator", "deepspeed", "automl",
-        "open source",
+        "autograd", "autodiff",
+        "http", "grpc", "rest", "protobuf",
+        "github",
         # "research",
         "publication",
     ]
+    raw_keywords = [
+        "c++",
+        "ci/cd",
+        "scikit-learn",
+        "open source",
+        "node.js",
+        "automatic differentiation",
+        "visual studio code",
+    ]
     # fmt: on
-    tech = [x for x in keywords if x in s]
+    words = set(x[0] for x in re.findall(r"\b([\w-]+(\.[\w-]+)?)\b", s))
+    tech = [x for x in keywords if x in words] + [x for x in raw_keywords if x in s]
+    tech = {x: None for x in tech}.keys()  # Remove duplicates.
     return ", ".join(tech)
 
 
