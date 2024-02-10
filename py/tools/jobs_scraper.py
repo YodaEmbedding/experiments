@@ -14,11 +14,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 RATE_LIMIT = 0.1
 
 SELECTOR_CONFIGS = {
-    # NOTE: To scrape saved URLs from the sidebar:
-    # console.log([...document.getElementsByClassName("Si6A0c Qai30b")].map(x => x.href.replace("/saved/", "/results/")).join("\n"))
-    #
     "google": {
-        # id: selector
+        # NOTE: To scrape saved URLs from the sidebar:
+        # console.log([...document.getElementsByClassName("Si6A0c Qai30b")].map(x => x.href.replace("/saved/", "/results/")).join("\n"))
         "location": "span.vo5qdf",
         "location_more": "b",
         "job_title": "h2.p1N2lc",
@@ -52,6 +50,21 @@ SELECTOR_CONFIGS = {
         "research": None,
         "degree": None,
     },
+    "nvidia": {
+        "location": ".css-cygeeu",
+        "job_title": ".css-7papts",
+        "yoe": None,
+        "p": None,
+        "interest": None,
+        "salary": None,
+        "tech": None,
+        "minimum_qualifications": ".css-4r17ng > ul:nth-of-type(2)",
+        "preferred_qualifications": ".css-4r17ng > ul:nth-of-type(3)",
+        "responsibilities": ".css-4r17ng > ul:nth-of-type(1)",
+        "description": ".css-ey7qxc > .css-4r17ng",
+        "research": None,
+        "degree": None,
+    },
 }
 
 OTHER_CONFIGS = {
@@ -59,6 +72,9 @@ OTHER_CONFIGS = {
         "use_selenium": False,
     },
     "microsoft": {
+        "use_selenium": True,
+    },
+    "nvidia": {
         "use_selenium": True,
     },
 }
@@ -134,6 +150,8 @@ def postprocess_result(result, config_key):
         del result["location_more"]
         result = {k: skip_blanklines(v.strip()) if v else v for k, v in result.items()}
     # result["yoe"] = extract_yoe(result["description"])
+    if "new college grad" in result["job_title"].lower():
+        result["yoe"] = 0
     result["salary"] = extract_salary(result["description"])
     result["tech"] = extract_tech(result)
     result["research"] = any(
