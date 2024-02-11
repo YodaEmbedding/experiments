@@ -32,6 +32,7 @@ SELECTOR_CONFIGS = {
         ],
         "research": None,
         "degree": "#jd-education-experience",
+        "job_post_date": "#jobPostDate",
         # "team": "#job-team-name",
     },
     "google": {
@@ -51,6 +52,7 @@ SELECTOR_CONFIGS = {
         "description": "div.aG5W3",
         "research": None,
         "degree": None,
+        "job_post_date": None,
     },
     "microsoft": {
         "location": ".css-530.ms-Stack-inner > p",
@@ -69,6 +71,7 @@ SELECTOR_CONFIGS = {
         ],
         "research": None,
         "degree": None,
+        "job_post_date": ".IyCDaH20Khhx15uuQqgx:nth-of-type(1) > .css-480.ms-Stack > div.css-486.ms-Stack:nth-of-type(2)",
     },
     "workday": {  # nvidia, etc
         "location": ".css-cygeeu",
@@ -84,6 +87,7 @@ SELECTOR_CONFIGS = {
         "description": ".css-ey7qxc > .css-4r17ng",
         "research": None,
         "degree": None,
+        "job_post_date": ".css-19idom:nth-of-type(2) > .css-k008qs > dl > .css-129m7dg",
     },
 }
 
