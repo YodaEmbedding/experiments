@@ -41,8 +41,8 @@ class Tensor:
         if self.grad is None:
             self.grad = Tensor(1)
 
-        print(f"* {self}\n  _.grad == None\n  _.grad = {self.grad.data}\n")
-        _prefix = "    "
+        # print(f"* {self}\n  _.grad == None\n  _.grad = {self.grad.data}\n")
+        # _prefix = "    "
 
         grad_tensors = self.creator.backward(self.ctx, self.grad)
 
@@ -50,21 +50,21 @@ class Tensor:
             if grad_tensor is None:
                 continue
             if parent.grad is None:
-                old_grad = None
+                # old_grad = None
                 parent.grad = Tensor(grad_tensor.data.copy())
-                print(
-                    f"{_prefix}* {parent}\n"
-                    f"{_prefix}  _.grad == {old_grad}\n"
-                    f"{_prefix}  _.grad = {parent.grad.data}\n"
-                )
+                # print(
+                #     f"{_prefix}* {parent}\n"
+                #     f"{_prefix}  _.grad == {old_grad}\n"
+                #     f"{_prefix}  _.grad = {parent.grad.data}\n"
+                # )
             else:
-                old_grad = parent.grad.data.copy()
+                # old_grad = parent.grad.data.copy()
                 parent.grad.data += grad_tensor.data
-                print(
-                    f"{_prefix}* {parent}\n"
-                    f"{_prefix}  _.grad == {old_grad}\n"
-                    f"{_prefix}  _.grad += {grad_tensor.data} = {parent.grad.data}\n"
-                )
+                # print(
+                #     f"{_prefix}* {parent}\n"
+                #     f"{_prefix}  _.grad == {old_grad}\n"
+                #     f"{_prefix}  _.grad += {grad_tensor.data} = {parent.grad.data}\n"
+                # )
 
     @staticmethod
     def _backwards_tensors(tensor: Tensor):
