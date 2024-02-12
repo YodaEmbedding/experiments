@@ -117,6 +117,9 @@ class Tensor:
     def dot(self, other):
         return self._run_forward_op(Dot, other)
 
+    def sum(self):
+        return self._run_forward_op(Sum)
+
 
 class Context:
     def __init__(self, saved_tensors=()):
@@ -226,6 +229,18 @@ class Cos(Function):
         return (grad_output * -x.sin(),)
 
 
+class Sum(Function):
+    @staticmethod
+    def forward(ctx: Context, x: Tensor) -> Tensor:
+        ctx.save_for_backward(x)
+        return Tensor(np.sum(x.data))
+
+    @staticmethod
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+        (x,) = ctx.saved_tensors
+        return (grad_output * np.ones_like(x.data),)
+
+
 def print_tensors(*args):
     names = "abcdefghijklmnopqrstuvwxyz"[: len(args)]
 
@@ -250,13 +265,14 @@ def func(a, b, c):
     f = e + e
     g = f + f
     h = c.dot(g)
-    return a, b, c, d, e, f, g, h
+    i = h.sum()
+    return a, b, c, d, e, f, g, h, i
 
 
 def main():
-    a = Tensor(np.array([2], dtype=np.float32))
-    b = Tensor(np.array([5], dtype=np.float32))
-    c = Tensor(np.array([11], dtype=np.float32))
+    a = Tensor(np.array([2, 5], dtype=np.float32))
+    b = Tensor(np.array([5, 7], dtype=np.float32))
+    c = Tensor(np.array([11, 9], dtype=np.float32))
     args = func(a, b, c)
     print_tensors(*args)
 
