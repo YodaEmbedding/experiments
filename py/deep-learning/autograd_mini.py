@@ -256,6 +256,65 @@ class ReLU(Function):
         return (grad_output * (x.data > 0),)
 
 
+class Model:
+    def __init__(self, ch_hidden=16):
+        # self.w1 = Tensor(np.array([[1.7]]))
+        # self.w2 = Tensor(np.array([[0.2]]))
+        # self.w3 = Tensor(np.array([[0.6]]))
+        self.w1 = Tensor(np.random.randn(ch_hidden) / ch_hidden)
+        self.w2 = Tensor(np.random.randn(ch_hidden) / ch_hidden)
+        self.w3 = Tensor(np.random.randn(ch_hidden) / ch_hidden)
+
+    def parameters(self):
+        return [self.w1, self.w2, self.w3]
+
+    def __call__(self, *args):
+        return self.forward(*args)
+
+    def forward(self, x):
+        # print(x.data.shape)
+        a = x**2
+        b = (self.w1 * a + self.w3).relu()
+        c = (self.w2 * a + self.w3).relu()
+        d = b + c
+        # d = x + self.w1 + self.w2 + self.w3
+        y_hat = d.sin() * 4
+        return y_hat
+
+
+def train(lr=1e-3):
+    model = Model()
+    losses = []
+
+    for i in range(5000):
+        x = Tensor(np.random.rand(1))
+        y = (x**4).sin() * 4  # + 0.0 * np.random.randn(1)
+        y_hat = model(x)
+
+        mse_loss = ((y - y_hat) ** 2).sum()
+        w_loss = sum(((w**2).sum() for w in model.parameters()), start=Tensor(0))
+        loss = mse_loss + w_loss * 0.1
+        loss.backward()
+        losses.append(mse_loss.data.item())
+
+        for param in model.parameters():
+            # print(param.data.shape, param.grad.data.shape)
+            param.data -= param.grad.data * lr
+            # .sum(0)
+            param.grad = None
+
+        print(i, loss.data.item(), mse_loss.data.item(), w_loss.data.item())
+        # print([x.data.round(6).item() for x in model.parameters()])
+
+    # losses = losses[100:]
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    ax.plot(losses)
+    plt.show()
+
+
 def print_tensors(*args):
     names = "abcdefghijklmnopqrstuvwxyz"[: len(args)]
 
@@ -284,7 +343,7 @@ def func(a, b, c):
     return a, b, c, d, e, f, g, h, i
 
 
-def main():
+def run_quick_test():
     a = Tensor(np.array([2, 5], dtype=np.float32))
     b = Tensor(np.array([5, 7], dtype=np.float32))
     c = Tensor(np.array([11, 9], dtype=np.float32))
@@ -300,6 +359,11 @@ def main():
     c = torch.tensor(c.data, dtype=torch.float32, requires_grad=True)
     args = func(a, b, c)
     print_tensors(*args)
+
+
+def main():
+    # run_quick_test()
+    train()
 
 
 if __name__ == "__main__":
