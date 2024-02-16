@@ -120,6 +120,9 @@ class Tensor:
     def sum(self):
         return self._run_forward_op(Sum)
 
+    def relu(self):
+        return self._run_forward_op(ReLU)
+
 
 class Context:
     def __init__(self, saved_tensors=()):
@@ -239,6 +242,18 @@ class Sum(Function):
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
         (x,) = ctx.saved_tensors
         return (grad_output * np.ones_like(x.data),)
+
+
+class ReLU(Function):
+    @staticmethod
+    def forward(ctx: Context, x: Tensor) -> Tensor:
+        ctx.save_for_backward(x)
+        return Tensor(np.maximum(0, x.data))
+
+    @staticmethod
+    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+        (x,) = ctx.saved_tensors
+        return (grad_output * (x.data > 0),)
 
 
 def print_tensors(*args):
