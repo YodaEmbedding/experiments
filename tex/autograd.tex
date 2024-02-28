@@ -1,0 +1,59 @@
+\documentclass[12pt]{extarticle}
+
+\usepackage[english]{babel}             % ensure USenglish hyphenation
+\usepackage[T1]{fontenc}                % copyable accent characters (e.g. ö)
+
+\usepackage[
+  letterpaper, left=2.00in, right=1.25in, top=1.25in, bottom=1.25in,
+]{geometry}
+
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+\usepackage{csquotes}
+\MakeOuterQuote{"}
+
+\title{Autograd}
+\author{Mateen Ulhaq}
+\date{\today}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\begin{document}
+
+\maketitle
+
+
+Simple example:
+
+
+
+
+
+Harder example:
+
+$$ a = x^2 $$
+
+$$ b = (w_1 \cdot a + w_3)^2 $$
+
+$$ c = (w_2 \cdot b + w_3)^2 $$
+
+$$ d = b + c $$
+
+$$ \hat{y} = sin(d) $$
+
+$$ L = \sum_i (y_i - \hat{y}_i)^2 $$
+
+$$ \frac{\partial L}{\partial w_1} = \frac{\partial L}{\partial \hat{y}} \frac{\partial \hat{y}}{\partial d} \frac{\partial d}{\partial b} \frac{\partial b}{\partial w_1} $$
+
+$$ \frac{\partial L}{\partial w_2} = \frac{\partial L}{\partial \hat{y}} \frac{\partial \hat{y}}{\partial d} \frac{\partial d}{\partial c} \frac{\partial c}{\partial w_2} $$
+
+$$ \frac{\partial L}{\partial w_3} = \frac{\partial L}{\partial \hat{y}} \frac{\partial \hat{y}}{\partial d} \left( \frac{\partial d}{\partial b} \frac{\partial b}{\partial w_3} + \frac{\partial d}{\partial c} \frac{\partial c}{\partial w_3} \right) $$
+
+
+
+
+
+\end{document}
+
