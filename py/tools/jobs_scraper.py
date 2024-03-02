@@ -14,6 +14,22 @@ from selenium.webdriver.support.ui import WebDriverWait
 RATE_LIMIT = 1
 
 SELECTOR_CONFIGS = {
+    "amazon": {
+        "location": ".location-icon > ul:nth-child(2)",
+        "job_title": ".info > .title",
+        "yoe": None,
+        "p": None,
+        "interest": None,
+        "salary": None,
+        "tech": None,
+        "minimum_qualifications": ".section:nth-of-type(3) > p",
+        "preferred_qualifications": ".section:nth-of-type(4) > p",
+        "responsibilities": None,
+        "description": ".section:nth-of-type(2) > p",
+        "research": None,
+        "degree": None,
+        "job_post_date": None,
+    },
     "apple": {
         "location": "#job-location-name",
         "job_title": "#jdPostingTitle",
@@ -92,6 +108,9 @@ SELECTOR_CONFIGS = {
 }
 
 OTHER_CONFIGS = {
+    "amazon": {
+        "use_selenium": False,
+    },
     "apple": {
         "use_selenium": False,
     },
@@ -120,14 +139,13 @@ def skip_blanklines(s):
 
 
 def extract_tech(result):
-    s = "\n".join(
-        [
-            result["minimum_qualifications"],
-            result["preferred_qualifications"],
-            result["responsibilities"],
-            result["description"],
-        ]
-    ).lower()
+    items = [
+        result["minimum_qualifications"],
+        result["preferred_qualifications"],
+        result["responsibilities"],
+        result["description"],
+    ]
+    s = "\n".join(x for x in items if x is not None).lower()
     # fmt: off
     keywords = [
         "c", "python", "java",
