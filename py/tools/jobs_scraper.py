@@ -14,6 +14,22 @@ from selenium.webdriver.support.ui import WebDriverWait
 RATE_LIMIT = 1
 
 SELECTOR_CONFIGS = {
+    "adobe": {
+        "location": ".au-target.job-location",
+        "job_title": ".au-target.job-title",
+        "yoe": None,
+        "p": None,
+        "interest": None,
+        "salary": None,
+        "tech": None,
+        "minimum_qualifications": ".au-target.jd-info ul",
+        "preferred_qualifications": ".au-target.jd-info ul",
+        "responsibilities": ".au-target.jd-info ul",
+        "description": ".au-target.jd-info",
+        "research": None,
+        "degree": None,
+        "job_post_date": ".job-postedDate",
+    },
     "amazon": {
         "location": ".location-icon > ul:nth-child(2)",
         "job_title": ".info > .title",
@@ -108,6 +124,9 @@ SELECTOR_CONFIGS = {
 }
 
 OTHER_CONFIGS = {
+    "adobe": {
+        "use_selenium": True,
+    },
     "amazon": {
         "use_selenium": False,
     },
