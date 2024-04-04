@@ -23,10 +23,11 @@ for f in *; do
   codec_name="$(echo "$info" | cut -d$'\n' -f1)"
   width="$(echo "$info" | cut -d$'\n' -f2)"
   height="$(echo "$info" | cut -d$'\n' -f3)"
-  duration="$(echo "$info" | cut -d$'\n' -f4)"
+  pixels="$(bc <<< "$width * $height")"
+  duration="$(echo "$info" | cut -d$'\n' -f4 | xargs printf '%.1f')"
   bit_rate="$(echo "$info" | cut -d$'\n' -f5)"
-  file_size="$(du -h "$f" | cut -f1)"
+  file_size="$(du --human-readable --dereference "$f" | cut -f1)"
 
-  printf '%5s %12s %4s x %4s %6s %12s %s\n' "$codec_name" "$bit_rate" "$width" "$height" "$file_size" "$duration" "$f"
+  printf '%5s %12s %4s x %4s %8s %6s %6s %s\n' "$codec_name" "$bit_rate" "$width" "$height" "$pixels" "$file_size" "$duration" "$f"
 done
 
