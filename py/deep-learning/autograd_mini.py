@@ -50,6 +50,7 @@ class Tensor:
             if grad_tensor is None:
                 continue
             if parent.grad is None:
+                print(parent.data.shape, grad_tensor.data.shape)
                 # old_grad = None
                 parent.grad = Tensor(grad_tensor.data.copy())
                 # print(
@@ -58,6 +59,9 @@ class Tensor:
                 #     f"{_prefix}  _.grad = {parent.grad.data}\n"
                 # )
             else:
+                print(parent.data.shape, grad_tensor.data.shape, parent.grad.data.shape)
+                print(parent.data)
+                # print(parent.data, grad_tensor.data, parent.grad.data)
                 # old_grad = parent.grad.data.copy()
                 parent.grad.data += grad_tensor.data
                 # print(
@@ -205,7 +209,7 @@ class Dot(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
         x, y = ctx.saved_tensors
-        return grad_output * y, grad_output * x
+        return grad_output.dot(y), grad_output.dot(x)
 
 
 class Sin(Function):
@@ -273,6 +277,8 @@ class Model:
 
     def forward(self, x):
         # print(x.data.shape)
+        print(x.data)
+        x = x * 100000
         a = x**2
         b = (self.w1 * a + self.w3).relu()
         c = (self.w2 * a + self.w3).relu()
@@ -287,7 +293,7 @@ def train(lr=1e-3):
     losses = []
 
     for i in range(5000):
-        x = Tensor(np.random.rand(1))
+        x = Tensor(np.random.rand(16, 1))
         y = (x**4).sin() * 4  # + 0.0 * np.random.randn(1)
         y_hat = model(x)
 
