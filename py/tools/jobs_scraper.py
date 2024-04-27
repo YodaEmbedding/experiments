@@ -260,12 +260,26 @@ def run_scraper(url):
         driver = webdriver.Chrome(options=options)
         driver.get(url)
 
-        timeout = 10
-        element_present = EC.presence_of_element_located(
-            (By.CSS_SELECTOR, SELECTOR_CONFIGS[config_key]["location"])
-            # Checks if the element containing location is... located. :)
-        )
-        WebDriverWait(driver, timeout).until(element_present)
+        # timeout = 5
+        # # Checks if the element containing location is... located. :)
+        # WebDriverWait(driver, timeout).until(
+        #     EC.presence_of_element_located(
+        #         (By.CSS_SELECTOR, SELECTOR_CONFIGS[config_key]["location"])
+        #     )
+        # )
+        # Checks if the element containing minimum qualifications is located. :)
+        # WebDriverWait(driver, timeout).until(
+        #     EC.presence_of_element_located(
+        #         (
+        #             By.CSS_SELECTOR,
+        #             SELECTOR_CONFIGS[config_key]["minimum_qualifications"],
+        #         )
+        #     )
+        # )
+
+        from time import sleep
+
+        sleep(2)  # Wait for the page to fully load.
 
         html = driver.page_source
     else:
