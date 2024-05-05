@@ -42,25 +42,14 @@ class Solution:
                 curr = curr_next
                 indexes[-1] = curr
                 values[-1] = xs[curr]
-
-                curr_prev, curr_next = graph[curr]
-                prev_prev, _ = graph[curr_prev]
-                _, next_next = graph[curr_next]
-                graph[curr_prev] = (prev_prev, curr_next)
-                graph[curr_next] = (curr_prev, next_next)
-
-                continue
-
-            if len(indexes) < len(xs):
+            else:
                 # Withdraw next available index from pool.
                 _, curr = graph[-1]
                 indexes.append(curr)
                 values.append(xs[curr])
 
-                curr_prev, curr_next = graph[curr]
-                prev_prev, _ = graph[curr_prev]
-                _, next_next = graph[curr_next]
-                graph[curr_prev] = (prev_prev, curr_next)
-                graph[curr_next] = (curr_prev, next_next)
-
-                continue
+            curr_prev, curr_next = graph[curr]
+            prev_prev, _ = graph[curr_prev]
+            _, next_next = graph[curr_next]
+            graph[curr_prev] = (prev_prev, curr_next)
+            graph[curr_next] = (curr_prev, next_next)
