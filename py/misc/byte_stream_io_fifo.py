@@ -13,8 +13,6 @@ class FifoBufferedReaderWriter:
         self.chunk_size = chunk_size
         self._queue = deque()
         self._write_buffer = BytesIO()
-        self._read_chunks = deque()
-        self._read_size = 0
 
     def __len__(self):
         return self.available
@@ -57,12 +55,15 @@ class FifoBufferedReaderWriter:
 
     def read(self, size: int):
         with BytesIO() as buffer:
-            self._read_from_queue(size)
             self._read_into_buffer(size, buffer)
             return buffer.getvalue()
 
     def _queue_append(self, chunk):
         self._queue.append(chunk)
+        self.available += len(chunk)
+
+    def _queue_appendleft(self, chunk):
+        self._queue.appendleft(chunk)
         self.available += len(chunk)
 
     def _queue_popleft(self):
@@ -76,28 +77,19 @@ class FifoBufferedReaderWriter:
         self._write_buffer.truncate()
         self._queue_append(chunk)
 
-    def _read_from_queue(self, size):
-        """Pull data from the queue until we have enough to read."""
-        while self._read_size < size:
-            try:
-                chunk = self._queue_popleft()
-            except IndexError:  # Or queue.Empty, if using queue.Queue.
-                raise RuntimeError("Not enough data to read.")
-            self._read_chunks.append(chunk)
-            self._read_size += len(chunk)
-
     def _read_into_buffer(self, size, buffer):
         buffer_size = 0
 
         # Assemble chunks into output buffer.
         while buffer_size < size:
-            chunk = self._read_chunks.popleft()
-            self._read_size -= len(chunk)
+            try:
+                chunk = self._queue_popleft()
+            except IndexError:  # Or queue.Empty, if using queue.Queue.
+                raise RuntimeError("Not enough data to read.")
             needed = size - buffer_size
 
             if len(chunk) > needed:
-                self._read_chunks.appendleft(chunk[needed:])
-                self._read_size += len(chunk) - needed
+                self._queue_appendleft(chunk[needed:])
                 chunk = chunk[:needed]
 
             buffer.write(chunk)
