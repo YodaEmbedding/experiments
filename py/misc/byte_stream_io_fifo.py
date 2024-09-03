@@ -5,6 +5,104 @@ from io import BytesIO
 from timeit import timeit
 
 
+class FifoEfficientResizeBuffer:
+    def __init__(self, *, min_size=1024):
+        self._buf = BytesIO()
+        self._min_size = min_size
+        self._size = 0
+        self._used = 0
+        self._start = 0
+
+    def __len__(self):
+        return self._used
+
+    def read(self, size=None):
+        if size is None or size > self._used:
+            size = self._used
+
+        assert size >= 0
+
+        self._buf.seek(self._start)
+        result = self._buf.read(size)
+        self._start += len(result)
+        remaining = size - len(result)
+
+        if remaining > 0:
+            self._buf.seek(0)
+            result += self._buf.read(remaining)
+            self._start = remaining
+
+        if self._start == self._size:
+            self._start = 0
+
+        self._used -= size
+
+        return result
+
+    def write(self, data):
+        size_needed = max(self._min_size, self._used + len(data))
+
+        if self._size < size_needed:
+            size_new = 2 ** math.ceil(math.log2(size_needed))
+            assert size_new >= size_needed
+            self.resize(size_new)
+
+        len_a = self._size - self._buf.tell()
+        len_b = len(data) - len_a
+        self._buf.write(data[:len_a])
+
+        if len_b > 0:
+            self._buf.seek(0)
+            self._buf.write(data[len_a:])
+
+        self._used += len(data)
+
+    def resize(self, size):
+        if size < self._used:
+            raise ValueError("Cannot resize to a size smaller than current usage")
+
+        # Disallow shrinking the buffer.
+        if size < self._size:
+            return
+
+        needs_move = self._used - (self._size - self._start)
+
+        # If the data is contiguous, we can just grow the buffer.
+        if needs_move <= 0:
+            self._size = size
+            return
+
+        # If the data is overly fragmented, force a contiguous resize.
+        if needs_move > size // 2:
+            self._resize_contiguous(size)
+            return
+
+        # Otherwise, move the fragmented data accordingly for a resize.
+        self._buf.seek(0)
+        data_mid = self._buf.read(min(needs_move, size - self._size))
+        self._buf.seek(self._size)
+        self._buf.write(data_mid)
+        if needs_move > len(data_mid):
+            self._buf.seek(len(data_mid))
+            data_end = self._buf.read(needs_move - len(data_mid))
+            self._buf.seek(0)
+            self._buf.write(data_end)
+        self._size = size
+
+    def _resize_contiguous(self, size):
+        data = self.read()
+        self._buf.seek(0)
+        self._buf.write(data)
+        # self._buf.seek(0, os.SEEK_END)
+        # self._buf.write(b"\x00" * min(0, size - self._buf.tell()))
+        # self._buf.seek(self._used)
+        self._start = 0
+        self._size = size
+
+    def flush(self):
+        pass
+
+
 class FifoViewBuffer:
     def __init__(self, *, min_size=1024):
         self._buf = BytesIO()
@@ -270,6 +368,7 @@ def main():
     funcs = [
         FifoBufferedReaderWriter,
         FifoFileBuffer,
+        FifoEfficientResizeBuffer,
         FifoViewBuffer,
     ]
 
