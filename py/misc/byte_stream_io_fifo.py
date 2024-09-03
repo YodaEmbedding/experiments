@@ -24,6 +24,7 @@ class FifoEfficientResizeBuffer:
 
         assert size >= 0
 
+        end = self._buf.tell()
         self._buf.seek(self._start)
         result = self._buf.read(size)
         self._start += len(result)
@@ -37,6 +38,7 @@ class FifoEfficientResizeBuffer:
         if self._start == self._size:
             self._start = 0
 
+        self._buf.seek(end)
         self._used -= size
 
         return result
