@@ -1,5 +1,7 @@
 import math
 import os
+import random
+import traceback
 from collections import deque
 from io import BytesIO
 from timeit import timeit
@@ -362,6 +364,28 @@ def test(stream):
     stream.read(len(stream))
 
 
+def test_functionality(stream1):
+    k1 = 100
+    k2 = 100
+    write_size = 1024
+    read_size = 512
+    stream2 = FifoFileBuffer()
+    for _ in range(k1):
+        for _ in range(k2):
+            b = random.randbytes(write_size)
+            stream1.write(b)
+            stream2.write(b)
+        stream1.flush()
+        stream2.flush()
+        for _ in range(k2):
+            b1 = stream1.read(write_size - read_size)
+            b2 = stream2.read(write_size - read_size)
+            assert b1 == b2, (b1, b2)
+    b1 = stream1.read(len(stream1))
+    b2 = stream2.read(len(stream2))
+    assert b1 == b2, (b1, b2)
+
+
 def main():
     n = 10
 
@@ -376,6 +400,16 @@ def main():
         stream = func()
         t = timeit("test(stream)", number=n, globals={"test": test, "stream": stream})
         print(f"{func.__name__:<40} t={t / n:.6f}")
+
+    for func in funcs:
+        stream = func()
+        try:
+            test_functionality(stream)
+        except AssertionError:
+            print(f"{func.__name__:<40} failed")
+            print(traceback.format_exc())
+        else:
+            print(f"{func.__name__:<40} succeeded")
 
 
 if __name__ == "__main__":
