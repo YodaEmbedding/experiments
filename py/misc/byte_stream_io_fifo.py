@@ -350,6 +350,68 @@ class FifoFileBuffer(object):
         pass
 
 
+class FifoFileBuffer2:
+    """Translation of above, but with _buf staying on the write location."""
+
+    def __init__(self, *, min_size=1024):
+        self._buf = BytesIO()
+        self._min_size = min_size
+        self._size = 0
+        self._used = 0
+        self._start = 0
+
+    def __len__(self):
+        return self._used
+
+    def read(self, size=None):
+        if size is None or size > self._used:
+            size = self._used
+
+        assert size >= 0
+
+        end = self._buf.tell()
+        self._buf.seek(self._start)
+        result = self._buf.read(size)
+        self._start += len(result)
+
+        if len(result) < size:
+            self._buf.seek(0)
+            more = self._buf.read(size - len(result))
+            result += more
+            self._start = len(more)
+
+        self._buf.seek(end)
+        self._used -= size
+
+        return result
+
+    def write(self, data):
+        size_needed = max(self._min_size, self._used + len(data))
+
+        if self._size < self._used + len(data):
+            buf = BytesIO()
+            curr = self.read()
+            buf.write(curr)
+            self._used = len(curr)
+            self._size = 2 ** math.ceil(math.log2(size_needed))
+            buf.write(b"\x00" * (self._size - self._used))
+            buf.seek(self._used)
+            self._buf = buf
+            self._start = 0
+
+        written = self._size - self._buf.tell()
+        self._buf.write(data[:written])
+        if written < len(data):
+            self._buf.seek(0)
+            self._buf.write(data[written:])
+        self._used += len(data)
+
+        return
+
+    def flush(self):
+        pass
+
+
 def test(stream):
     k1 = 100
     k2 = 100
@@ -394,6 +456,7 @@ def main():
         FifoFileBuffer,
         FifoEfficientResizeBuffer,
         FifoViewBuffer,
+        FifoFileBuffer2,
     ]
 
     for func in funcs:
