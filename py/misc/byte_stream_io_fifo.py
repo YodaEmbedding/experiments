@@ -78,7 +78,11 @@ class FifoEfficientResizeBuffer:
 
         # If the data is overly fragmented, force a contiguous resize.
         if needs_move > size // 2:
-            self._resize_contiguous(size)
+            data = self.read()
+            self._buf.seek(0)
+            self._buf.write(data)
+            self._start = 0
+            self._size = size
             return
 
         # Otherwise, move the fragmented data accordingly for a resize.
@@ -91,16 +95,6 @@ class FifoEfficientResizeBuffer:
             data_end = self._buf.read(needs_move - len(data_mid))
             self._buf.seek(0)
             self._buf.write(data_end)
-        self._size = size
-
-    def _resize_contiguous(self, size):
-        data = self.read()
-        self._buf.seek(0)
-        self._buf.write(data)
-        # self._buf.seek(0, os.SEEK_END)
-        # self._buf.write(b"\x00" * min(0, size - self._buf.tell()))
-        # self._buf.seek(self._used)
-        self._start = 0
         self._size = size
 
     def flush(self):
@@ -171,7 +165,11 @@ class FifoViewBuffer:
 
         # If the data is overly fragmented, force a contiguous resize.
         if needs_move > size // 2:
-            self._resize_contiguous(size)
+            data = self.read()
+            self._buf.seek(0)
+            self._buf.write(data)
+            self._start = 0
+            self._size = size
             return
 
         # Otherwise, move the fragmented data accordingly for a resize.
@@ -184,16 +182,6 @@ class FifoViewBuffer:
             data_end = self._buf.read(needs_move - len(data_mid))
             self._buf.seek(0)
             self._buf.write(data_end)
-        self._size = size
-
-    def _resize_contiguous(self, size):
-        data = self.read()
-        self._buf.seek(0)
-        self._buf.write(data)
-        # self._buf.seek(0, os.SEEK_END)
-        # self._buf.write(b"\x00" * min(0, size - self._buf.tell()))
-        # self._buf.seek(self._used)
-        self._start = 0
         self._size = size
 
     def flush(self):
