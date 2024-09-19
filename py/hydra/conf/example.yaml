@@ -1,0 +1,6 @@
+defaults:
+  - dataset: imagenet
+  - _self_
+
+dataset:
+  type: "Overridden"

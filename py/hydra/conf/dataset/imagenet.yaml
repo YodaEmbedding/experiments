@@ -1,0 +1,2 @@
+type: "ImageNetDataset"
+path: "/datasets/imagenet"
