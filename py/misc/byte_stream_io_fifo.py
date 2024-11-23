@@ -5,6 +5,7 @@ import traceback
 from collections import deque
 from io import BytesIO
 from timeit import timeit
+from typing import Optional
 
 
 class FifoEfficientResizeBuffer:
@@ -402,6 +403,94 @@ class FifoFileBuffer2:
         pass
 
 
+class StreamBuffer:
+    """Buffer that can be read from and written to.
+
+    Not thread-safe (i.e., not safe to read and write concurrently).
+    """
+
+    def __init__(self, *, min_size=1024):
+        self._buf = BytesIO()
+        self._min_size = min_size
+        self._size = 0
+        self._used = 0
+        self._start = 0
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def __len__(self):
+        return self._used
+
+    def read(self, size: Optional[int] = None) -> bytes:
+        if size is None or size > self._used:
+            size = self._used
+
+        if size < 0:
+            raise ValueError("Read size must be non-negative")
+
+        end = self._buf.tell()
+        self._buf.seek(self._start)
+        result = self._buf.read(size)
+        self._start += len(result)
+        remaining = size - len(result)
+
+        if remaining > 0:
+            self._buf.seek(0)
+            result += self._buf.read(remaining)
+            self._start = remaining
+
+        self._buf.seek(end)
+        self._used -= size
+
+        # For extra performance, jump to the start if the buffer is empty.
+        if self._used == 0:
+            self._buf.seek(0)
+            self._start = 0
+
+        return result
+
+    def write(self, data: bytes) -> None:
+        size_needed = max(self._min_size, self._used + len(data))
+
+        if self._size < size_needed:
+            size_new = 2 ** math.ceil(math.log2(size_needed))
+            self.resize(size_new)
+
+        len_a = self._size - self._buf.tell()
+        len_b = len(data) - len_a
+        self._buf.write(data[:len_a])
+
+        if len_b > 0:
+            self._buf.seek(0)
+            self._buf.write(data[len_a:])
+
+        self._used += len(data)
+
+    def resize(self, size: int) -> None:
+        if size <= self._size:
+            return
+
+        data = self.read()
+        self._buf.seek(0)
+        self._buf.write(data)
+        self._start = 0
+        self._size = size
+        self._used = len(data)
+
+    def close(self) -> None:
+        self._buf.close()
+        self._size = 0
+        self._used = 0
+        self._start = 0
+
+    def flush(self):
+        pass
+
+
 def test(stream):
     k1 = 100
     k2 = 100
@@ -447,6 +536,7 @@ def main():
         FifoEfficientResizeBuffer,
         FifoViewBuffer,
         FifoFileBuffer2,
+        StreamBuffer,
     ]
 
     for func in funcs:
