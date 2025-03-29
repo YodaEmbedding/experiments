@@ -25,6 +25,25 @@ def make_frames(num_frames):
     return x
 
 
+def encoder_write(writer):
+    """Feeds encoder frames to encode"""
+    frames = make_frames(num_frames=NUM_FRAMES)
+    for i, frame in enumerate(frames):
+        writer.write(frame.tobytes())
+        writer.flush()
+        print(f"time={t()} frames={i + 1:<3} encoder_write")
+        sleep(2)
+    writer.close()
+
+
+def encoder_read(reader, queue):
+    """Puts chunks of encoded bytes into queue"""
+    while chunk := reader.read1():
+        queue.put(chunk)
+        # print(f"time={t()} chunk={len(chunk):<4} encoder_read")
+    queue.put(None)
+
+
 def decoder_write(writer, queue):
     """Feeds decoder bytes to decode"""
     while chunk := queue.get():
@@ -53,10 +72,22 @@ def decoder_read(reader):
 
 cmd = (
     "ffmpeg "
+    "-f rawvideo -pix_fmt rgb24 -s 224x224 "
+    "-i pipe: "
+    "-f h264 "
+    "-tune zerolatency "
+    "pipe:"
+)
+# REMOVED FOR EXPERIMENT:
+# encoder_process = subprocess.Popen(
+#     cmd.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE
+# )
+
+cmd = (
+    "ffmpeg "
     "-probesize 32 "
     "-flags low_delay "
     "-f h264 "
-    # "-f mpegts "
     "-i pipe: "
     "-f rawvideo -pix_fmt rgb24 -s 224x224 "
     "pipe:"
@@ -68,6 +99,15 @@ decoder_process = subprocess.Popen(
 queue = Queue()
 
 threads = [
+    # REMOVED FOR EXPERIMENT:
+    # Thread(
+    #     target=encoder_write,
+    #     args=(encoder_process.stdin,),
+    # ),
+    # Thread(
+    #     target=encoder_read,
+    #     args=(encoder_process.stdout, queue),
+    # ),
     Thread(
         target=decoder_write,
         args=(decoder_process.stdin, queue),
@@ -84,42 +124,40 @@ for thread in threads:
 with open("out.264", "rb") as f:
     data = f.read()
 
-# skip = 100
-# queue.put(data[:skip])
-# epoch = time()
-# for i, x in enumerate(data[skip:], start=skip):
-#     queue.put(data[i:i+1])
-#     print(f"time={t()} chunk={1} i={i} encoder_read")
-#     sleep(max(0, 0.02 * i + epoch - time()))
-# queue.put(None)
 
-sizes = [
-    1086,
-    735,
-    1074,
-    1135,
-    1313,
-    1558,
-    1494,
-    1020,
-    1525,
-    1522,
-    1566,
-    1489,
-    1628,
-    1760,
-    1723,
-    1150,
-]
-i = 0
-off = 0
-for size in sizes:
-    i2 = min(len(data), off + size + 6)
-    queue.put(data[i:i2])
-    print(
-        f"time={t()} chunk={i2 - i:<4} encoder_read i={i} b={data[off + size:i2].hex()}"
-    )
-    i = i2
-    off += size
-    sleep(0.1)
-queue.put(None)
+# ADDED FOR EXPERIMENT:
+def test_chunked_feed():
+    sizes = [
+        1086,
+        735,
+        1074,
+        1135,
+        1313,
+        1558,
+        1494,
+        1020,
+        1525,
+        1522,
+        1566,
+        1489,
+        1628,
+        1760,
+        1723,
+        1150,
+    ]
+    i = 0
+    off = 0
+    for size in sizes:
+        i2 = min(len(data), off + size + 6)
+        queue.put(data[i:i2])
+        print(
+            f"time={t()} chunk={i2 - i:<4} encoder_read i={i} b={data[off + size:i2].hex()}"
+        )
+        i = i2
+        off += size
+        sleep(0.1)
+    queue.put(None)
+
+
+# ADDED FOR EXPERIMENT:
+test_chunked_feed()
