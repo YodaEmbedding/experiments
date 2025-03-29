@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import io
+import shlex
 import subprocess
 from queue import Queue
 from threading import Thread
@@ -14,7 +18,7 @@ def t(epoch=time()):
     return round(time() - epoch, 2)
 
 
-def make_frames(num_frames):
+def make_frames(num_frames: int):
     x = np.arange(WIDTH, dtype=np.uint8)
     x = np.broadcast_to(x, (num_frames, HEIGHT, WIDTH))
     x = x[..., np.newaxis].repeat(3, axis=-1)
@@ -25,7 +29,7 @@ def make_frames(num_frames):
     return x
 
 
-def encoder_write(writer):
+def encoder_write(writer: io.BufferedWriter):
     """Feeds encoder frames to encode"""
     frames = make_frames(num_frames=NUM_FRAMES)
     for i, frame in enumerate(frames):
@@ -36,7 +40,7 @@ def encoder_write(writer):
     writer.close()
 
 
-def encoder_read(reader, queue):
+def encoder_read(reader: io.BufferedReader, queue: Queue[bytes | None]):
     """Puts chunks of encoded bytes into queue"""
     while chunk := reader.read1():
         queue.put(chunk)
@@ -44,7 +48,7 @@ def encoder_read(reader, queue):
     queue.put(None)
 
 
-def decoder_write(writer, queue):
+def decoder_write(writer: io.BufferedWriter, queue: Queue[bytes | None]):
     """Feeds decoder bytes to decode"""
     while chunk := queue.get():
         writer.write(chunk)
@@ -53,7 +57,7 @@ def decoder_write(writer, queue):
     writer.close()
 
 
-def decoder_read(reader):
+def decoder_read(reader: io.BufferedReader):
     """Retrieves decoded frames"""
     buffer = b""
     frame_len = HEIGHT * WIDTH * 3
@@ -80,7 +84,7 @@ cmd = (
     "pipe:"
 )
 encoder_process = subprocess.Popen(
-    cmd.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE
+    shlex.split(cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE
 )
 
 cmd = (
@@ -94,10 +98,10 @@ cmd = (
     "pipe:"
 )
 decoder_process = subprocess.Popen(
-    cmd.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE
+    shlex.split(cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE
 )
 
-queue = Queue()
+queue: Queue[bytes | None] = Queue()
 
 threads = [
     Thread(
