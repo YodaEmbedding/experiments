@@ -7,11 +7,11 @@ import numpy as np
 
 WIDTH = 224
 HEIGHT = 224
-NUM_FRAMES = 16
+NUM_FRAMES = 256
 
 
 def t(epoch=time()):
-    return f"{time() - epoch:.2f}"
+    return int(time() - epoch)
 
 
 def make_frames(num_frames):
@@ -30,7 +30,7 @@ def decoder_write(writer, queue):
     while chunk := queue.get():
         writer.write(chunk)
         writer.flush()
-        print(f"time={t()} chunk={len(chunk):<4} decoder_write")
+        # print(f"time={t()} chunk={len(chunk):<4} decoder_write")
     writer.close()
 
 
