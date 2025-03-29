@@ -38,12 +38,9 @@ def encoder_write(writer):
 
 def encoder_read(reader, queue):
     """Puts chunks of encoded bytes into queue"""
-    with open("out_tmp.264", "wb") as f:
-        while chunk := reader.read1():
-            queue.put(chunk)
-            f.write(chunk)
-            f.flush()
-            print(f"time={t()} chunk={len(chunk):<4} encoder_read")
+    while chunk := reader.read1():
+        queue.put(chunk)
+        # print(f"time={t()} chunk={len(chunk):<4} encoder_read")
     queue.put(None)
 
 
@@ -52,7 +49,7 @@ def decoder_write(writer, queue):
     while chunk := queue.get():
         writer.write(chunk)
         writer.flush()
-        print(f"time={t()} chunk={len(chunk):<4} decoder_write")
+        # print(f"time={t()} chunk={len(chunk):<4} decoder_write")
     writer.close()
 
 
@@ -79,22 +76,7 @@ cmd = (
     "-i pipe: "
     "-vcodec libx264 "
     "-f flv "
-    # "-c:v libx264 "
-    # "-x264-params aud=1 "
-    # "-f h264 "
-    # "-f rtp "
-    # "-f mpegts "
-    # "-preset ultrafast "
-    # "-bf 0 "
     "-tune zerolatency "
-    # "-rtsp_transport tcp "
-    # "-enable-muxer=rtsp "
-    # "-enable-muxer=rtp "
-    # "-enable-protocol=rtp "
-    # "-enable-protocol=rtsp "
-    # "rtsp://localhost:5678"
-    # "-f rtp "
-    # "rtp://127.0.0.1:5678"
     "pipe:"
 )
 encoder_process = subprocess.Popen(
@@ -105,14 +87,9 @@ cmd = (
     "ffmpeg "
     "-probesize 32 "
     "-flags low_delay "
-    # "-f h264 "
     "-f flv "
     "-vcodec h264 "
-    # "-f mpegts "
-    # "-f rtp "
-    # "-i rtp://127.0.0.1:5678 "
     "-i pipe: "
-    # "-x264-params aud=1 "
     "-f rawvideo -pix_fmt rgb24 -s 224x224 "
     "pipe:"
 )
