@@ -74,53 +74,58 @@ def decoder_read(reader: io.BufferedReader):
             print(f"time={t()} frames={i:<3} decoder_read  psnr={psnr:.1f}")
 
 
-cmd = (
-    "ffmpeg "
-    "-f rawvideo -pix_fmt rgb24 -s 224x224 "
-    "-i pipe: "
-    "-vcodec libx264 "
-    "-f flv "
-    "-tune zerolatency "
-    "pipe:"
-)
-encoder_process = subprocess.Popen(
-    shlex.split(cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE
-)
+def main():
+    cmd = (
+        "ffmpeg "
+        "-f rawvideo -pix_fmt rgb24 -s 224x224 "
+        "-i pipe: "
+        "-vcodec libx264 "
+        "-f flv "
+        "-tune zerolatency "
+        "pipe:"
+    )
+    encoder_process = subprocess.Popen(
+        shlex.split(cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE
+    )
 
-cmd = (
-    "ffmpeg "
-    "-probesize 32 "
-    "-flags low_delay "
-    "-f flv "
-    "-vcodec h264 "
-    "-i pipe: "
-    "-f rawvideo -pix_fmt rgb24 -s 224x224 "
-    "pipe:"
-)
-decoder_process = subprocess.Popen(
-    shlex.split(cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE
-)
+    cmd = (
+        "ffmpeg "
+        "-probesize 32 "
+        "-flags low_delay "
+        "-f flv "
+        "-vcodec h264 "
+        "-i pipe: "
+        "-f rawvideo -pix_fmt rgb24 -s 224x224 "
+        "pipe:"
+    )
+    decoder_process = subprocess.Popen(
+        shlex.split(cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE
+    )
 
-queue: Queue[bytes | None] = Queue()
+    queue: Queue[bytes | None] = Queue()
 
-threads = [
-    Thread(
-        target=encoder_write,
-        args=(encoder_process.stdin,),
-    ),
-    Thread(
-        target=encoder_read,
-        args=(encoder_process.stdout, queue),
-    ),
-    Thread(
-        target=decoder_write,
-        args=(decoder_process.stdin, queue),
-    ),
-    Thread(
-        target=decoder_read,
-        args=(decoder_process.stdout,),
-    ),
-]
+    threads = [
+        Thread(
+            target=encoder_write,
+            args=(encoder_process.stdin,),
+        ),
+        Thread(
+            target=encoder_read,
+            args=(encoder_process.stdout, queue),
+        ),
+        Thread(
+            target=decoder_write,
+            args=(decoder_process.stdin, queue),
+        ),
+        Thread(
+            target=decoder_read,
+            args=(decoder_process.stdout,),
+        ),
+    ]
 
-for thread in threads:
-    thread.start()
+    for thread in threads:
+        thread.start()
+
+
+if __name__ == "__main__":
+    main()
