@@ -3,6 +3,8 @@ from __future__ import annotations
 import io
 import shlex
 import subprocess
+import traceback
+from functools import wraps
 from queue import Queue
 from threading import Thread
 from time import sleep, time
@@ -12,6 +14,18 @@ import numpy as np
 WIDTH = 224
 HEIGHT = 224
 NUM_FRAMES = 16
+
+
+def print_error(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print(f"{func.__name__} error: {e}")
+            traceback.print_exc()
+
+    return wrapper
 
 
 def t(epoch=time()):
@@ -29,6 +43,7 @@ def make_frames(num_frames: int):
     return x
 
 
+@print_error
 def encoder_write(writer: io.BufferedWriter):
     """Feeds encoder frames to encode"""
     frames = make_frames(num_frames=NUM_FRAMES)
@@ -40,6 +55,7 @@ def encoder_write(writer: io.BufferedWriter):
     writer.close()
 
 
+@print_error
 def encoder_read(reader: io.BufferedReader, queue: Queue[bytes | None]):
     """Puts chunks of encoded bytes into queue"""
     while chunk := reader.read1():
@@ -48,6 +64,7 @@ def encoder_read(reader: io.BufferedReader, queue: Queue[bytes | None]):
     queue.put(None)
 
 
+@print_error
 def decoder_write(writer: io.BufferedWriter, queue: Queue[bytes | None]):
     """Feeds decoder bytes to decode"""
     while chunk := queue.get():
@@ -57,6 +74,7 @@ def decoder_write(writer: io.BufferedWriter, queue: Queue[bytes | None]):
     writer.close()
 
 
+@print_error
 def decoder_read(reader: io.BufferedReader):
     """Retrieves decoded frames"""
     buffer = b""
