@@ -29,7 +29,7 @@ def print_error(func):
 
 
 def t(epoch=time()):
-    return round(time() - epoch, 2)
+    return f"{time() - epoch:<5.2f}"
 
 
 def make_frames(num_frames: int):
@@ -59,8 +59,8 @@ def encoder_write(writer: io.BufferedWriter):
 def encoder_read(reader: io.BufferedReader, queue: Queue[bytes | None]):
     """Puts chunks of encoded bytes into queue"""
     while chunk := reader.read1():
+        print(f"time={t()} encoder_read {chunk.hex(' ', 1)}")
         queue.put(chunk)
-        # print(f"time={t()} chunk={len(chunk):<4} encoder_read")
     queue.put(None)
 
 
@@ -93,20 +93,22 @@ def decoder_read(reader: io.BufferedReader):
 
 
 def main():
-    cmd = (
+    encoder_cmd = (
         "ffmpeg "
         "-f rawvideo -pix_fmt rgb24 -s 224x224 "
         "-i pipe: "
         "-vcodec libx264 "
         "-f flv "
         "-tune zerolatency "
+        "-b:v 1k "  # For easy debug.
         "pipe:"
     )
     encoder_process = subprocess.Popen(
-        shlex.split(cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE
+        shlex.split(encoder_cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
+    print(f"encoder_cmd: {encoder_cmd}")
 
-    cmd = (
+    decoder_cmd = (
         "ffmpeg "
         "-probesize 32 "
         "-flags low_delay "
@@ -117,8 +119,9 @@ def main():
         "pipe:"
     )
     decoder_process = subprocess.Popen(
-        shlex.split(cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE
+        shlex.split(decoder_cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
+    print(f"decoder_cmd: {decoder_cmd}")
 
     queue: Queue[bytes | None] = Queue()
 
