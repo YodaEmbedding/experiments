@@ -25,6 +25,8 @@ def query_all_batches(query, offset=0, total=None, *args, **kwargs):
         total = x.total
     limit = x.limit
     yield x
+    if limit == 0:
+        return
     for offset in range(offset + limit, total, limit):
         yield query(*args, **kwargs, limit=limit, offset=offset)
 
