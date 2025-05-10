@@ -139,7 +139,8 @@ class Neg(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
-        return (-grad_output,)
+        grad_x = -grad_output
+        return (grad_x,)
 
 
 class Add(Function):
@@ -149,7 +150,9 @@ class Add(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
-        return grad_output, grad_output
+        grad_x = grad_output
+        grad_y = grad_output
+        return grad_x, grad_y
 
 
 class Sub(Function):
@@ -159,7 +162,9 @@ class Sub(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
-        return grad_output, -grad_output
+        grad_x = grad_output
+        grad_y = -grad_output
+        return grad_x, grad_y
 
 
 class Mul(Function):
@@ -171,7 +176,9 @@ class Mul(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
         x, y = ctx.saved_tensors
-        return grad_output * y, grad_output * x
+        grad_x = grad_output * y
+        grad_y = grad_output * x
+        return grad_x, grad_y
 
 
 class PowConst(Function):
@@ -183,7 +190,9 @@ class PowConst(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
         x, const = ctx.saved_tensors
-        return grad_output * const * x ** (const - 1), None
+        grad_x = grad_output * const * x ** (const - 1)
+        grad_const = None
+        return grad_x, grad_const
 
 
 class Dot(Function):
@@ -195,7 +204,9 @@ class Dot(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
         x, y = ctx.saved_tensors
-        return grad_output * y, grad_output * x
+        grad_x = grad_output * y
+        grad_y = grad_output * x
+        return grad_x, grad_y
 
 
 class Sin(Function):
@@ -206,8 +217,9 @@ class Sin(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
-        (x,) = ctx.saved_tensors
-        return (grad_output * x.cos(),)
+        [x] = ctx.saved_tensors
+        grad_x = grad_output * x.cos()
+        return (grad_x,)
 
 
 class Cos(Function):
@@ -218,8 +230,9 @@ class Cos(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
-        (x,) = ctx.saved_tensors
-        return (grad_output * -x.sin(),)
+        [x] = ctx.saved_tensors
+        grad_x = grad_output * -x.sin()
+        return (grad_x,)
 
 
 class Sum(Function):
@@ -230,8 +243,9 @@ class Sum(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
-        (x,) = ctx.saved_tensors
-        return (grad_output * np.ones_like(x.data),)
+        [x] = ctx.saved_tensors
+        grad_x = grad_output * np.ones_like(x.data)
+        return (grad_x,)
 
 
 class ReLU(Function):
@@ -242,8 +256,9 @@ class ReLU(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
-        (x,) = ctx.saved_tensors
-        return (grad_output * (x.data > 0),)
+        [x] = ctx.saved_tensors
+        grad_x = grad_output * (x.data > 0)
+        return (grad_x,)
 
 
 class Model:
