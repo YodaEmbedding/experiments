@@ -296,50 +296,6 @@ def train(lr=1e-3):
     plt.show()
 
 
-def print_tensors(*args):
-    names = "abcdefghijklmnopqrstuvwxyz"[: len(args)]
-
-    for name, tensor in zip(names, args):
-        import torch
-
-        if isinstance(tensor, torch.Tensor):
-            tensor.retain_grad()
-
-    print("----------------")
-    args[-1].backward()
-
-    for name, tensor in zip(names, args):
-        print(f"{name}.grad = {tensor.grad}")
-
-
-def func(a, b, c):
-    d = a * b
-    e = d + d * c - d * a**4 + (c**3 - 84).sin()
-    f = e + e
-    g = f + f
-    h = c.dot(g)
-    i = h.sum()
-    return a, b, c, d, e, f, g, h, i
-
-
-def run_quick_test():
-    a = Tensor(np.array([2, 5], dtype=np.float32))
-    b = Tensor(np.array([5, 7], dtype=np.float32))
-    c = Tensor(np.array([11, 9], dtype=np.float32))
-    args = func(a, b, c)
-    print_tensors(*args)
-
-    print("\n================\n")
-
-    import torch
-
-    a = torch.tensor(a.data, dtype=torch.float32, requires_grad=True)
-    b = torch.tensor(b.data, dtype=torch.float32, requires_grad=True)
-    c = torch.tensor(c.data, dtype=torch.float32, requires_grad=True)
-    args = func(a, b, c)
-    print_tensors(*args)
-
-
 def main():
     train()
 
