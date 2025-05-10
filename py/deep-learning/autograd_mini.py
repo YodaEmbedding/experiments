@@ -247,10 +247,11 @@ class ReLU(Function):
 
 
 class Model:
-    def __init__(self, ch_hidden=16):
-        self.w1 = Tensor(np.random.randn(ch_hidden) / ch_hidden)
-        self.w2 = Tensor(np.random.randn(ch_hidden) / ch_hidden)
-        self.w3 = Tensor(np.random.randn(ch_hidden) / ch_hidden)
+    def __init__(self, *, ch_hidden=16, seed=42):
+        rng = np.random.RandomState(seed=seed)
+        self.w1 = Tensor(rng.randn(ch_hidden) / ch_hidden)
+        self.w2 = Tensor(rng.randn(ch_hidden) / ch_hidden)
+        self.w3 = Tensor(rng.randn(ch_hidden) / ch_hidden)
 
     def parameters(self):
         return [self.w1, self.w2, self.w3]
@@ -267,13 +268,25 @@ class Model:
         return y_hat
 
 
+class Dataset:
+    def __init__(self, *, seed=42):
+        self.seed = seed
+
+    def __iter__(self):
+        rng = np.random.RandomState(seed=self.seed)
+        while True:
+            x = rng.uniform(0, 1, size=(1,))
+            y = np.sin(x**4) * 4
+            yield x, y
+
+
 def train(lr=1e-3):
+    loader = iter(Dataset())
     model = Model()
     losses = []
 
     for i in range(5000):
-        x = Tensor(np.random.rand(1))
-        y = (x**4).sin() * 4
+        x, y = next(loader)
         y_hat = model(x)
 
         mse_loss = ((y - y_hat) ** 2).sum()
