@@ -45,9 +45,6 @@ class Tensor:
         if self.grad is None:
             self.grad = Tensor(1)
 
-        # print(f"* {self}\n  _.grad == None\n  _.grad = {self.grad.data}\n")
-        # _prefix = "    "
-
         assert self.ctx is not None
         grad_tensors = self.creator.backward(self.ctx, self.grad)
 
@@ -55,21 +52,9 @@ class Tensor:
             if grad_tensor is None:
                 continue
             if parent.grad is None:
-                # old_grad = None
                 parent.grad = Tensor(grad_tensor.data.copy())
-                # print(
-                #     f"{_prefix}* {parent}\n"
-                #     f"{_prefix}  _.grad == {old_grad}\n"
-                #     f"{_prefix}  _.grad = {parent.grad.data}\n"
-                # )
             else:
-                # old_grad = parent.grad.data.copy()
                 parent.grad.data += grad_tensor.data
-                # print(
-                #     f"{_prefix}* {parent}\n"
-                #     f"{_prefix}  _.grad == {old_grad}\n"
-                #     f"{_prefix}  _.grad += {grad_tensor.data} = {parent.grad.data}\n"
-                # )
 
     @staticmethod
     def _backward_tensors(tensor: Tensor):
@@ -263,9 +248,6 @@ class ReLU(Function):
 
 class Model:
     def __init__(self, ch_hidden=16):
-        # self.w1 = Tensor(np.array([[1.7]]))
-        # self.w2 = Tensor(np.array([[0.2]]))
-        # self.w3 = Tensor(np.array([[0.6]]))
         self.w1 = Tensor(np.random.randn(ch_hidden) / ch_hidden)
         self.w2 = Tensor(np.random.randn(ch_hidden) / ch_hidden)
         self.w3 = Tensor(np.random.randn(ch_hidden) / ch_hidden)
@@ -277,12 +259,10 @@ class Model:
         return self.forward(*args)
 
     def forward(self, x: Tensor) -> Tensor:
-        # print(x.shape)
         a = x**2
         b = (self.w1 * a + self.w3).relu()
         c = (self.w2 * a + self.w3).relu()
         d = b + c
-        # d = x + self.w1 + self.w2 + self.w3
         y_hat = d.sin() * 4
         return y_hat
 
@@ -293,7 +273,7 @@ def train(lr=1e-3):
 
     for i in range(5000):
         x = Tensor(np.random.rand(1))
-        y = (x**4).sin() * 4  # + 0.0 * np.random.randn(1)
+        y = (x**4).sin() * 4
         y_hat = model(x)
 
         mse_loss = ((y - y_hat) ** 2).sum()
@@ -305,15 +285,10 @@ def train(lr=1e-3):
         for param in model.parameters():
             assert param.grad is not None
             assert param.grad.shape == param.shape
-            # print(param.shape, param.grad.shape)
             param.data -= param.grad.data * lr
-            # .sum(0)
             param.grad = None
 
         print(i, loss.data.item(), mse_loss.data.item(), w_loss.data.item())
-        # print([x.data.round(6).item() for x in model.parameters()])
-
-    # losses = losses[100:]
 
     import matplotlib.pyplot as plt
 
@@ -325,8 +300,6 @@ def print_tensors(*args):
     names = "abcdefghijklmnopqrstuvwxyz"[: len(args)]
 
     for name, tensor in zip(names, args):
-        # print(f"{name} = {tensor}")
-
         import torch
 
         if isinstance(tensor, torch.Tensor):
@@ -368,7 +341,6 @@ def run_quick_test():
 
 
 def main():
-    # run_quick_test()
     train()
 
 
