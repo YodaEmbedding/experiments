@@ -43,7 +43,7 @@ class Tensor:
             return
 
         if self.grad is None:
-            self.grad = Tensor(1)
+            self.grad = Tensor(np.ones_like(self.data))
 
         assert self.ctx is not None
         grad_tensors = self.creator.backward(self.ctx, self.grad)
@@ -54,7 +54,7 @@ class Tensor:
             if parent.grad is None:
                 parent.grad = Tensor(grad_tensor.data.copy())
             else:
-                parent.grad.data += grad_tensor.data
+                parent.grad.data += grad_tensor.sum_to_shape(parent.shape).data
 
     @staticmethod
     def _backward_tensors(tensor: Tensor):
@@ -112,6 +112,16 @@ class Tensor:
 
     def relu(self):
         return self._run_forward_op(ReLU)
+
+    def sum_to_shape(self, shape: Tuple[int, ...]) -> Tensor:
+        """Reduces a broadcasted tensor back down to the input shape."""
+        padded_shape = (1,) * (self.data.ndim - len(shape)) + shape
+        axes = tuple(
+            i
+            for i, (s, d) in enumerate(zip(padded_shape, self.shape))
+            if s == 1 and d != 1
+        )
+        return Tensor(self.data.sum(axis=axes, keepdims=True).reshape(shape))
 
 
 class Context:
