@@ -7,10 +7,10 @@ import numpy as np
 
 class Tensor:
     data: np.ndarray
-    grad: Tensor
-    creator: Type[Function]
+    grad: Tensor | None
+    creator: Type[Function] | None
     parents: Tuple[Tensor, ...]
-    ctx: Context
+    ctx: Context | None
 
     def __init__(self, data):
         self.data = np.asanyarray(data)
@@ -30,8 +30,12 @@ class Tensor:
         grad_fn_repr = self.creator.__name__ if self.creator else None
         return f"Tensor({data_repr}, grad_fn={grad_fn_repr})"
 
+    @property
+    def shape(self):
+        return self.data.shape
+
     def backward(self):
-        for tensor in self._backwards_tensors(self):
+        for tensor in self._backward_tensors(self):
             tensor._backward_visit()
 
     def _backward_visit(self):
@@ -44,6 +48,7 @@ class Tensor:
         # print(f"* {self}\n  _.grad == None\n  _.grad = {self.grad.data}\n")
         # _prefix = "    "
 
+        assert self.ctx is not None
         grad_tensors = self.creator.backward(self.ctx, self.grad)
 
         for parent, grad_tensor in zip(self.parents, grad_tensors):
@@ -67,7 +72,7 @@ class Tensor:
                 # )
 
     @staticmethod
-    def _backwards_tensors(tensor: Tensor):
+    def _backward_tensors(tensor: Tensor):
         """Reversed topological sort for reverse-mode autodiff."""
         visited = set()
         tensors = []
@@ -85,7 +90,7 @@ class Tensor:
 
     def _run_forward_op(self, creator: Type[Function], *args) -> Tensor:
         args = [arg if isinstance(arg, Tensor) else Tensor(arg) for arg in args]
-        parents = [self, *args]
+        parents = (self, *args)
         ctx = Context()
         tensor = creator.forward(ctx, *parents)
         tensor.creator = creator
@@ -134,11 +139,11 @@ class Context:
 
 class Function:
     @staticmethod
-    def forward(ctx: Context, *args: Tensor) -> Tensor:
+    def forward(ctx: Context, *args, **kwargs) -> Tensor:
         raise NotImplementedError
 
     @staticmethod
-    def backward(ctx: Context, *args: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, *args, **kwargs) -> Tuple[Tensor | None, ...]:
         raise NotImplementedError
 
 
@@ -148,7 +153,7 @@ class Neg(Function):
         return Tensor(-x.data)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, grad_output: Tensor):
         return (-grad_output,)
 
 
@@ -158,7 +163,7 @@ class Add(Function):
         return Tensor(x.data + y.data)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, grad_output: Tensor):
         return grad_output, grad_output
 
 
@@ -168,7 +173,7 @@ class Sub(Function):
         return Tensor(x.data - y.data)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, grad_output: Tensor):
         return grad_output, -grad_output
 
 
@@ -179,7 +184,7 @@ class Mul(Function):
         return Tensor(x.data * y.data)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, grad_output: Tensor):
         x, y = ctx.saved_tensors
         return grad_output * y, grad_output * x
 
@@ -191,7 +196,7 @@ class PowConst(Function):
         return Tensor(x.data**const.data)
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, grad_output: Tensor):
         x, const = ctx.saved_tensors
         return grad_output * const * x ** (const - 1), None
 
@@ -203,7 +208,7 @@ class Dot(Function):
         return Tensor(x.data.dot(y.data))
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, grad_output: Tensor):
         x, y = ctx.saved_tensors
         return grad_output * y, grad_output * x
 
@@ -215,7 +220,7 @@ class Sin(Function):
         return Tensor(np.sin(x.data))
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, grad_output: Tensor):
         (x,) = ctx.saved_tensors
         return (grad_output * x.cos(),)
 
@@ -227,7 +232,7 @@ class Cos(Function):
         return Tensor(np.cos(x.data))
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, grad_output: Tensor):
         (x,) = ctx.saved_tensors
         return (grad_output * -x.sin(),)
 
@@ -239,7 +244,7 @@ class Sum(Function):
         return Tensor(np.sum(x.data))
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, grad_output: Tensor):
         (x,) = ctx.saved_tensors
         return (grad_output * np.ones_like(x.data),)
 
@@ -251,7 +256,7 @@ class ReLU(Function):
         return Tensor(np.maximum(0, x.data))
 
     @staticmethod
-    def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, ...]:
+    def backward(ctx: Context, grad_output: Tensor):
         (x,) = ctx.saved_tensors
         return (grad_output * (x.data > 0),)
 
@@ -271,8 +276,8 @@ class Model:
     def __call__(self, *args):
         return self.forward(*args)
 
-    def forward(self, x):
-        # print(x.data.shape)
+    def forward(self, x: Tensor) -> Tensor:
+        # print(x.shape)
         a = x**2
         b = (self.w1 * a + self.w3).relu()
         c = (self.w2 * a + self.w3).relu()
@@ -298,7 +303,9 @@ def train(lr=1e-3):
         losses.append(mse_loss.data.item())
 
         for param in model.parameters():
-            # print(param.data.shape, param.grad.data.shape)
+            assert param.grad is not None
+            assert param.grad.shape == param.shape
+            # print(param.shape, param.grad.shape)
             param.data -= param.grad.data * lr
             # .sum(0)
             param.grad = None
@@ -310,8 +317,7 @@ def train(lr=1e-3):
 
     import matplotlib.pyplot as plt
 
-    fig, ax = plt.subplots()
-    ax.plot(losses)
+    plt.plot(losses)
     plt.show()
 
 
