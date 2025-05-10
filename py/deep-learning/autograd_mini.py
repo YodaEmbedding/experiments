@@ -305,16 +305,28 @@ class Dataset:
             yield x, y
 
 
-def train(lr=1e-3):
-    loader = iter(Dataset())
+class Dataloader:
+    def __init__(self, dataset: Dataset, batch_size: int = 1):
+        self.dataset = dataset
+        self.batch_size = batch_size
+
+    def __iter__(self):
+        it = iter(self.dataset)
+        while True:
+            samples = (next(it) for _ in range(self.batch_size))
+            yield tuple(Tensor(np.stack(xs)) for xs in zip(*samples))
+
+
+def train(*, num_iters=100, lr=1e-2, batch_size=1024):
+    loader = iter(Dataloader(Dataset(), batch_size=batch_size))
     model = Model()
     losses = []
 
-    for i in range(5000):
+    for i in range(num_iters):
         x, y = next(loader)
         y_hat = model(x)
 
-        mse_loss = ((y - y_hat) ** 2).sum()
+        mse_loss = ((y - y_hat) ** 2).sum() * (1 / y.shape[0])
         w_loss = sum(((w**2).sum() for w in model.parameters()), start=Tensor(0))
         loss = mse_loss + w_loss * 0.1
         loss.backward()
