@@ -409,7 +409,7 @@ class StreamBuffer:
     Not thread-safe (i.e., not safe to read and write concurrently).
     """
 
-    def __init__(self, *, min_size=1024):
+    def __init__(self, *, min_size=1024) -> None:
         self._buf = BytesIO()
         self._min_size = min_size
         self._size = 0
@@ -426,8 +426,15 @@ class StreamBuffer:
         return self._used
 
     def read(self, size: Optional[int] = None) -> bytes:
+        return self._read(size)
+
+    def peek(self, size: Optional[int] = None) -> bytes:
+        return self._read(size, peek=True)
+
+    def _read(self, size: Optional[int] = None, peek: bool = False) -> bytes:
         if size is None or size > self._used:
             size = self._used
+            assert size is not None
 
         if size < 0:
             raise ValueError("Read size must be non-negative")
@@ -435,26 +442,25 @@ class StreamBuffer:
         end = self._buf.tell()
         self._buf.seek(self._start)
         result = self._buf.read(size)
-        self._start += len(result)
         remaining = size - len(result)
-
         if remaining > 0:
             self._buf.seek(0)
             result += self._buf.read(remaining)
-            self._start = remaining
-
         self._buf.seek(end)
-        self._used -= size
 
-        # For extra performance, jump to the start if the buffer is empty.
-        if self._used == 0:
-            self._buf.seek(0)
-            self._start = 0
+        if not peek and size > 0:
+            self._start = (self._start + size) % self._size
+            self._used -= size
 
         return result
 
     def write(self, data: bytes) -> None:
         size_needed = max(self._min_size, self._used + len(data))
+
+        # For extra performance, jump to the start if the buffer is empty.
+        if self._used == 0:
+            self._start = 0
+            self._buf.seek(0)
 
         if self._size < size_needed:
             size_new = 2 ** math.ceil(math.log2(size_needed))
@@ -474,12 +480,13 @@ class StreamBuffer:
         if size <= self._size:
             return
 
-        data = self.read()
-        self._buf.seek(0)
-        self._buf.write(data)
-        self._start = 0
+        if self._start > 0:
+            data = self.peek()
+            self._start = 0
+            self._buf.seek(0)
+            self._buf.write(data)
+
         self._size = size
-        self._used = len(data)
 
     def close(self) -> None:
         self._buf.close()
@@ -487,7 +494,7 @@ class StreamBuffer:
         self._used = 0
         self._start = 0
 
-    def flush(self):
+    def flush(self) -> None:
         pass
 
 
