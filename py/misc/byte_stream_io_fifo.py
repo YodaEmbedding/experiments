@@ -496,6 +496,56 @@ class StreamBuffer:
         pass
 
 
+class NaiveStreamBuffer:
+    """Uses slow remove-from-beginning approach."""
+
+    def __init__(self, *, min_size=1024) -> None:
+        self._buf = bytearray()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def __len__(self):
+        return len(self._buf)
+
+    def read(self, size: Optional[int] = None) -> bytes:
+        return self._read(size)
+
+    def peek(self, size: Optional[int] = None) -> bytes:
+        return self._read(size, peek=True)
+
+    def _read(self, size: Optional[int] = None, peek: bool = False) -> bytes:
+        if size is None or size > len(self._buf):
+            size = len(self._buf)
+            assert size is not None
+
+        if size < 0:
+            raise ValueError("Read size must be non-negative")
+
+        result = bytes(self._buf[:size])
+
+        if not peek and size > 0:
+            del self._buf[:size]
+
+        return result
+
+    def write(self, data: bytes) -> None:
+        self._buf.extend(data)
+
+    def resize(self, size: int) -> None:
+        pass
+
+    def close(self) -> None:
+        self._buf.clear()
+        self._buf = bytearray()
+
+    def flush(self) -> None:
+        pass
+
+
 def test(stream):
     k1 = 100
     k2 = 100
