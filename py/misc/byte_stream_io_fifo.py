@@ -496,6 +496,102 @@ class StreamBuffer:
         pass
 
 
+class BytearrayStreamBuffer:
+    """Buffer that can be read from and written to.
+
+    Not thread-safe (i.e., not safe to read and write concurrently).
+    """
+
+    def __init__(self, *, min_size=1024) -> None:
+        self._buf = bytearray()
+        self._size = min_size
+        self._used = 0
+        self._start = 0
+        self._end = 0
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def __len__(self):
+        return self._used
+
+    def read(self, size: Optional[int] = None) -> bytes:
+        return self._read(size)
+
+    def peek(self, size: Optional[int] = None) -> bytes:
+        return self._read(size, peek=True)
+
+    def _read(self, size: Optional[int] = None, peek: bool = False) -> bytes:
+        if size is None or size > self._used:
+            size = self._used
+            assert size is not None
+
+        if size < 0:
+            raise ValueError("Read size must be non-negative")
+
+        result = self._buf[self._start : self._start + size]
+        result += self._buf[: size - len(result)]
+        result = bytes(result)
+
+        if not peek and size > 0:
+            self._start = (self._start + size) % self._size
+            self._used -= size
+
+        return result
+
+    def write(self, data: bytes) -> None:
+        if len(data) == 0:
+            return
+
+        # For extra performance, jump to the start if the buffer is empty.
+        if self._used == 0:
+            self._start = 0
+            self._end = 0
+
+        size_needed = self._used + len(data)
+
+        if self._size < size_needed:
+            self.resize(1 << math.ceil(math.log2(size_needed)))
+
+        data_view = memoryview(data)
+        chunk_a = data_view[: self._size - self._end]
+        chunk_b = data_view[len(chunk_a) :]
+        chunk_a0 = chunk_a[: len(self._buf) - self._end]
+        chunk_a1 = chunk_a[len(chunk_a0) :]
+        self._buf[self._end : self._end + len(chunk_a0)] = chunk_a0
+        self._buf.extend(chunk_a1)
+        self._buf[: len(chunk_b)] = chunk_b
+
+        self._end = (self._end + len(data)) % self._size
+        self._used += len(data)
+
+    def resize(self, size: int) -> None:
+        if size <= self._size:
+            return
+
+        if self._start > 0:
+            data = self.peek()
+            self._start = 0
+            self._end = self._used
+            self._buf[self._start : self._end] = data
+
+        self._size = size
+
+    def close(self) -> None:
+        self._buf.clear()
+        self._buf = bytearray()
+        self._size = 0
+        self._used = 0
+        self._start = 0
+        self._end = 0
+
+    def flush(self) -> None:
+        pass
+
+
 class NaiveStreamBuffer:
     """Uses slow remove-from-beginning approach."""
 
