@@ -411,8 +411,7 @@ class StreamBuffer:
 
     def __init__(self, *, min_size=1024) -> None:
         self._buf = BytesIO()
-        self._min_size = min_size
-        self._size = 0
+        self._size = min_size
         self._used = 0
         self._start = 0
 
@@ -455,16 +454,15 @@ class StreamBuffer:
         return result
 
     def write(self, data: bytes) -> None:
-        size_needed = max(self._min_size, self._used + len(data))
-
         # For extra performance, jump to the start if the buffer is empty.
         if self._used == 0:
             self._start = 0
             self._buf.seek(0)
 
+        size_needed = self._used + len(data)
+
         if self._size < size_needed:
-            size_new = 2 ** math.ceil(math.log2(size_needed))
-            self.resize(size_new)
+            self.resize(1 << math.ceil(math.log2(size_needed)))
 
         len_a = self._size - self._buf.tell()
         len_b = len(data) - len_a
