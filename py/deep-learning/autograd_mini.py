@@ -73,11 +73,11 @@ class Tensor:
         dfs(tensor)
         return reversed(tensors)
 
-    def _run_forward_op(self, creator: Type[Function], *args) -> Tensor:
+    def _run_forward_op(self, creator: Type[Function], *args, **kwargs) -> Tensor:
         args = [arg if isinstance(arg, Tensor) else Tensor(arg) for arg in args]
         parents = (self, *args)
         ctx = Context()
-        tensor = creator.forward(ctx, *parents)
+        tensor = creator.forward(ctx, *parents, **kwargs)
         tensor.creator = creator
         tensor.parents = parents
         tensor.ctx = ctx
@@ -107,8 +107,8 @@ class Tensor:
     def dot(self, other):
         return self._run_forward_op(Dot, other)
 
-    def sum(self):
-        return self._run_forward_op(Sum)
+    def sum(self, axis=None, *, keepdims=False):
+        return self._run_forward_op(Sum, axis=axis, keepdims=keepdims)
 
     def relu(self):
         return self._run_forward_op(ReLU)
@@ -247,14 +247,21 @@ class Cos(Function):
 
 class Sum(Function):
     @staticmethod
-    def forward(ctx: Context, x: Tensor) -> Tensor:
+    def forward(ctx: Context, x: Tensor, axis=None, *, keepdims=False) -> Tensor:
         ctx.save_for_backward(x)
-        return Tensor(np.sum(x.data))
+        ctx.axis = axis  # type: ignore[attr-defined]
+        ctx.keepdims = keepdims  # type: ignore[attr-defined]
+        return Tensor(np.sum(x.data, axis=axis, keepdims=keepdims))
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor):
         [x] = ctx.saved_tensors
-        grad_x = grad_output * np.ones_like(x.data)
+        axis = ctx.axis  # type: ignore[attr-defined]
+        keepdims = ctx.keepdims  # type: ignore[attr-defined]
+        grad_x = grad_output.data
+        if axis is not None and not keepdims:  # type: ignore[attr-defined]
+            grad_x = np.expand_dims(grad_x, axis=axis)  # type: ignore[attr-defined]
+        grad_x = Tensor(np.broadcast_to(grad_x, x.shape))
         return (grad_x,)
 
 
