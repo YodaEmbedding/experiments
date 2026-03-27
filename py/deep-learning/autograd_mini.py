@@ -272,11 +272,11 @@ class ReLU(Function):
 
 
 class Model:
-    def __init__(self, *, ch_hidden=16, seed=42):
+    def __init__(self, *, ch_hidden=1, seed=42):
         rng = np.random.RandomState(seed=seed)
-        self.w1 = Tensor(rng.randn(ch_hidden) / ch_hidden)
-        self.w2 = Tensor(rng.randn(ch_hidden) / ch_hidden)
-        self.w3 = Tensor(rng.randn(ch_hidden) / ch_hidden)
+        self.w1 = Tensor(rng.randn(1, ch_hidden) / ch_hidden)
+        self.w2 = Tensor(rng.randn(1, ch_hidden) / ch_hidden)
+        self.w3 = Tensor(rng.randn(1, ch_hidden) / ch_hidden)
 
     def parameters(self):
         return [self.w1, self.w2, self.w3]
