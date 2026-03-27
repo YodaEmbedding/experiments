@@ -296,7 +296,8 @@ class Model:
         b = (self.w1 * a + self.w3).relu()
         c = (self.w2 * a + self.w3).relu()
         d = b + c
-        y_hat = d.sin() * 4
+        e = d.sin() * 4
+        y_hat = e.sum(axis=1, keepdims=True) * (1 / e.shape[1])
         return y_hat
 
 
