@@ -4,7 +4,14 @@ import itertools
 import re
 import subprocess
 import sys
-from types import SimpleNamespace
+from dataclasses import dataclass
+
+
+@dataclass
+class CommitRecord:
+    commit_hash: str | None = None
+    commit_date: datetime.datetime | None = None
+    sign_date: datetime.datetime | None = None
 
 
 def parse_git_log(lines):
@@ -13,7 +20,7 @@ def parse_git_log(lines):
         if m := re.match(r"^commit (?P<commit_hash>[0-9a-f]{7,40})$", line):
             if d:
                 yield d
-            d = SimpleNamespace(commit_hash=None, commit_date=None, sign_date=None)
+            d = CommitRecord()
             d.commit_hash = m.group("commit_hash")
         elif d is None:
             pass
@@ -62,10 +69,9 @@ def main():
     date_fmt = "%Y-%m-%d %H:%M:%S"
     errors = []
 
-    sentinel = object()
-
-    for newer, older in itertools.pairwise(itertools.chain(records, [sentinel])):
-        assert isinstance(newer, SimpleNamespace)
+    for newer, older in itertools.pairwise(itertools.chain(records, [None])):
+        assert isinstance(newer, CommitRecord)
+        assert older is None or isinstance(older, CommitRecord)
         error = False
 
         if (
@@ -78,8 +84,7 @@ def main():
             errors.append(msg)
 
         if (
-            older is not sentinel
-            and isinstance(older, SimpleNamespace)  # Always True.
+            older is not None
             and newer.sign_date
             and older.sign_date
             and newer.sign_date < older.sign_date
