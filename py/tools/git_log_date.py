@@ -62,23 +62,33 @@ def main():
     date_fmt = "%Y-%m-%d %H:%M:%S"
     errors = []
 
-    for x, y in itertools.pairwise(records):
+    for newer, older in itertools.pairwise(records):
         error = False
 
-        if x.sign_date and x.commit_date and x.sign_date < x.commit_date:
-            msg = f"[sign_date < commit_date] {x.commit_hash}"
+        if (
+            newer.sign_date
+            and newer.commit_date
+            and newer.sign_date < newer.commit_date
+        ):
+            msg = f"[sign_date < commit_date] {newer.commit_hash}"
             error = True
             errors.append(msg)
 
-        if x.sign_date and y.sign_date and x.sign_date < y.sign_date:
-            msg = f"[sign_date non-monotonic] {x.commit_hash} -> {y.commit_hash}"
+        if newer.sign_date and older.sign_date and newer.sign_date < older.sign_date:
+            msg = (
+                f"[sign_date non-monotonic] {newer.commit_hash} -> {older.commit_hash}"
+            )
             error = True
             errors.append(msg)
 
         friendly = {
-            "commit_hash": x.commit_hash,
-            "commit_date": x.commit_date.strftime(date_fmt) if x.commit_date else None,
-            "sign_date": x.sign_date.strftime(date_fmt) if x.sign_date else None,
+            "commit_hash": newer.commit_hash,
+            "commit_date": newer.commit_date.strftime(date_fmt)
+            if newer.commit_date
+            else None,
+            "sign_date": newer.sign_date.strftime(date_fmt)
+            if newer.sign_date
+            else None,
         }
         print(f"{friendly}" if not error else f"\033[91m{friendly}\033[0m")
 
