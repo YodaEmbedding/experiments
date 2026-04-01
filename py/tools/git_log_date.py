@@ -27,11 +27,11 @@ def parse_git_log(lines):
         elif m := re.match(r"^gpg: Signature made (?P<sign_date>.*)$", line):
             d.sign_date = datetime.datetime.strptime(
                 m.group("sign_date"), "%a %b %d %H:%M:%S %Y %Z"
-            ).replace(tzinfo=None)
+            ).astimezone(datetime.timezone.utc)
         elif m := re.match(r"^Date:\s+(?P<commit_date>.*)$", line):
             d.commit_date = datetime.datetime.strptime(
                 m.group("commit_date"), "%a %b %d %H:%M:%S %Y %z"
-            ).replace(tzinfo=None)
+            ).astimezone(datetime.timezone.utc)
     if d:
         yield d
 
@@ -95,12 +95,14 @@ def main():
             error = True
             errors.append(msg)
 
+        display_tz = datetime.datetime.now().astimezone().tzinfo
+
         friendly = {
             "commit_hash": newer.commit_hash,
-            "commit_date": newer.commit_date.strftime(date_fmt)
+            "commit_date": newer.commit_date.astimezone(display_tz).strftime(date_fmt)
             if newer.commit_date
             else None,
-            "sign_date": newer.sign_date.strftime(date_fmt)
+            "sign_date": newer.sign_date.astimezone(display_tz).strftime(date_fmt)
             if newer.sign_date
             else None,
         }
