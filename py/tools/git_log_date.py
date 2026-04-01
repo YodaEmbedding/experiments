@@ -62,7 +62,10 @@ def main():
     date_fmt = "%Y-%m-%d %H:%M:%S"
     errors = []
 
-    for newer, older in itertools.pairwise(records):
+    sentinel = object()
+
+    for newer, older in itertools.pairwise(itertools.chain(records, [sentinel])):
+        assert isinstance(newer, SimpleNamespace)
         error = False
 
         if (
@@ -74,7 +77,13 @@ def main():
             error = True
             errors.append(msg)
 
-        if newer.sign_date and older.sign_date and newer.sign_date < older.sign_date:
+        if (
+            older is not sentinel
+            and isinstance(older, SimpleNamespace)  # Always True.
+            and newer.sign_date
+            and older.sign_date
+            and newer.sign_date < older.sign_date
+        ):
             msg = (
                 f"[sign_date non-monotonic] {newer.commit_hash} -> {older.commit_hash}"
             )
